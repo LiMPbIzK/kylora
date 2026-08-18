@@ -2,55 +2,112 @@
   "@@locale": "en",
   "appTitle": "Kylora",
   "@appTitle": {
-    "description": "Application title shown in the window and launcher."
+    "description": "Title of the application shown in the window and launcher."
   },
   "loginTitle": "Connect to IPTV",
   "@loginTitle": {
-    "description": "Title of the login screen."
+    "description": "Title of the sign-in screen."
   },
   "serverUrl": "Server URL",
   "@serverUrl": {
-    "description": "Label for the Xtream server URL field."
+    "description": "Label of the Xtream server URL field."
   },
   "username": "Username",
   "@username": {
-    "description": "Label for the username field."
+    "description": "Label of the username field."
   },
   "password": "Password",
   "@password": {
-    "description": "Label for the password field."
+    "description": "Label of the password field."
   },
   "loginButton": "Sign In",
   "@loginButton": {
     "description": "Button to authenticate with the Xtream provider."
   },
+  "loginErrorInvalidCredentials": "Invalid URL or credentials",
+  "@loginErrorInvalidCredentials": {
+    "description": "Shown when the Xtream server rejects the URL or credentials."
+  },
+  "loginErrorNetwork": "Could not connect to the server. Check the URL and your connection.",
+  "@loginErrorNetwork": {
+    "description": "Shown when the server is unreachable."
+  },
+  "loginErrorUnknown": "Unexpected error. Try again.",
+  "@loginErrorUnknown": {
+    "description": "Shown when an unexpected error occurs during sign-in."
+  },
+  "validationRequired": "This field is required",
+  "@validationRequired": {
+    "description": "Validation message for an empty required field."
+  },
+  "validationInvalidUrl": "Enter a valid URL (e.g. http://server:8080)",
+  "@validationInvalidUrl": {
+    "description": "Validation message for a malformed server URL."
+  },
+  "signOut": "Sign out",
+  "@signOut": {
+    "description": "Button to close the current session."
+  },
+  "accountStatus": "Account status",
+  "@accountStatus": {
+    "description": "Section label showing the account state."
+  },
+  "accountActive": "Active",
+  "@accountActive": {
+    "description": "Status text when the account is active."
+  },
+  "accountExpired": "Expired",
+  "@accountExpired": {
+    "description": "Status text when the account is expired."
+  },
+  "accountExpiresOn": "Expires on {date}",
+  "@accountExpiresOn": {
+    "description": "Expiration date of the account. {date} is a formatted date.",
+    "placeholders": {
+      "date": {
+        "type": "String"
+      }
+    }
+  },
+  "accountConnections": "Connections: {active}/{max}",
+  "@accountConnections": {
+    "description": "Active and maximum connections. {active} and {max} are numbers.",
+    "placeholders": {
+      "active": {
+        "type": "String"
+      },
+      "max": {
+        "type": "String"
+      }
+    }
+  },
   "liveTv": "Live TV",
   "@liveTv": {
-    "description": "Dashboard section for live channels."
+    "description": "Panel section for live channels."
   },
   "movies": "Movies",
   "@movies": {
-    "description": "Dashboard section for VOD movies."
+    "description": "Panel section for VOD movies."
   },
   "series": "Series",
   "@series": {
-    "description": "Dashboard section for series."
+    "description": "Panel section for series."
   },
   "favorites": "Favorites",
   "@favorites": {
-    "description": "Dashboard section for favorite content."
+    "description": "Panel section for favorite content."
   },
   "settings": "Settings",
   "@settings": {
-    "description": "Dashboard section for application settings."
+    "description": "Panel section for application settings."
   },
-  "epgNoProgram": "No program information available",
+  "epgNoProgram": "No program information",
   "@epgNoProgram": {
-    "description": "Shown when no EPG program is available for a channel."
+    "description": "Shown when no EPG information is available for a channel."
   },
   "searchPlaceholder": "Search channels, movies...",
   "@searchPlaceholder": {
-    "description": "Placeholder for the search field."
+    "description": "Placeholder text of the search field."
   },
   "audioTrack": "Audio Track",
   "@audioTrack": {
@@ -66,6 +123,6 @@
   },
   "language": "Language",
   "@language": {
-    "description": "Label for the language selector."
+    "description": "Label of the language selector."
   }
 }

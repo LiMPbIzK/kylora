@@ -28,6 +28,45 @@ class AppLocalizationsEn extends AppLocalizations {
   String get loginButton => 'Sign In';
 
   @override
+  String get loginErrorInvalidCredentials => 'Invalid URL or credentials';
+
+  @override
+  String get loginErrorNetwork =>
+      'Could not connect to the server. Check the URL and your connection.';
+
+  @override
+  String get loginErrorUnknown => 'Unexpected error. Try again.';
+
+  @override
+  String get validationRequired => 'This field is required';
+
+  @override
+  String get validationInvalidUrl =>
+      'Enter a valid URL (e.g. http://server:8080)';
+
+  @override
+  String get signOut => 'Sign out';
+
+  @override
+  String get accountStatus => 'Account status';
+
+  @override
+  String get accountActive => 'Active';
+
+  @override
+  String get accountExpired => 'Expired';
+
+  @override
+  String accountExpiresOn(String date) {
+    return 'Expires on $date';
+  }
+
+  @override
+  String accountConnections(String active, String max) {
+    return 'Connections: $active/$max';
+  }
+
+  @override
   String get liveTv => 'Live TV';
 
   @override
@@ -43,7 +82,7 @@ class AppLocalizationsEn extends AppLocalizations {
   String get settings => 'Settings';
 
   @override
-  String get epgNoProgram => 'No program information available';
+  String get epgNoProgram => 'No program information';
 
   @override
   String get searchPlaceholder => 'Search channels, movies...';

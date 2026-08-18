@@ -28,6 +28,45 @@ class AppLocalizationsEs extends AppLocalizations {
   String get loginButton => 'Iniciar Sesión';
 
   @override
+  String get loginErrorInvalidCredentials => 'URL o credenciales no válidas';
+
+  @override
+  String get loginErrorNetwork =>
+      'No se pudo conectar con el servidor. Revisa la URL y tu conexión.';
+
+  @override
+  String get loginErrorUnknown => 'Error inesperado. Inténtalo de nuevo.';
+
+  @override
+  String get validationRequired => 'Este campo es obligatorio';
+
+  @override
+  String get validationInvalidUrl =>
+      'Introduce una URL válida (ej. http://servidor:8080)';
+
+  @override
+  String get signOut => 'Cerrar Sesión';
+
+  @override
+  String get accountStatus => 'Estado de la cuenta';
+
+  @override
+  String get accountActive => 'Activa';
+
+  @override
+  String get accountExpired => 'Caducada';
+
+  @override
+  String accountExpiresOn(String date) {
+    return 'Caduca el $date';
+  }
+
+  @override
+  String accountConnections(String active, String max) {
+    return 'Conexiones: $active/$max';
+  }
+
+  @override
   String get liveTv => 'Televisión en Directo';
 
   @override

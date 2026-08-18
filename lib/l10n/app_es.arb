@@ -24,6 +24,63 @@
   "@loginButton": {
     "description": "Botón para autenticarse con el proveedor Xtream."
   },
+  "loginErrorInvalidCredentials": "URL o credenciales no válidas",
+  "@loginErrorInvalidCredentials": {
+    "description": "Se muestra cuando el servidor Xtream rechaza la URL o las credenciales."
+  },
+  "loginErrorNetwork": "No se pudo conectar con el servidor. Revisa la URL y tu conexión.",
+  "@loginErrorNetwork": {
+    "description": "Se muestra cuando el servidor es inalcanzable."
+  },
+  "loginErrorUnknown": "Error inesperado. Inténtalo de nuevo.",
+  "@loginErrorUnknown": {
+    "description": "Se muestra cuando ocurre un error inesperado al iniciar sesión."
+  },
+  "validationRequired": "Este campo es obligatorio",
+  "@validationRequired": {
+    "description": "Mensaje de validación para un campo obligatorio vacío."
+  },
+  "validationInvalidUrl": "Introduce una URL válida (ej. http://servidor:8080)",
+  "@validationInvalidUrl": {
+    "description": "Mensaje de validación para una URL de servidor mal formada."
+  },
+  "signOut": "Cerrar Sesión",
+  "@signOut": {
+    "description": "Botón para cerrar la sesión actual."
+  },
+  "accountStatus": "Estado de la cuenta",
+  "@accountStatus": {
+    "description": "Etiqueta de la sección que muestra el estado de la cuenta."
+  },
+  "accountActive": "Activa",
+  "@accountActive": {
+    "description": "Texto de estado cuando la cuenta está activa."
+  },
+  "accountExpired": "Caducada",
+  "@accountExpired": {
+    "description": "Texto de estado cuando la cuenta ha caducado."
+  },
+  "accountExpiresOn": "Caduca el {date}",
+  "@accountExpiresOn": {
+    "description": "Fecha de caducidad de la cuenta. {date} es una fecha formateada.",
+    "placeholders": {
+      "date": {
+        "type": "String"
+      }
+    }
+  },
+  "accountConnections": "Conexiones: {active}/{max}",
+  "@accountConnections": {
+    "description": "Conexiones activas y máximas. {active} y {max} son números.",
+    "placeholders": {
+      "active": {
+        "type": "String"
+      },
+      "max": {
+        "type": "String"
+      }
+    }
+  },
   "liveTv": "Televisión en Directo",
   "@liveTv": {
     "description": "Sección del panel para canales en directo."

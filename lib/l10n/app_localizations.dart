@@ -98,31 +98,31 @@ abstract class AppLocalizations {
     Locale('es'),
   ];
 
-  /// Application title shown in the window and launcher.
+  /// Title of the application shown in the window and launcher.
   ///
   /// In en, this message translates to:
   /// **'Kylora'**
   String get appTitle;
 
-  /// Title of the login screen.
+  /// Title of the sign-in screen.
   ///
   /// In en, this message translates to:
   /// **'Connect to IPTV'**
   String get loginTitle;
 
-  /// Label for the Xtream server URL field.
+  /// Label of the Xtream server URL field.
   ///
   /// In en, this message translates to:
   /// **'Server URL'**
   String get serverUrl;
 
-  /// Label for the username field.
+  /// Label of the username field.
   ///
   /// In en, this message translates to:
   /// **'Username'**
   String get username;
 
-  /// Label for the password field.
+  /// Label of the password field.
   ///
   /// In en, this message translates to:
   /// **'Password'**
@@ -134,43 +134,109 @@ abstract class AppLocalizations {
   /// **'Sign In'**
   String get loginButton;
 
-  /// Dashboard section for live channels.
+  /// Shown when the Xtream server rejects the URL or credentials.
+  ///
+  /// In en, this message translates to:
+  /// **'Invalid URL or credentials'**
+  String get loginErrorInvalidCredentials;
+
+  /// Shown when the server is unreachable.
+  ///
+  /// In en, this message translates to:
+  /// **'Could not connect to the server. Check the URL and your connection.'**
+  String get loginErrorNetwork;
+
+  /// Shown when an unexpected error occurs during sign-in.
+  ///
+  /// In en, this message translates to:
+  /// **'Unexpected error. Try again.'**
+  String get loginErrorUnknown;
+
+  /// Validation message for an empty required field.
+  ///
+  /// In en, this message translates to:
+  /// **'This field is required'**
+  String get validationRequired;
+
+  /// Validation message for a malformed server URL.
+  ///
+  /// In en, this message translates to:
+  /// **'Enter a valid URL (e.g. http://server:8080)'**
+  String get validationInvalidUrl;
+
+  /// Button to close the current session.
+  ///
+  /// In en, this message translates to:
+  /// **'Sign out'**
+  String get signOut;
+
+  /// Section label showing the account state.
+  ///
+  /// In en, this message translates to:
+  /// **'Account status'**
+  String get accountStatus;
+
+  /// Status text when the account is active.
+  ///
+  /// In en, this message translates to:
+  /// **'Active'**
+  String get accountActive;
+
+  /// Status text when the account is expired.
+  ///
+  /// In en, this message translates to:
+  /// **'Expired'**
+  String get accountExpired;
+
+  /// Expiration date of the account. {date} is a formatted date.
+  ///
+  /// In en, this message translates to:
+  /// **'Expires on {date}'**
+  String accountExpiresOn(String date);
+
+  /// Active and maximum connections. {active} and {max} are numbers.
+  ///
+  /// In en, this message translates to:
+  /// **'Connections: {active}/{max}'**
+  String accountConnections(String active, String max);
+
+  /// Panel section for live channels.
   ///
   /// In en, this message translates to:
   /// **'Live TV'**
   String get liveTv;
 
-  /// Dashboard section for VOD movies.
+  /// Panel section for VOD movies.
   ///
   /// In en, this message translates to:
   /// **'Movies'**
   String get movies;
 
-  /// Dashboard section for series.
+  /// Panel section for series.
   ///
   /// In en, this message translates to:
   /// **'Series'**
   String get series;
 
-  /// Dashboard section for favorite content.
+  /// Panel section for favorite content.
   ///
   /// In en, this message translates to:
   /// **'Favorites'**
   String get favorites;
 
-  /// Dashboard section for application settings.
+  /// Panel section for application settings.
   ///
   /// In en, this message translates to:
   /// **'Settings'**
   String get settings;
 
-  /// Shown when no EPG program is available for a channel.
+  /// Shown when no EPG information is available for a channel.
   ///
   /// In en, this message translates to:
-  /// **'No program information available'**
+  /// **'No program information'**
   String get epgNoProgram;
 
-  /// Placeholder for the search field.
+  /// Placeholder text of the search field.
   ///
   /// In en, this message translates to:
   /// **'Search channels, movies...'**
@@ -194,7 +260,7 @@ abstract class AppLocalizations {
   /// **'Playback error. Retrying...'**
   String get streamError;
 
-  /// Label for the language selector.
+  /// Label of the language selector.
   ///
   /// In en, this message translates to:
   /// **'Language'**
