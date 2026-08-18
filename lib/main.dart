@@ -2,6 +2,7 @@ import 'package:dio/dio.dart';
 import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
+import 'package:media_kit/media_kit.dart';
 
 import 'app.dart';
 import 'core/constants/app_constants.dart';
@@ -16,6 +17,7 @@ import 'presentation/blocs/live/live_bloc.dart';
 
 void main() {
   WidgetsFlutterBinding.ensureInitialized();
+  MediaKit.ensureInitialized();
   Bloc.observer = const _KyloraBlocObserver();
 
   final Dio dio = Dio(
@@ -36,7 +38,9 @@ void main() {
   final AuthBloc authBloc = AuthBloc(repository)..add(const AuthStarted());
   final LiveBloc liveBloc = LiveBloc(repository);
 
-  runApp(KyloraApp(authBloc: authBloc, liveBloc: liveBloc));
+  runApp(
+    KyloraApp(authBloc: authBloc, liveBloc: liveBloc, repository: repository),
+  );
 }
 
 /// Observador global de Bloc para trazabilidad de eventos en desarrollo.

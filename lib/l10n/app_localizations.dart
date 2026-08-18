@@ -284,6 +284,24 @@ abstract class AppLocalizations {
   /// **'Playback error. Retrying...'**
   String get streamError;
 
+  /// Player label indicating the channel being played.
+  ///
+  /// In en, this message translates to:
+  /// **'Now playing'**
+  String get nowPlaying;
+
+  /// Player button to resume playback.
+  ///
+  /// In en, this message translates to:
+  /// **'Play'**
+  String get play;
+
+  /// Player button to pause playback.
+  ///
+  /// In en, this message translates to:
+  /// **'Pause'**
+  String get pause;
+
   /// Label of the language selector.
   ///
   /// In en, this message translates to:

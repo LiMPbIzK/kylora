@@ -137,6 +137,18 @@
   "@streamError": {
     "description": "Shown when playback fails and a retry is attempted."
   },
+  "nowPlaying": "Now playing",
+  "@nowPlaying": {
+    "description": "Player label indicating the channel being played."
+  },
+  "play": "Play",
+  "@play": {
+    "description": "Player button to resume playback."
+  },
+  "pause": "Pause",
+  "@pause": {
+    "description": "Player button to pause playback."
+  },
   "language": "Language",
   "@language": {
     "description": "Label of the language selector."

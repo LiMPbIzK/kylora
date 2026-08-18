@@ -80,6 +80,15 @@ class XtreamRepository implements IptvRepository {
   Future<void> logout() => _authStore.clear();
 
   @override
+  Future<String> buildStreamUrl(Channel channel) async {
+    final StoredCredentials credentials = await _requireCredentials();
+    return '${credentials.serverUrl}/live/'
+        '${Uri.encodeComponent(credentials.username)}/'
+        '${Uri.encodeComponent(credentials.password)}/'
+        '${channel.id}.ts';
+  }
+
+  @override
   Future<List<Category>> fetchLiveCategories() async {
     final List<Category> cached = await _cache.getCategories();
     if (cached.isNotEmpty) return cached;

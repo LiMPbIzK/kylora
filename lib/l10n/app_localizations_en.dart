@@ -110,5 +110,14 @@ class AppLocalizationsEn extends AppLocalizations {
   String get streamError => 'Playback error. Retrying...';
 
   @override
+  String get nowPlaying => 'Now playing';
+
+  @override
+  String get play => 'Play';
+
+  @override
+  String get pause => 'Pause';
+
+  @override
   String get language => 'Language';
 }

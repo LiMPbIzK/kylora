@@ -68,6 +68,11 @@ class _FakeRepository implements IptvRepository {
         .where((Channel channel) => channel.categoryId == categoryId)
         .toList();
   }
+
+  @override
+  Future<String> buildStreamUrl(Channel channel) async {
+    return 'http://server:8080/live/user/pass/${channel.id}.ts';
+  }
 }
 
 void main() {
@@ -80,7 +85,11 @@ void main() {
       ..storedAccount = stored;
     final AuthBloc bloc = AuthBloc(repository)..add(const AuthStarted());
     await tester.pumpWidget(
-      KyloraApp(authBloc: bloc, liveBloc: LiveBloc(repository)),
+      KyloraApp(
+        authBloc: bloc,
+        liveBloc: LiveBloc(repository),
+        repository: repository,
+      ),
     );
     if (seed != null) {
       for (final AuthEvent event in seed) {
@@ -226,6 +235,10 @@ class _FailingRepository implements IptvRepository {
 
   @override
   Future<List<Channel>> fetchLiveChannels({int? categoryId}) async =>
+      throw UnimplementedError();
+
+  @override
+  Future<String> buildStreamUrl(Channel channel) async =>
       throw UnimplementedError();
 }
 

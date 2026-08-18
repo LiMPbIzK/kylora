@@ -6,13 +6,17 @@ import 'package:flutter_localizations/flutter_localizations.dart';
 import 'package:go_router/go_router.dart';
 
 import 'core/theme/app_theme.dart';
+import 'domain/entities/channel.dart';
+import 'domain/repositories/iptv_repository.dart';
 import 'l10n/app_localizations.dart';
 import 'presentation/blocs/auth/auth_bloc.dart';
 import 'presentation/blocs/auth/auth_state.dart';
 import 'presentation/blocs/live/live_bloc.dart';
+import 'presentation/blocs/player/player_bloc.dart';
 import 'presentation/screens/auth/login_screen.dart';
 import 'presentation/screens/dashboard/dashboard_screen.dart';
 import 'presentation/screens/live/live_screen.dart';
+import 'presentation/screens/player/player_screen.dart';
 import 'presentation/screens/splash/splash_screen.dart';
 
 /// Configuración de navegación de la aplicación.
@@ -55,6 +59,16 @@ abstract final class AppRouter {
           path: Routes.live,
           builder: (context, state) => const LiveScreen(),
         ),
+        GoRoute(
+          path: Routes.play,
+          builder: (context, state) {
+            final Channel channel = state.extra! as Channel;
+            return PlayerScreen(
+              channel: channel,
+              bloc: PlayerBloc(context.read<IptvRepository>()),
+            );
+          },
+        ),
       ],
     );
   }
@@ -66,6 +80,7 @@ abstract final class Routes {
   static const String login = '/login';
   static const String dashboard = '/dashboard';
   static const String live = '/live';
+  static const String play = '/play';
 }
 
 /// Adapta el stream del bloc a un [Listenable] para `go_router`.
@@ -85,10 +100,16 @@ class GoRouterRefreshListenable extends ChangeNotifier {
 
 /// Raíz de la aplicación: configura idioma, tema y router.
 class KyloraApp extends StatelessWidget {
-  const KyloraApp({super.key, required this.authBloc, required this.liveBloc});
+  const KyloraApp({
+    super.key,
+    required this.authBloc,
+    required this.liveBloc,
+    required this.repository,
+  });
 
   final AuthBloc authBloc;
   final LiveBloc liveBloc;
+  final IptvRepository repository;
 
   @override
   Widget build(BuildContext context) {
@@ -97,23 +118,26 @@ class KyloraApp extends StatelessWidget {
         BlocProvider<AuthBloc>(create: (_) => authBloc),
         BlocProvider<LiveBloc>(create: (_) => liveBloc),
       ],
-      child: MaterialApp.router(
-        title: 'Kylora',
-        debugShowCheckedModeBanner: false,
-        theme: AppTheme.dark,
-        routerConfig: AppRouter.router(authBloc),
-        localizationsDelegates: const <LocalizationsDelegate<Object>>[
-          AppLocalizations.delegate,
-          GlobalMaterialLocalizations.delegate,
-          GlobalWidgetsLocalizations.delegate,
-          GlobalCupertinoLocalizations.delegate,
-        ],
-        supportedLocales: AppLocalizations.supportedLocales,
-        localeResolutionCallback:
-            (Locale? locale, Iterable<Locale> supportedLocales) {
-              // Detección automática del sistema; el usuario podrá cambiarlo en M9.
-              return null;
-            },
+      child: RepositoryProvider<IptvRepository>.value(
+        value: repository,
+        child: MaterialApp.router(
+          title: 'Kylora',
+          debugShowCheckedModeBanner: false,
+          theme: AppTheme.dark,
+          routerConfig: AppRouter.router(authBloc),
+          localizationsDelegates: const <LocalizationsDelegate<Object>>[
+            AppLocalizations.delegate,
+            GlobalMaterialLocalizations.delegate,
+            GlobalWidgetsLocalizations.delegate,
+            GlobalCupertinoLocalizations.delegate,
+          ],
+          supportedLocales: AppLocalizations.supportedLocales,
+          localeResolutionCallback:
+              (Locale? locale, Iterable<Locale> supportedLocales) {
+                // Detección automática del sistema; el usuario podrá cambiarlo en M9.
+                return null;
+              },
+        ),
       ),
     );
   }

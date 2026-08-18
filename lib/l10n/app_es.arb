@@ -137,6 +137,18 @@
   "@streamError": {
     "description": "Se muestra cuando falla la reproducción y se intenta de nuevo."
   },
+  "nowPlaying": "Reproduciendo",
+  "@nowPlaying": {
+    "description": "Etiqueta del reproductor que indica el canal en reproducción."
+  },
+  "play": "Reproducir",
+  "@play": {
+    "description": "Botón del reproductor para reanudar la reproducción."
+  },
+  "pause": "Pausar",
+  "@pause": {
+    "description": "Botón del reproductor para pausar la reproducción."
+  },
   "language": "Idioma",
   "@language": {
     "description": "Etiqueta del selector de idioma."

@@ -1,7 +1,9 @@
 import 'package:cached_network_image/cached_network_image.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
+import 'package:go_router/go_router.dart';
 
+import '../../../app.dart';
 import '../../../core/theme/app_theme.dart';
 import '../../../domain/entities/category.dart';
 import '../../../domain/entities/channel.dart';
@@ -148,9 +150,7 @@ class _ChannelTile extends StatelessWidget {
         Icons.chevron_right,
         color: AppColors.surfaceVariant,
       ),
-      onTap: () {
-        // La reproducción se integra en el Hito 3 (Reproductor).
-      },
+      onTap: () => context.push(Routes.play, extra: channel),
     );
   }
 }

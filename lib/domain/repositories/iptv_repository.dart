@@ -23,4 +23,7 @@ abstract interface class IptvRepository {
 
   /// Canales en directo. Si [categoryId] es nulo, devuelve todos los canales.
   Future<List<Channel>> fetchLiveChannels({int? categoryId});
+
+  /// Construye la URL de reproducción de un canal en directo.
+  Future<String> buildStreamUrl(Channel channel);
 }
