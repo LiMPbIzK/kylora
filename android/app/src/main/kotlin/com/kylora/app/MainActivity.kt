@@ -1,4 +1,4 @@
-package com.kylora.kylora
+package com.kylora.app
 
 import io.flutter.embedding.android.FlutterActivity
 
