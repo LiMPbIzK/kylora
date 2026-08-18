@@ -149,6 +149,34 @@
   "@pause": {
     "description": "Player button to pause playback."
   },
+  "vodLoadError": "Could not load the movie catalog. Check your connection and try again.",
+  "@vodLoadError": {
+    "description": "Error message when VOD movies fail to load."
+  },
+  "noMovies": "No movies in this category",
+  "@noMovies": {
+    "description": "Shown when the selected category has no movies."
+  },
+  "rating": "Rating",
+  "@rating": {
+    "description": "Label for content rating."
+  },
+  "seriesLoadError": "Could not load the series catalog. Check your connection and try again.",
+  "@seriesLoadError": {
+    "description": "Error message when series fail to load."
+  },
+  "noSeries": "No series in this category",
+  "@noSeries": {
+    "description": "Shown when the selected category has no series."
+  },
+  "seriesDetailLoadError": "Could not load the series episodes. Check your connection and try again.",
+  "@seriesDetailLoadError": {
+    "description": "Error message when a series detail fails to load."
+  },
+  "season": "Season",
+  "@season": {
+    "description": "Label for the season number of a series."
+  },
   "language": "Language",
   "@language": {
     "description": "Label of the language selector."

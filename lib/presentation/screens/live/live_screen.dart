@@ -7,10 +7,12 @@ import '../../../app.dart';
 import '../../../core/theme/app_theme.dart';
 import '../../../domain/entities/category.dart';
 import '../../../domain/entities/channel.dart';
+import '../../../domain/repositories/iptv_repository.dart';
 import '../../../l10n/app_localizations.dart';
 import '../../blocs/live/live_bloc.dart';
 import '../../blocs/live/live_event.dart';
 import '../../blocs/live/live_state.dart';
+import '../player/playback_request.dart';
 
 /// Catálogo de canales en directo con categorías y logos.
 class LiveScreen extends StatefulWidget {
@@ -150,7 +152,16 @@ class _ChannelTile extends StatelessWidget {
         Icons.chevron_right,
         color: AppColors.surfaceVariant,
       ),
-      onTap: () => context.push(Routes.play, extra: channel),
+      onTap: () {
+        final IptvRepository repository = context.read<IptvRepository>();
+        context.push(
+          Routes.play,
+          extra: PlaybackRequest(
+            title: channel.name,
+            urlBuilder: () => repository.buildStreamUrl(channel),
+          ),
+        );
+      },
     );
   }
 }

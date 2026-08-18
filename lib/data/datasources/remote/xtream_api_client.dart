@@ -2,8 +2,11 @@ import 'package:dio/dio.dart';
 
 import '../../../core/constants/app_constants.dart';
 import '../../models/xtream_category_dto.dart';
+import '../../models/xtream_series_dto.dart';
+import '../../models/xtream_series_info_dto.dart';
 import '../../models/xtream_stream_dto.dart';
 import '../../models/xtream_user_info_dto.dart';
+import '../../models/xtream_vod_stream_dto.dart';
 
 /// Respuesta de autenticación Xtream Codes.
 class XtreamAuthResponse {
@@ -104,6 +107,123 @@ class XtreamApiClient {
               XtreamStreamDto.fromJson(item as Map<String, dynamic>),
         )
         .toList();
+  }
+
+  /// Obtiene las categorías de películas (VOD).
+  Future<List<XtreamCategoryDto>> fetchVodCategories({
+    required String serverUrl,
+    required String username,
+    required String password,
+  }) async {
+    final dynamic data = await _getList(
+      serverUrl: serverUrl,
+      username: username,
+      password: password,
+      action: 'get_vod_categories',
+    );
+    return data
+        .map(
+          (dynamic item) =>
+              XtreamCategoryDto.fromJson(item as Map<String, dynamic>),
+        )
+        .toList();
+  }
+
+  /// Obtiene las películas (VOD), opcionalmente filtradas por categoría.
+  Future<List<XtreamVodStreamDto>> fetchVodStreams({
+    required String serverUrl,
+    required String username,
+    required String password,
+    int? categoryId,
+  }) async {
+    final dynamic data = await _getList(
+      serverUrl: serverUrl,
+      username: username,
+      password: password,
+      action: 'get_vod_streams',
+      extra: <String, String>{
+        if (categoryId != null) 'category_id': '$categoryId',
+      },
+    );
+    return data
+        .map(
+          (dynamic item) =>
+              XtreamVodStreamDto.fromJson(item as Map<String, dynamic>),
+        )
+        .toList();
+  }
+
+  /// Obtiene las categorías de series.
+  Future<List<XtreamCategoryDto>> fetchSeriesCategories({
+    required String serverUrl,
+    required String username,
+    required String password,
+  }) async {
+    final dynamic data = await _getList(
+      serverUrl: serverUrl,
+      username: username,
+      password: password,
+      action: 'get_series_categories',
+    );
+    return data
+        .map(
+          (dynamic item) =>
+              XtreamCategoryDto.fromJson(item as Map<String, dynamic>),
+        )
+        .toList();
+  }
+
+  /// Obtiene las series, opcionalmente filtradas por categoría.
+  Future<List<XtreamSeriesDto>> fetchSeries({
+    required String serverUrl,
+    required String username,
+    required String password,
+    int? categoryId,
+  }) async {
+    final dynamic data = await _getList(
+      serverUrl: serverUrl,
+      username: username,
+      password: password,
+      action: 'get_series',
+      extra: <String, String>{
+        if (categoryId != null) 'category_id': '$categoryId',
+      },
+    );
+    return data
+        .map(
+          (dynamic item) =>
+              XtreamSeriesDto.fromJson(item as Map<String, dynamic>),
+        )
+        .toList();
+  }
+
+  /// Obtiene la información detallada de una serie con sus temporadas.
+  Future<XtreamSeriesInfoDto> fetchSeriesInfo({
+    required String serverUrl,
+    required String username,
+    required String password,
+    required int seriesId,
+  }) async {
+    final Uri uri = Uri.parse(serverUrl).resolve(
+      '${AppConstants.xtreamAuthPath}'
+      '?username=${Uri.encodeQueryComponent(username)}'
+      '&password=${Uri.encodeQueryComponent(password)}'
+      '&action=get_series_info'
+      '&series_id=$seriesId',
+    );
+    try {
+      final Response<dynamic> response = await _dio.get<dynamic>(uri.toString());
+      if (response.statusCode != 200) {
+        throw XtreamNetworkException('HTTP ${response.statusCode}');
+      }
+      final dynamic data = response.data;
+      if (data is! Map<String, dynamic>) {
+        throw const FormatException('Respuesta de info de serie inválida');
+      }
+      return XtreamSeriesInfoDto.fromJson(data);
+    } on DioException catch (e) {
+      throw XtreamNetworkException(e.message ?? 'Fallo de red', cause: e);
+    }
   }
 
   /// GET genérico a `player_api.php` que devuelve una lista JSON.

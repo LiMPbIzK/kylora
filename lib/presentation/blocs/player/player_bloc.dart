@@ -3,18 +3,17 @@ import 'dart:async';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:media_kit/media_kit.dart' hide PlayerState;
 
-import '../../../domain/entities/channel.dart';
-import '../../../domain/repositories/iptv_repository.dart';
 import 'player_event.dart';
 import 'player_state.dart';
 
-/// Bloc del reproductor en directo.
+/// Bloc del reproductor.
 ///
-/// Posee un [Player] de media_kit, gestiona la carga del canal, los
-/// reintentos ante errores y el play/pause del stream.
+/// Posee un [Player] de media_kit y reproduce el contenido cuya URL se
+/// obtiene mediante [urlBuilder], permitiendo reutilizarlo para canales en
+/// directo, películas (VOD) y episodios de series.
 class PlayerBloc extends Bloc<PlayerEvent, PlayerState> {
-  PlayerBloc(this._repository) : super(const PlayerLoading()) {
-    on<PlayerChannelRequested>(_onChannelRequested);
+  PlayerBloc(this._urlBuilder) : super(const PlayerLoading()) {
+    on<PlayerPlayRequested>(_onPlayRequested);
     on<PlayerRetryRequested>(_onRetryRequested);
     on<PlayerTogglePlayRequested>(_onTogglePlay);
     on<PlayerStreamError>(_onStreamError);
@@ -28,13 +27,13 @@ class PlayerBloc extends Bloc<PlayerEvent, PlayerState> {
   static const int maxRetries = 3;
   static const Duration retryDelay = Duration(seconds: 4);
 
-  final IptvRepository _repository;
+  /// Función que construye la URL del stream a reproducir.
+  final Future<String> Function() _urlBuilder;
 
   late final Player _player;
   late final StreamSubscription<String> _errorSubscription;
 
   int _retriesLeft = 0;
-  Channel? _channel;
   String? _streamUrl;
   Timer? _retryTimer;
   Future<void>? _pendingOpen;
@@ -42,18 +41,14 @@ class PlayerBloc extends Bloc<PlayerEvent, PlayerState> {
   /// El reproductor compartido con la capa de presentación.
   Player get player => _player;
 
-  /// El canal que se está reproduciendo, si existe.
-  Channel? get channel => _channel;
-
   /// La URL del stream actual, si existe.
   String? get streamUrl => _streamUrl;
 
-  Future<void> _onChannelRequested(
-    PlayerChannelRequested event,
+  Future<void> _onPlayRequested(
+    PlayerPlayRequested event,
     Emitter<PlayerState> emit,
   ) async {
     _retryTimer?.cancel();
-    _channel = event.channel;
     _retriesLeft = 0;
     emit(const PlayerLoading());
     await _open(emit);
@@ -68,14 +63,13 @@ class PlayerBloc extends Bloc<PlayerEvent, PlayerState> {
   }
 
   Future<void> _open(Emitter<PlayerState> emit) async {
-    final Channel channel = _channel!;
     try {
-      final String url = await _repository.buildStreamUrl(channel);
+      final String url = await _urlBuilder();
       _streamUrl = url;
       final Media media = Media(url);
       _pendingOpen = _player.open(media);
       await _pendingOpen;
-      emit(PlayerPlaying(channel: channel, streamUrl: url));
+      emit(PlayerPlaying(streamUrl: url));
     } catch (_) {
       emit(const PlayerError(message: 'streamError'));
     }

@@ -302,6 +302,48 @@ abstract class AppLocalizations {
   /// **'Pause'**
   String get pause;
 
+  /// Error message when VOD movies fail to load.
+  ///
+  /// In en, this message translates to:
+  /// **'Could not load the movie catalog. Check your connection and try again.'**
+  String get vodLoadError;
+
+  /// Shown when the selected category has no movies.
+  ///
+  /// In en, this message translates to:
+  /// **'No movies in this category'**
+  String get noMovies;
+
+  /// Label for content rating.
+  ///
+  /// In en, this message translates to:
+  /// **'Rating'**
+  String get rating;
+
+  /// Error message when series fail to load.
+  ///
+  /// In en, this message translates to:
+  /// **'Could not load the series catalog. Check your connection and try again.'**
+  String get seriesLoadError;
+
+  /// Shown when the selected category has no series.
+  ///
+  /// In en, this message translates to:
+  /// **'No series in this category'**
+  String get noSeries;
+
+  /// Error message when a series detail fails to load.
+  ///
+  /// In en, this message translates to:
+  /// **'Could not load the series episodes. Check your connection and try again.'**
+  String get seriesDetailLoadError;
+
+  /// Label for the season number of a series.
+  ///
+  /// In en, this message translates to:
+  /// **'Season'**
+  String get season;
+
   /// Label of the language selector.
   ///
   /// In en, this message translates to:

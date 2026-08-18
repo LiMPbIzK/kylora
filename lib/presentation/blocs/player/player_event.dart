@@ -1,8 +1,6 @@
 import 'package:equatable/equatable.dart';
 
-import '../../../domain/entities/channel.dart';
-
-/// Eventos del reproductor en directo.
+/// Eventos del reproductor (directo, VOD o series).
 sealed class PlayerEvent extends Equatable {
   const PlayerEvent();
 
@@ -10,14 +8,9 @@ sealed class PlayerEvent extends Equatable {
   List<Object?> get props => <Object?>[];
 }
 
-/// Inicia la reproducción de [channel].
-final class PlayerChannelRequested extends PlayerEvent {
-  const PlayerChannelRequested(this.channel);
-
-  final Channel channel;
-
-  @override
-  List<Object?> get props => <Object?>[channel];
+/// Inicia la reproducción del contenido configurado.
+final class PlayerPlayRequested extends PlayerEvent {
+  const PlayerPlayRequested();
 }
 
 /// Reintenta la reproducción tras un error.

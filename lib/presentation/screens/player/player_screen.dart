@@ -6,17 +6,22 @@ import 'package:media_kit/media_kit.dart' hide PlayerState;
 import 'package:media_kit_video/media_kit_video.dart';
 
 import '../../../core/theme/app_theme.dart';
-import '../../../domain/entities/channel.dart';
 import '../../../l10n/app_localizations.dart';
 import '../../blocs/player/player_bloc.dart';
 import '../../blocs/player/player_event.dart';
 import '../../blocs/player/player_state.dart';
 
-/// Reproductor de canal en directo con OSD de controles y pistas.
+/// Reproductor genérico (directo, VOD o series) con OSD de controles y pistas.
 class PlayerScreen extends StatefulWidget {
-  const PlayerScreen({super.key, required this.channel, required this.bloc});
+  const PlayerScreen({
+    super.key,
+    required this.title,
+    required this.bloc,
+  });
 
-  final Channel channel;
+  /// Título del contenido que se reproduce.
+  final String title;
+
   final PlayerBloc bloc;
 
   @override
@@ -34,7 +39,7 @@ class _PlayerScreenState extends State<PlayerScreen> {
   void initState() {
     super.initState();
     _videoController = VideoController(_bloc.player);
-    _bloc.add(PlayerChannelRequested(widget.channel));
+    _bloc.add(const PlayerPlayRequested());
     _scheduleHide();
   }
 
@@ -131,7 +136,7 @@ class _PlayerScreenState extends State<PlayerScreen> {
                               ?.copyWith(color: Colors.white70),
                         ),
                         Text(
-                          widget.channel.name,
+                          widget.title,
                           maxLines: 1,
                           overflow: TextOverflow.ellipsis,
                           style: const TextStyle(

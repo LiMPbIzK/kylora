@@ -1,8 +1,6 @@
 import 'package:equatable/equatable.dart';
 
-import '../../../domain/entities/channel.dart';
-
-/// Estados del reproductor en directo.
+/// Estados del reproductor (directo, VOD o series).
 sealed class PlayerState extends Equatable {
   const PlayerState();
 
@@ -10,20 +8,19 @@ sealed class PlayerState extends Equatable {
   List<Object?> get props => <Object?>[];
 }
 
-/// Inicializando el reproductor con el canal solicitado.
+/// Inicializando el reproductor con el contenido solicitado.
 final class PlayerLoading extends PlayerState {
   const PlayerLoading();
 }
 
-/// Reproduciendo [channel] en directo.
+/// Reproduciendo el contenido en [streamUrl].
 final class PlayerPlaying extends PlayerState {
-  const PlayerPlaying({required this.channel, required this.streamUrl});
+  const PlayerPlaying({required this.streamUrl});
 
-  final Channel channel;
   final String streamUrl;
 
   @override
-  List<Object?> get props => <Object?>[channel, streamUrl];
+  List<Object?> get props => <Object?>[streamUrl];
 }
 
 /// Error de reproducción. [retriesLeft] son los reintentos restantes.

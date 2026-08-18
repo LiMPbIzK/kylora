@@ -119,5 +119,29 @@ class AppLocalizationsEn extends AppLocalizations {
   String get pause => 'Pause';
 
   @override
+  String get vodLoadError =>
+      'Could not load the movie catalog. Check your connection and try again.';
+
+  @override
+  String get noMovies => 'No movies in this category';
+
+  @override
+  String get rating => 'Rating';
+
+  @override
+  String get seriesLoadError =>
+      'Could not load the series catalog. Check your connection and try again.';
+
+  @override
+  String get noSeries => 'No series in this category';
+
+  @override
+  String get seriesDetailLoadError =>
+      'Could not load the series episodes. Check your connection and try again.';
+
+  @override
+  String get season => 'Season';
+
+  @override
   String get language => 'Language';
 }

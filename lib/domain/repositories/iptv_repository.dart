@@ -1,5 +1,9 @@
 import '../entities/category.dart';
 import '../entities/channel.dart';
+import '../entities/episode.dart';
+import '../entities/movie.dart';
+import '../entities/series.dart';
+import '../entities/series_info.dart';
 import '../entities/user_account.dart';
 
 /// Contrato de repositorio agnóstico de fuente IPTV.
@@ -26,4 +30,25 @@ abstract interface class IptvRepository {
 
   /// Construye la URL de reproducción de un canal en directo.
   Future<String> buildStreamUrl(Channel channel);
+
+  /// Categorías de películas (VOD).
+  Future<List<Category>> fetchVodCategories();
+
+  /// Películas (VOD). Si [categoryId] es nulo, devuelve todas.
+  Future<List<Movie>> fetchVodStreams({int? categoryId});
+
+  /// Construye la URL de reproducción de una película (VOD).
+  Future<String> buildVodStreamUrl(Movie movie);
+
+  /// Categorías de series.
+  Future<List<Category>> fetchSeriesCategories();
+
+  /// Series. Si [categoryId] es nulo, devuelve todas.
+  Future<List<Series>> fetchSeries({int? categoryId});
+
+  /// Información detallada de una serie con sus temporadas y episodios.
+  Future<SeriesInfo> fetchSeriesInfo(int seriesId);
+
+  /// Construye la URL de reproducción de un episodio de una serie.
+  Future<String> buildEpisodeStreamUrl(Episode episode);
 }

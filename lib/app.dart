@@ -6,18 +6,26 @@ import 'package:flutter_localizations/flutter_localizations.dart';
 import 'package:go_router/go_router.dart';
 
 import 'core/theme/app_theme.dart';
-import 'domain/entities/channel.dart';
+import 'domain/entities/movie.dart';
+import 'domain/entities/series.dart';
 import 'domain/repositories/iptv_repository.dart';
 import 'l10n/app_localizations.dart';
 import 'presentation/blocs/auth/auth_bloc.dart';
 import 'presentation/blocs/auth/auth_state.dart';
 import 'presentation/blocs/live/live_bloc.dart';
 import 'presentation/blocs/player/player_bloc.dart';
+import 'presentation/blocs/series/series_bloc.dart';
+import 'presentation/blocs/vod/vod_bloc.dart';
 import 'presentation/screens/auth/login_screen.dart';
 import 'presentation/screens/dashboard/dashboard_screen.dart';
 import 'presentation/screens/live/live_screen.dart';
 import 'presentation/screens/player/player_screen.dart';
+import 'presentation/screens/player/playback_request.dart';
+import 'presentation/screens/series/series_detail_screen.dart';
+import 'presentation/screens/series/series_screen.dart';
 import 'presentation/screens/splash/splash_screen.dart';
+import 'presentation/screens/vod/movie_detail_screen.dart';
+import 'presentation/screens/vod/vod_screen.dart';
 
 /// Configuración de navegación de la aplicación.
 abstract final class AppRouter {
@@ -60,12 +68,35 @@ abstract final class AppRouter {
           builder: (context, state) => const LiveScreen(),
         ),
         GoRoute(
+          path: Routes.vod,
+          builder: (context, state) => const VodScreen(),
+        ),
+        GoRoute(
+          path: Routes.movieDetail,
+          builder: (context, state) =>
+              MovieDetailScreen(movie: state.extra! as Movie),
+        ),
+        GoRoute(
+          path: Routes.series,
+          builder: (context, state) => const SeriesScreen(),
+        ),
+        GoRoute(
+          path: Routes.seriesDetail,
+          builder: (context, state) {
+            final Series series = state.extra! as Series;
+            return SeriesDetailScreen(
+              series: series,
+              bloc: SeriesBloc(context.read<IptvRepository>()),
+            );
+          },
+        ),
+        GoRoute(
           path: Routes.play,
           builder: (context, state) {
-            final Channel channel = state.extra! as Channel;
+            final PlaybackRequest request = state.extra! as PlaybackRequest;
             return PlayerScreen(
-              channel: channel,
-              bloc: PlayerBloc(context.read<IptvRepository>()),
+              title: request.title,
+              bloc: PlayerBloc(request.urlBuilder),
             );
           },
         ),
@@ -80,6 +111,10 @@ abstract final class Routes {
   static const String login = '/login';
   static const String dashboard = '/dashboard';
   static const String live = '/live';
+  static const String vod = '/vod';
+  static const String movieDetail = '/movie';
+  static const String series = '/series';
+  static const String seriesDetail = '/series-detail';
   static const String play = '/play';
 }
 
@@ -104,11 +139,15 @@ class KyloraApp extends StatelessWidget {
     super.key,
     required this.authBloc,
     required this.liveBloc,
+    required this.vodBloc,
+    required this.seriesBloc,
     required this.repository,
   });
 
   final AuthBloc authBloc;
   final LiveBloc liveBloc;
+  final VodBloc vodBloc;
+  final SeriesBloc seriesBloc;
   final IptvRepository repository;
 
   @override
@@ -117,6 +156,8 @@ class KyloraApp extends StatelessWidget {
       providers: <BlocProvider<StateStreamableSource<Object?>>>[
         BlocProvider<AuthBloc>(create: (_) => authBloc),
         BlocProvider<LiveBloc>(create: (_) => liveBloc),
+        BlocProvider<VodBloc>(create: (_) => vodBloc),
+        BlocProvider<SeriesBloc>(create: (_) => seriesBloc),
       ],
       child: RepositoryProvider<IptvRepository>.value(
         value: repository,

@@ -149,6 +149,34 @@
   "@pause": {
     "description": "Botón del reproductor para pausar la reproducción."
   },
+  "vodLoadError": "No se pudo cargar el catálogo de películas. Revisa tu conexión e inténtalo de nuevo.",
+  "@vodLoadError": {
+    "description": "Mensaje de error cuando falla la carga de películas VOD."
+  },
+  "noMovies": "No hay películas en esta categoría",
+  "@noMovies": {
+    "description": "Se muestra cuando la categoría seleccionada no tiene películas."
+  },
+  "rating": "Puntuación",
+  "@rating": {
+    "description": "Etiqueta para la calificación de contenido."
+  },
+  "seriesLoadError": "No se pudo cargar el catálogo de series. Revisa tu conexión e inténtalo de nuevo.",
+  "@seriesLoadError": {
+    "description": "Mensaje de error cuando falla la carga de series."
+  },
+  "noSeries": "No hay series en esta categoría",
+  "@noSeries": {
+    "description": "Se muestra cuando la categoría seleccionada no tiene series."
+  },
+  "seriesDetailLoadError": "No se pudo cargar los episodios de la serie. Revisa tu conexión e inténtalo de nuevo.",
+  "@seriesDetailLoadError": {
+    "description": "Mensaje de error cuando falla la carga del detalle de una serie."
+  },
+  "season": "Temporada",
+  "@season": {
+    "description": "Etiqueta para el número de temporada de una serie."
+  },
   "language": "Idioma",
   "@language": {
     "description": "Etiqueta del selector de idioma."

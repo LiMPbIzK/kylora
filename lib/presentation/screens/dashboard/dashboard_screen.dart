@@ -52,10 +52,27 @@ class DashboardScreen extends StatelessWidget {
               },
             ),
             const SizedBox(height: 24),
-            FilledButton.icon(
-              icon: const Icon(Icons.live_tv),
-              label: Text(l10n.liveTv),
-              onPressed: () => context.go(Routes.live),
+            Wrap(
+              spacing: 12,
+              runSpacing: 12,
+              alignment: WrapAlignment.center,
+              children: <Widget>[
+                FilledButton.icon(
+                  icon: const Icon(Icons.live_tv),
+                  label: Text(l10n.liveTv),
+                  onPressed: () => context.go(Routes.live),
+                ),
+                FilledButton.tonalIcon(
+                  icon: const Icon(Icons.movie),
+                  label: Text(l10n.movies),
+                  onPressed: () => context.go(Routes.vod),
+                ),
+                FilledButton.tonalIcon(
+                  icon: const Icon(Icons.theaters),
+                  label: Text(l10n.series),
+                  onPressed: () => context.go(Routes.series),
+                ),
+              ],
             ),
           ],
         ),

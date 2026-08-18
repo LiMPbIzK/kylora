@@ -5,15 +5,24 @@ import 'package:kylora/app.dart';
 import 'package:kylora/data/datasources/remote/xtream_api_client.dart';
 import 'package:kylora/domain/entities/category.dart';
 import 'package:kylora/domain/entities/channel.dart';
+import 'package:kylora/domain/entities/episode.dart';
+import 'package:kylora/domain/entities/movie.dart';
+import 'package:kylora/domain/entities/season.dart';
+import 'package:kylora/domain/entities/series.dart';
+import 'package:kylora/domain/entities/series_info.dart';
 import 'package:kylora/domain/entities/user_account.dart';
 import 'package:kylora/domain/repositories/iptv_repository.dart';
 import 'package:kylora/presentation/blocs/auth/auth_bloc.dart';
 import 'package:kylora/presentation/blocs/auth/auth_event.dart';
 import 'package:kylora/presentation/blocs/auth/auth_state.dart';
 import 'package:kylora/presentation/blocs/live/live_bloc.dart';
+import 'package:kylora/presentation/blocs/series/series_bloc.dart';
+import 'package:kylora/presentation/blocs/vod/vod_bloc.dart';
 import 'package:kylora/presentation/screens/auth/login_screen.dart';
 import 'package:kylora/presentation/screens/dashboard/dashboard_screen.dart';
 import 'package:kylora/presentation/screens/live/live_screen.dart';
+import 'package:kylora/presentation/screens/series/series_screen.dart';
+import 'package:kylora/presentation/screens/vod/vod_screen.dart';
 
 /// Repositorio falso con cuenta de prueba.
 class _FakeRepository implements IptvRepository {
@@ -73,6 +82,77 @@ class _FakeRepository implements IptvRepository {
   Future<String> buildStreamUrl(Channel channel) async {
     return 'http://server:8080/live/user/pass/${channel.id}.ts';
   }
+
+  @override
+  Future<List<Category>> fetchVodCategories() async => const <Category>[
+    Category(id: 1, name: 'Acción'),
+    Category(id: 2, name: 'Drama'),
+  ];
+
+  @override
+  Future<List<Movie>> fetchVodStreams({int? categoryId}) async {
+    const List<Movie> all = <Movie>[
+      Movie(
+        id: 201,
+        name: 'Matrix',
+        categoryId: 1,
+        streamIcon: 'http://x/matrix.png',
+        rating: '8.7',
+      ),
+      Movie(
+        id: 202,
+        name: 'Titanic',
+        categoryId: 2,
+        streamIcon: 'http://x/titanic.png',
+      ),
+    ];
+    if (categoryId == null) return all;
+    return all
+        .where((Movie movie) => movie.categoryId == categoryId)
+        .toList();
+  }
+
+  @override
+  Future<String> buildVodStreamUrl(Movie movie) async {
+    return 'http://server:8080/movie/user/pass/${movie.id}.mp4';
+  }
+
+  @override
+  Future<List<Category>> fetchSeriesCategories() async => const <Category>[
+    Category(id: 1, name: 'Drama'),
+  ];
+
+  @override
+  Future<List<Series>> fetchSeries({int? categoryId}) async {
+    const List<Series> all = <Series>[
+      Series(id: 301, name: 'Breaking Bad', categoryId: 1, cover: 'http://x/bb.png'),
+    ];
+    if (categoryId == null) return all;
+    return all
+        .where((Series series) => series.categoryId == categoryId)
+        .toList();
+  }
+
+  @override
+  Future<SeriesInfo> fetchSeriesInfo(int seriesId) async {
+    return SeriesInfo(
+      seriesId: seriesId,
+      seasons: const <Season>[
+        Season(
+          number: 1,
+          episodes: <Episode>[
+            Episode(id: 401, name: 'Pilot', episodeNumber: 1),
+            Episode(id: 402, name: 'Cat\'s in the Bag', episodeNumber: 2),
+          ],
+        ),
+      ],
+    );
+  }
+
+  @override
+  Future<String> buildEpisodeStreamUrl(Episode episode) async {
+    return 'http://server:8080/series/user/pass/${episode.id}.mp4';
+  }
 }
 
 void main() {
@@ -88,6 +168,8 @@ void main() {
       KyloraApp(
         authBloc: bloc,
         liveBloc: LiveBloc(repository),
+        vodBloc: VodBloc(repository),
+        seriesBloc: SeriesBloc(repository),
         repository: repository,
       ),
     );
@@ -207,6 +289,52 @@ void main() {
     expect(find.text('Deportes'), findsOneWidget);
   });
 
+  testWidgets('Desde el dashboard se abre el catálogo de películas', (
+    WidgetTester tester,
+  ) async {
+    await pumpApp(
+      tester,
+      stored: const UserAccount(
+        serverUrl: 'http://server:8080',
+        username: 'user',
+        password: 'pass',
+        status: 'Active',
+      ),
+    );
+    expect(find.byType(DashboardScreen), findsOneWidget);
+
+    await tester.tap(find.widgetWithText(FilledButton, 'Movies'));
+    await tester.pumpAndSettle();
+
+    expect(find.byType(VodScreen), findsOneWidget);
+    await tester.pump(const Duration(seconds: 1));
+    expect(find.text('Matrix'), findsOneWidget);
+    expect(find.text('Titanic'), findsOneWidget);
+    expect(find.text('Acción'), findsOneWidget);
+  });
+
+  testWidgets('Desde el dashboard se abre el catálogo de series', (
+    WidgetTester tester,
+  ) async {
+    await pumpApp(
+      tester,
+      stored: const UserAccount(
+        serverUrl: 'http://server:8080',
+        username: 'user',
+        password: 'pass',
+        status: 'Active',
+      ),
+    );
+    expect(find.byType(DashboardScreen), findsOneWidget);
+
+    await tester.tap(find.widgetWithText(FilledButton, 'Series'));
+    await tester.pumpAndSettle();
+
+    expect(find.byType(SeriesScreen), findsOneWidget);
+    await tester.pump(const Duration(seconds: 1));
+    expect(find.text('Breaking Bad'), findsOneWidget);
+  });
+
   _testAuthBloc();
 }
 
@@ -239,6 +367,34 @@ class _FailingRepository implements IptvRepository {
 
   @override
   Future<String> buildStreamUrl(Channel channel) async =>
+      throw UnimplementedError();
+
+  @override
+  Future<List<Category>> fetchVodCategories() async =>
+      throw UnimplementedError();
+
+  @override
+  Future<List<Movie>> fetchVodStreams({int? categoryId}) async =>
+      throw UnimplementedError();
+
+  @override
+  Future<String> buildVodStreamUrl(Movie movie) async =>
+      throw UnimplementedError();
+
+  @override
+  Future<List<Category>> fetchSeriesCategories() async =>
+      throw UnimplementedError();
+
+  @override
+  Future<List<Series>> fetchSeries({int? categoryId}) async =>
+      throw UnimplementedError();
+
+  @override
+  Future<SeriesInfo> fetchSeriesInfo(int seriesId) async =>
+      throw UnimplementedError();
+
+  @override
+  Future<String> buildEpisodeStreamUrl(Episode episode) async =>
       throw UnimplementedError();
 }
 

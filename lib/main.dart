@@ -14,6 +14,8 @@ import 'data/repositories/xtream_repository.dart';
 import 'presentation/blocs/auth/auth_bloc.dart';
 import 'presentation/blocs/auth/auth_event.dart';
 import 'presentation/blocs/live/live_bloc.dart';
+import 'presentation/blocs/series/series_bloc.dart';
+import 'presentation/blocs/vod/vod_bloc.dart';
 
 void main() {
   WidgetsFlutterBinding.ensureInitialized();
@@ -37,9 +39,17 @@ void main() {
 
   final AuthBloc authBloc = AuthBloc(repository)..add(const AuthStarted());
   final LiveBloc liveBloc = LiveBloc(repository);
+  final VodBloc vodBloc = VodBloc(repository);
+  final SeriesBloc seriesBloc = SeriesBloc(repository);
 
   runApp(
-    KyloraApp(authBloc: authBloc, liveBloc: liveBloc, repository: repository),
+    KyloraApp(
+      authBloc: authBloc,
+      liveBloc: liveBloc,
+      vodBloc: vodBloc,
+      seriesBloc: seriesBloc,
+      repository: repository,
+    ),
   );
 }
 

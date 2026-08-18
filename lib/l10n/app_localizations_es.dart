@@ -119,5 +119,29 @@ class AppLocalizationsEs extends AppLocalizations {
   String get pause => 'Pausar';
 
   @override
+  String get vodLoadError =>
+      'No se pudo cargar el catálogo de películas. Revisa tu conexión e inténtalo de nuevo.';
+
+  @override
+  String get noMovies => 'No hay películas en esta categoría';
+
+  @override
+  String get rating => 'Puntuación';
+
+  @override
+  String get seriesLoadError =>
+      'No se pudo cargar el catálogo de series. Revisa tu conexión e inténtalo de nuevo.';
+
+  @override
+  String get noSeries => 'No hay series en esta categoría';
+
+  @override
+  String get seriesDetailLoadError =>
+      'No se pudo cargar los episodios de la serie. Revisa tu conexión e inténtalo de nuevo.';
+
+  @override
+  String get season => 'Temporada';
+
+  @override
   String get language => 'Idioma';
 }

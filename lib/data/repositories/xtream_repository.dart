@@ -1,5 +1,9 @@
 import '../../domain/entities/category.dart';
 import '../../domain/entities/channel.dart';
+import '../../domain/entities/episode.dart';
+import '../../domain/entities/movie.dart';
+import '../../domain/entities/series.dart';
+import '../../domain/entities/series_info.dart';
 import '../../domain/entities/user_account.dart';
 import '../../domain/repositories/iptv_repository.dart';
 import '../datasources/local/app_database.dart';
@@ -7,8 +11,11 @@ import '../datasources/local/auth_store.dart';
 import '../datasources/local/live_cache_store.dart';
 import '../datasources/remote/xtream_api_client.dart';
 import '../models/xtream_category_dto.dart';
+import '../models/xtream_series_dto.dart';
+import '../models/xtream_series_info_dto.dart';
 import '../models/xtream_stream_dto.dart';
 import '../models/xtream_user_info_dto.dart';
+import '../models/xtream_vod_stream_dto.dart';
 
 /// Implementación Xtream del contrato [IptvRepository].
 class XtreamRepository implements IptvRepository {
@@ -93,6 +100,88 @@ class XtreamRepository implements IptvRepository {
     final List<Category> cached = await _cache.getCategories();
     if (cached.isNotEmpty) return cached;
     return _refreshLiveContent().then((_) => _cache.getCategories());
+  }
+
+  @override
+  Future<List<Category>> fetchVodCategories() async {
+    final StoredCredentials credentials = await _requireCredentials();
+    final List<XtreamCategoryDto> dtos = await _apiClient.fetchVodCategories(
+      serverUrl: credentials.serverUrl,
+      username: credentials.username,
+      password: credentials.password,
+    );
+    return dtos.map((XtreamCategoryDto category) => category.toEntity()).toList();
+  }
+
+  @override
+  Future<List<Movie>> fetchVodStreams({int? categoryId}) async {
+    final StoredCredentials credentials = await _requireCredentials();
+    final List<XtreamVodStreamDto> dtos = await _apiClient.fetchVodStreams(
+      serverUrl: credentials.serverUrl,
+      username: credentials.username,
+      password: credentials.password,
+      categoryId: categoryId,
+    );
+    return dtos.map((XtreamVodStreamDto stream) => stream.toEntity()).toList();
+  }
+
+  @override
+  Future<String> buildVodStreamUrl(Movie movie) async {
+    final StoredCredentials credentials = await _requireCredentials();
+    final String extension = movie.containerExtension?.isNotEmpty == true
+        ? movie.containerExtension!
+        : 'mp4';
+    return '${credentials.serverUrl}/movie/'
+        '${Uri.encodeComponent(credentials.username)}/'
+        '${Uri.encodeComponent(credentials.password)}/'
+        '${movie.id}.$extension';
+  }
+
+  @override
+  Future<List<Category>> fetchSeriesCategories() async {
+    final StoredCredentials credentials = await _requireCredentials();
+    final List<XtreamCategoryDto> dtos = await _apiClient.fetchSeriesCategories(
+      serverUrl: credentials.serverUrl,
+      username: credentials.username,
+      password: credentials.password,
+    );
+    return dtos.map((XtreamCategoryDto category) => category.toEntity()).toList();
+  }
+
+  @override
+  Future<List<Series>> fetchSeries({int? categoryId}) async {
+    final StoredCredentials credentials = await _requireCredentials();
+    final List<XtreamSeriesDto> dtos = await _apiClient.fetchSeries(
+      serverUrl: credentials.serverUrl,
+      username: credentials.username,
+      password: credentials.password,
+      categoryId: categoryId,
+    );
+    return dtos.map((XtreamSeriesDto series) => series.toEntity()).toList();
+  }
+
+  @override
+  Future<SeriesInfo> fetchSeriesInfo(int seriesId) async {
+    final StoredCredentials credentials = await _requireCredentials();
+    final XtreamSeriesInfoDto info = await _apiClient.fetchSeriesInfo(
+      serverUrl: credentials.serverUrl,
+      username: credentials.username,
+      password: credentials.password,
+      seriesId: seriesId,
+    );
+    return info.toEntity(seriesId);
+  }
+
+  @override
+  Future<String> buildEpisodeStreamUrl(Episode episode) async {
+    final StoredCredentials credentials = await _requireCredentials();
+    final String extension = episode.containerExtension?.isNotEmpty == true
+        ? episode.containerExtension!
+        : 'mp4';
+    return '${credentials.serverUrl}/series/'
+        '${Uri.encodeComponent(credentials.username)}/'
+        '${Uri.encodeComponent(credentials.password)}/'
+        '${episode.id}.$extension';
   }
 
   @override
