@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
 
 import 'package:kylora/app.dart';
+import 'package:kylora/core/media/playback_controller.dart';
 import 'package:kylora/data/datasources/remote/xtream_api_client.dart';
 import 'package:kylora/domain/entities/category.dart';
 import 'package:kylora/domain/entities/channel.dart';
@@ -19,7 +20,7 @@ import 'package:kylora/presentation/blocs/live/live_bloc.dart';
 import 'package:kylora/presentation/blocs/series/series_bloc.dart';
 import 'package:kylora/presentation/blocs/vod/vod_bloc.dart';
 import 'package:kylora/presentation/screens/auth/login_screen.dart';
-import 'package:kylora/presentation/screens/dashboard/dashboard_screen.dart';
+import 'package:kylora/presentation/screens/dashboard/home_shell_screen.dart';
 import 'package:kylora/presentation/screens/live/live_screen.dart';
 import 'package:kylora/presentation/screens/series/series_screen.dart';
 import 'package:kylora/presentation/screens/vod/vod_screen.dart';
@@ -171,6 +172,7 @@ void main() {
         vodBloc: VodBloc(repository),
         seriesBloc: SeriesBloc(repository),
         repository: repository,
+        playbackController: PlaybackController(),
       ),
     );
     if (seed != null) {
@@ -202,8 +204,8 @@ void main() {
         status: 'Active',
       ),
     );
-    expect(find.byType(DashboardScreen), findsOneWidget);
-    expect(find.text('user'), findsOneWidget);
+    expect(find.byType(HomeShellScreen), findsOneWidget);
+    expect(find.text('Kylora'), findsOneWidget);
   });
 
   testWidgets('Login válido navega al dashboard', (WidgetTester tester) async {
@@ -219,7 +221,7 @@ void main() {
     await tester.pumpAndSettle();
 
     expect(bloc.state, isA<AuthAuthenticated>());
-    expect(find.byType(DashboardScreen), findsOneWidget);
+    expect(find.byType(HomeShellScreen), findsOneWidget);
   });
 
   testWidgets('Campos vacíos muestran validación', (WidgetTester tester) async {
@@ -256,7 +258,7 @@ void main() {
         status: 'Active',
       ),
     );
-    expect(find.byType(DashboardScreen), findsOneWidget);
+    expect(find.byType(HomeShellScreen), findsOneWidget);
 
     await tester.tap(find.byIcon(Icons.logout));
     await tester.pumpAndSettle();
@@ -277,9 +279,9 @@ void main() {
         status: 'Active',
       ),
     );
-    expect(find.byType(DashboardScreen), findsOneWidget);
+    expect(find.byType(HomeShellScreen), findsOneWidget);
 
-    await tester.tap(find.widgetWithText(FilledButton, 'Live TV'));
+    await tester.tap(find.text('Live TV'));
     await tester.pumpAndSettle();
 
     expect(find.byType(LiveScreen), findsOneWidget);
@@ -301,9 +303,9 @@ void main() {
         status: 'Active',
       ),
     );
-    expect(find.byType(DashboardScreen), findsOneWidget);
+    expect(find.byType(HomeShellScreen), findsOneWidget);
 
-    await tester.tap(find.widgetWithText(FilledButton, 'Movies'));
+    await tester.tap(find.text('Movies'));
     await tester.pumpAndSettle();
 
     expect(find.byType(VodScreen), findsOneWidget);
@@ -325,9 +327,9 @@ void main() {
         status: 'Active',
       ),
     );
-    expect(find.byType(DashboardScreen), findsOneWidget);
+    expect(find.byType(HomeShellScreen), findsOneWidget);
 
-    await tester.tap(find.widgetWithText(FilledButton, 'Series'));
+    await tester.tap(find.text('Series'));
     await tester.pumpAndSettle();
 
     expect(find.byType(SeriesScreen), findsOneWidget);

@@ -17,22 +17,31 @@ final class SeriesLoading extends SeriesState {
   const SeriesLoading();
 }
 
-/// Catálogo cargado. [seriesList] son las series de la categoría seleccionada.
+/// Catálogo cargado. [seriesList] son las series de la categoría seleccionada
+/// que coinciden con [query].
 final class SeriesLoaded extends SeriesState {
   const SeriesLoaded({
     required this.categories,
     required this.selectedCategoryId,
+    required this.query,
     required this.seriesList,
   });
 
   final List<Category> categories;
   final int? selectedCategoryId;
+  final String query;
   final List<Series> seriesList;
 
   bool get isAllSelected => selectedCategoryId == null;
+  bool get isSearching => query.trim().isNotEmpty;
 
   @override
-  List<Object?> get props => <Object?>[categories, selectedCategoryId, seriesList];
+  List<Object?> get props => <Object?>[
+    categories,
+    selectedCategoryId,
+    query,
+    seriesList,
+  ];
 }
 
 /// Error al cargar el catálogo de series.

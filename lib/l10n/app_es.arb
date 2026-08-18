@@ -157,6 +157,10 @@
   "@noMovies": {
     "description": "Se muestra cuando la categoría seleccionada no tiene películas."
   },
+  "searchNoResults": "No se encontraron resultados para tu búsqueda",
+  "@searchNoResults": {
+    "description": "Se muestra cuando una búsqueda no devuelve resultados."
+  },
   "rating": "Puntuación",
   "@rating": {
     "description": "Etiqueta para la calificación de contenido."

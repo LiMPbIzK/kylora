@@ -314,6 +314,12 @@ abstract class AppLocalizations {
   /// **'No movies in this category'**
   String get noMovies;
 
+  /// Shown when a search returns no results.
+  ///
+  /// In en, this message translates to:
+  /// **'No results found for your search'**
+  String get searchNoResults;
+
   /// Label for content rating.
   ///
   /// In en, this message translates to:

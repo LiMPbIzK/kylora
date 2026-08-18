@@ -6,6 +6,7 @@ import 'package:media_kit/media_kit.dart';
 
 import 'app.dart';
 import 'core/constants/app_constants.dart';
+import 'core/media/playback_controller.dart';
 import 'data/datasources/local/app_database.dart';
 import 'data/datasources/local/auth_store.dart';
 import 'data/datasources/local/live_cache_store.dart';
@@ -49,6 +50,7 @@ void main() {
       vodBloc: vodBloc,
       seriesBloc: seriesBloc,
       repository: repository,
+      playbackController: PlaybackController(),
     ),
   );
 }

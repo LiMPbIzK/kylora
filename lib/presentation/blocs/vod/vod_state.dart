@@ -16,22 +16,31 @@ final class VodLoading extends VodState {
   const VodLoading();
 }
 
-/// Catálogo cargado. [movies] son las películas de la categoría seleccionada.
+/// Catálogo cargado. [movies] son las películas de la categoría seleccionada
+/// que coinciden con [query].
 final class VodLoaded extends VodState {
   const VodLoaded({
     required this.categories,
     required this.selectedCategoryId,
+    required this.query,
     required this.movies,
   });
 
   final List<Category> categories;
   final int? selectedCategoryId;
+  final String query;
   final List<Movie> movies;
 
   bool get isAllSelected => selectedCategoryId == null;
+  bool get isSearching => query.trim().isNotEmpty;
 
   @override
-  List<Object?> get props => <Object?>[categories, selectedCategoryId, movies];
+  List<Object?> get props => <Object?>[
+    categories,
+    selectedCategoryId,
+    query,
+    movies,
+  ];
 }
 
 /// Error al cargar el catálogo de películas.

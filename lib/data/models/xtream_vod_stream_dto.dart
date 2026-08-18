@@ -36,16 +36,19 @@ class XtreamVodStreamDto {
       name: json['name'] as String? ?? '',
       categoryId: int.tryParse(json['category_id']?.toString() ?? '') ?? 0,
       number: int.tryParse(json['num']?.toString() ?? ''),
-      streamType: json['stream_type'] as String?,
-      streamIcon: json['stream_icon'] as String?,
-      rating: json['rating'] as String?,
-      rating5Based: json['rating_5based'] as String?,
-      added: json['added'] as String?,
-      containerExtension: json['container_extension'] as String?,
-      customSkin: json['custom_sid'] as String?,
-      directSource: json['direct_source'] as String?,
+      streamType: _str(json['stream_type']),
+      streamIcon: _str(json['stream_icon']),
+      rating: _str(json['rating']),
+      rating5Based: _str(json['rating_5based']),
+      added: _str(json['added']),
+      containerExtension: _str(json['container_extension']),
+      customSkin: _str(json['custom_sid']),
+      directSource: _str(json['direct_source']),
     );
   }
+
+  /// Convierte cualquier valor JSON (string o número) a `String?`.
+  static String? _str(dynamic value) => value?.toString();
 
   Movie toEntity() => Movie(
     id: streamId,

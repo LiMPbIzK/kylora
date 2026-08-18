@@ -22,3 +22,13 @@ final class VodCategorySelected extends VodEvent {
   @override
   List<Object?> get props => <Object?>[categoryId];
 }
+
+/// Cambia el texto de búsqueda. Filtra las películas en memoria.
+final class VodSearchChanged extends VodEvent {
+  const VodSearchChanged(this.query);
+
+  final String query;
+
+  @override
+  List<Object?> get props => <Object?>[query];
+}

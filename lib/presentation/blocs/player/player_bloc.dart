@@ -8,17 +8,17 @@ import 'player_state.dart';
 
 /// Bloc del reproductor.
 ///
-/// Posee un [Player] de media_kit y reproduce el contenido cuya URL se
-/// obtiene mediante [urlBuilder], permitiendo reutilizarlo para canales en
-/// directo, películas (VOD) y episodios de series.
+/// Reproduce contenido (directo, VOD o series) con un [Player] de media_kit
+/// **compartido** que no se destruye al ocultar la pantalla. Este bloc se crea
+/// una sola vez (overlay persistente) y recibe cada contenido a través del
+/// evento [PlayerPlayRequested], que indica cómo construir su URL.
 class PlayerBloc extends Bloc<PlayerEvent, PlayerState> {
-  PlayerBloc(this._urlBuilder) : super(const PlayerLoading()) {
+  PlayerBloc(this._player) : super(const PlayerLoading()) {
     on<PlayerPlayRequested>(_onPlayRequested);
     on<PlayerRetryRequested>(_onRetryRequested);
     on<PlayerTogglePlayRequested>(_onTogglePlay);
     on<PlayerStreamError>(_onStreamError);
 
-    _player = Player();
     _errorSubscription = _player.stream.error.listen(
       (String message) => add(PlayerStreamError(message)),
     );
@@ -27,28 +27,30 @@ class PlayerBloc extends Bloc<PlayerEvent, PlayerState> {
   static const int maxRetries = 3;
   static const Duration retryDelay = Duration(seconds: 4);
 
-  /// Función que construye la URL del stream a reproducir.
-  final Future<String> Function() _urlBuilder;
-
-  late final Player _player;
+  final Player _player;
   late final StreamSubscription<String> _errorSubscription;
 
   int _retriesLeft = 0;
   String? _streamUrl;
   Timer? _retryTimer;
   Future<void>? _pendingOpen;
+  Future<String> Function() _urlBuilder = _noContent;
 
-  /// El reproductor compartido con la capa de presentación.
+  /// El reproductor (compartido) con la capa de presentación.
   Player get player => _player;
 
   /// La URL del stream actual, si existe.
   String? get streamUrl => _streamUrl;
+
+  static Future<String> _noContent() =>
+      throw StateError('No hay contenido en el reproductor');
 
   Future<void> _onPlayRequested(
     PlayerPlayRequested event,
     Emitter<PlayerState> emit,
   ) async {
     _retryTimer?.cancel();
+    _urlBuilder = event.urlBuilder;
     _retriesLeft = 0;
     emit(const PlayerLoading());
     await _open(emit);
@@ -69,6 +71,9 @@ class PlayerBloc extends Bloc<PlayerEvent, PlayerState> {
       final Media media = Media(url);
       _pendingOpen = _player.open(media);
       await _pendingOpen;
+      // Los subtítulos se desactivan por defecto; el usuario los activa
+      // manualmente desde el menú de pistas.
+      await _player.setSubtitleTrack(SubtitleTrack.no());
       emit(PlayerPlaying(streamUrl: url));
     } catch (_) {
       emit(const PlayerError(message: 'streamError'));
@@ -100,7 +105,8 @@ class PlayerBloc extends Bloc<PlayerEvent, PlayerState> {
   Future<void> close() {
     _retryTimer?.cancel();
     _errorSubscription.cancel();
-    _player.dispose();
+    // No se llama a `_player.dispose()`: el player es compartido por toda la
+    // sesión (AppPlayer) y debe seguir vivo para la siguiente reproducción.
     return super.close();
   }
 }

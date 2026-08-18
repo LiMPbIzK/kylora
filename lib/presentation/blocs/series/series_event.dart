@@ -25,6 +25,16 @@ final class SeriesCategorySelected extends SeriesEvent {
   List<Object?> get props => <Object?>[categoryId];
 }
 
+/// Cambia el texto de búsqueda. Filtra las series en memoria.
+final class SeriesSearchChanged extends SeriesEvent {
+  const SeriesSearchChanged(this.query);
+
+  final String query;
+
+  @override
+  List<Object?> get props => <Object?>[query];
+}
+
 /// Solicita el detalle (temporadas y episodios) de [series].
 final class SeriesDetailRequested extends SeriesEvent {
   const SeriesDetailRequested(this.series);

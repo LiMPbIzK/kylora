@@ -1,9 +1,8 @@
 import 'package:cached_network_image/cached_network_image.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
-import 'package:go_router/go_router.dart';
 
-import '../../../app.dart';
+import '../../../core/media/playback_request.dart';
 import '../../../core/theme/app_theme.dart';
 import '../../../domain/entities/category.dart';
 import '../../../domain/entities/channel.dart';
@@ -12,7 +11,7 @@ import '../../../l10n/app_localizations.dart';
 import '../../blocs/live/live_bloc.dart';
 import '../../blocs/live/live_event.dart';
 import '../../blocs/live/live_state.dart';
-import '../player/playback_request.dart';
+import '../player/playback_scope.dart';
 
 /// Catálogo de canales en directo con categorías y logos.
 class LiveScreen extends StatefulWidget {
@@ -36,17 +35,14 @@ class _LiveScreenState extends State<LiveScreen> {
   Widget build(BuildContext context) {
     final AppLocalizations l10n = AppLocalizations.of(context)!;
 
-    return Scaffold(
-      appBar: AppBar(title: Text(l10n.liveTv)),
-      body: BlocBuilder<LiveBloc, LiveState>(
-        builder: (context, state) {
-          return switch (state) {
-            LiveLoading() => const Center(child: CircularProgressIndicator()),
-            LiveFailure() => _ErrorView(message: l10n.liveLoadError),
-            LiveLoaded() => _LiveContent(state: state),
-          };
-        },
-      ),
+    return BlocBuilder<LiveBloc, LiveState>(
+      builder: (context, state) {
+        return switch (state) {
+          LiveLoading() => const Center(child: CircularProgressIndicator()),
+          LiveFailure() => _ErrorView(message: l10n.liveLoadError),
+          LiveLoaded() => _LiveContent(state: state),
+        };
+      },
     );
   }
 }
@@ -154,9 +150,8 @@ class _ChannelTile extends StatelessWidget {
       ),
       onTap: () {
         final IptvRepository repository = context.read<IptvRepository>();
-        context.push(
-          Routes.play,
-          extra: PlaybackRequest(
+        PlaybackScope.of(context).play(
+          PlaybackRequest(
             title: channel.name,
             urlBuilder: () => repository.buildStreamUrl(channel),
           ),

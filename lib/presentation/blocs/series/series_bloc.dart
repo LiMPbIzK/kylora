@@ -1,3 +1,4 @@
+import 'package:flutter/foundation.dart' hide Category;
 import 'package:flutter_bloc/flutter_bloc.dart';
 
 import '../../../domain/entities/category.dart';
@@ -12,6 +13,7 @@ class SeriesBloc extends Bloc<SeriesEvent, SeriesState> {
   SeriesBloc(this._repository) : super(const SeriesLoading()) {
     on<SeriesStarted>(_onStarted);
     on<SeriesCategorySelected>(_onCategorySelected);
+    on<SeriesSearchChanged>(_onSearchChanged);
     on<SeriesDetailRequested>(_onDetailRequested);
     on<SeriesDetailClosed>(_onDetailClosed);
   }
@@ -20,6 +22,7 @@ class SeriesBloc extends Bloc<SeriesEvent, SeriesState> {
 
   List<Category> _categories = <Category>[];
   List<Series> _allSeries = <Series>[];
+  String _query = '';
 
   Future<void> _onStarted(SeriesStarted event, Emitter<SeriesState> emit) async {
     emit(const SeriesLoading());
@@ -29,14 +32,13 @@ class SeriesBloc extends Bloc<SeriesEvent, SeriesState> {
       final List<Series> seriesList = await _repository.fetchSeries();
       _categories = categories;
       _allSeries = seriesList;
-      emit(
-        SeriesLoaded(
-          categories: categories,
-          selectedCategoryId: null,
-          seriesList: seriesList,
-        ),
-      );
-    } catch (_) {
+      _query = '';
+      emit(_buildLoaded(selectedCategoryId: null));
+    } catch (e, stack) {
+      if (kDebugMode) {
+        debugPrint('SeriesBloc error: ${e.runtimeType}: $e');
+        debugPrint('$stack');
+      }
       emit(const SeriesFailure('seriesLoadError'));
     }
   }
@@ -48,19 +50,35 @@ class SeriesBloc extends Bloc<SeriesEvent, SeriesState> {
     if (state is! SeriesLoaded) return;
     final SeriesLoaded current = state as SeriesLoaded;
     if (current.selectedCategoryId == event.categoryId) return;
+    emit(_buildLoaded(selectedCategoryId: event.categoryId));
+  }
 
-    final List<Series> seriesList = event.categoryId == null
-        ? _allSeries
-        : _allSeries
-              .where((Series series) => series.categoryId == event.categoryId)
-              .toList();
+  Future<void> _onSearchChanged(
+    SeriesSearchChanged event,
+    Emitter<SeriesState> emit,
+  ) async {
+    if (state is! SeriesLoaded) return;
+    _query = event.query;
+    final SeriesLoaded current = state as SeriesLoaded;
+    emit(_buildLoaded(selectedCategoryId: current.selectedCategoryId));
+  }
 
-    emit(
-      SeriesLoaded(
-        categories: _categories,
-        selectedCategoryId: event.categoryId,
-        seriesList: seriesList,
-      ),
+  /// Construye el estado cargado combinando categoría y búsqueda.
+  SeriesLoaded _buildLoaded({required int? selectedCategoryId}) {
+    final String term = _query.trim().toLowerCase();
+    final List<Series> seriesList = _allSeries.where((Series series) {
+      final bool matchCategory =
+          selectedCategoryId == null || series.categoryId == selectedCategoryId;
+      final bool matchQuery =
+          term.isEmpty || series.name.toLowerCase().contains(term);
+      return matchCategory && matchQuery;
+    }).toList();
+
+    return SeriesLoaded(
+      categories: _categories,
+      selectedCategoryId: selectedCategoryId,
+      query: _query,
+      seriesList: seriesList,
     );
   }
 
@@ -74,7 +92,11 @@ class SeriesBloc extends Bloc<SeriesEvent, SeriesState> {
         event.series.id,
       );
       emit(SeriesDetailLoaded(series: event.series, info: info));
-    } catch (_) {
+    } catch (e, stack) {
+      if (kDebugMode) {
+        debugPrint('SeriesBloc detail error: ${e.runtimeType}: $e');
+        debugPrint('$stack');
+      }
       emit(SeriesDetailFailure(event.series, 'seriesDetailLoadError'));
     }
   }
@@ -85,13 +107,7 @@ class SeriesBloc extends Bloc<SeriesEvent, SeriesState> {
   ) async {
     emit(const SeriesLoading());
     try {
-      emit(
-        SeriesLoaded(
-          categories: _categories,
-          selectedCategoryId: null,
-          seriesList: _allSeries,
-        ),
-      );
+      emit(_buildLoaded(selectedCategoryId: null));
     } catch (_) {
       emit(const SeriesFailure('seriesLoadError'));
     }

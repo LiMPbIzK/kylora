@@ -21,42 +21,55 @@ class SeriesScreen extends StatefulWidget {
 }
 
 class _SeriesScreenState extends State<SeriesScreen> {
+  final TextEditingController _searchController = TextEditingController();
+
   @override
   void initState() {
     super.initState();
     WidgetsBinding.instance.addPostFrameCallback((_) {
-      if (mounted) context.read<SeriesBloc>().add(const SeriesStarted());
+      if (!mounted) return;
+      final SeriesBloc bloc = context.read<SeriesBloc>();
+      // Solo carga si el catálogo aún no está disponible, para no vaciar la
+      // rejilla al volver de una ficha de detalle.
+      if (bloc.state is! SeriesLoaded) {
+        bloc.add(const SeriesStarted());
+      }
     });
+  }
+
+  @override
+  void dispose() {
+    _searchController.dispose();
+    super.dispose();
   }
 
   @override
   Widget build(BuildContext context) {
     final AppLocalizations l10n = AppLocalizations.of(context)!;
 
-    return Scaffold(
-      appBar: AppBar(title: Text(l10n.series)),
-      body: BlocBuilder<SeriesBloc, SeriesState>(
-        builder: (context, state) {
-          return switch (state) {
-            SeriesLoading() => const Center(child: CircularProgressIndicator()),
-            SeriesFailure() => _ErrorView(message: l10n.seriesLoadError),
-            SeriesLoaded() => _SeriesContent(state: state),
-            SeriesDetailLoading() ||
-            SeriesDetailLoaded() ||
-            SeriesDetailFailure() =>
-              const SizedBox.shrink(),
-          };
-        },
-      ),
+    return BlocBuilder<SeriesBloc, SeriesState>(
+      builder: (context, state) {
+        return switch (state) {
+          SeriesLoading() => const Center(child: CircularProgressIndicator()),
+          SeriesFailure() => _ErrorView(message: l10n.seriesLoadError),
+          SeriesLoaded() =>
+            _SeriesContent(state: state, controller: _searchController),
+          SeriesDetailLoading() ||
+          SeriesDetailLoaded() ||
+          SeriesDetailFailure() =>
+            const SizedBox.shrink(),
+        };
+      },
     );
   }
 }
 
-/// Contenido del catálogo: chips de categorías y rejilla de portadas.
+/// Contenido del catálogo: buscador, chips de categorías y rejilla de portadas.
 class _SeriesContent extends StatelessWidget {
-  const _SeriesContent({required this.state});
+  const _SeriesContent({required this.state, required this.controller});
 
   final SeriesLoaded state;
+  final TextEditingController controller;
 
   @override
   Widget build(BuildContext context) {
@@ -64,6 +77,34 @@ class _SeriesContent extends StatelessWidget {
 
     return Column(
       children: <Widget>[
+        Padding(
+          padding: const EdgeInsets.fromLTRB(12, 8, 12, 0),
+          child: TextField(
+            controller: controller,
+            onChanged: (String value) =>
+                context.read<SeriesBloc>().add(SeriesSearchChanged(value)),
+            decoration: InputDecoration(
+              hintText: l10n.searchPlaceholder,
+              prefixIcon: const Icon(Icons.search),
+              suffixIcon: state.isSearching
+                  ? IconButton(
+                      icon: const Icon(Icons.clear),
+                      onPressed: () {
+                        controller.clear();
+                        context
+                            .read<SeriesBloc>()
+                            .add(const SeriesSearchChanged(''));
+                      },
+                    )
+                  : null,
+              isDense: true,
+              border: OutlineInputBorder(
+                borderRadius: BorderRadius.circular(12),
+                borderSide: const BorderSide(color: AppColors.surfaceVariant),
+              ),
+            ),
+          ),
+        ),
         SizedBox(
           height: 48,
           child: ListView(
@@ -90,7 +131,11 @@ class _SeriesContent extends StatelessWidget {
         const Divider(height: 1),
         Expanded(
           child: state.seriesList.isEmpty
-              ? Center(child: Text(l10n.noSeries))
+              ? Center(
+                  child: Text(
+                    state.isSearching ? l10n.searchNoResults : l10n.noSeries,
+                  ),
+                )
               : GridView.builder(
                   padding: const EdgeInsets.all(12),
                   gridDelegate:

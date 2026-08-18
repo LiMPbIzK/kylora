@@ -1,14 +1,13 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
-import 'package:go_router/go_router.dart';
 
-import '../../../app.dart';
+import '../../../core/media/playback_request.dart';
 import '../../../core/theme/app_theme.dart';
 import '../../../domain/entities/movie.dart';
 import '../../../domain/repositories/iptv_repository.dart';
 import '../../../l10n/app_localizations.dart';
 import '../../shared_widgets/media_poster.dart';
-import '../player/playback_request.dart';
+import '../player/playback_scope.dart';
 
 /// Detalle de una película con póster, meta y botón de reproducción.
 class MovieDetailScreen extends StatelessWidget {
@@ -74,9 +73,8 @@ class MovieDetailScreen extends StatelessWidget {
             onPressed: () {
               final IptvRepository repository =
                   context.read<IptvRepository>();
-              context.push(
-                Routes.play,
-                extra: PlaybackRequest(
+              PlaybackScope.of(context).play(
+                PlaybackRequest(
                   title: movie.name,
                   urlBuilder: () => repository.buildVodStreamUrl(movie),
                 ),

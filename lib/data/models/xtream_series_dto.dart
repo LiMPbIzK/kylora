@@ -49,15 +49,18 @@ class XtreamSeriesDto {
       cast: json['cast'] as String?,
       director: json['director'] as String?,
       genre: json['genre'] as String?,
-      releaseDate: json['releaseDate'] as String?,
-      rating: json['rating'] as String?,
-      rating5Based: json['rating_5based'] as String?,
-      backdropPath: json['backdrop_path'] as String?,
-      youtubeTrailer: json['youtube_trailer'] as String?,
-      episodeRunTime: json['episode_run_time'] as String?,
+      releaseDate: _str(json['releaseDate']),
+      rating: _str(json['rating']),
+      rating5Based: _str(json['rating_5based']),
+      backdropPath: _str(json['backdrop_path']),
+      youtubeTrailer: _str(json['youtube_trailer']),
+      episodeRunTime: _str(json['episode_run_time']),
       categoryId: int.tryParse(json['category_id']?.toString() ?? ''),
     );
   }
+
+  /// Convierte cualquier valor JSON (string o número) a `String?`.
+  static String? _str(dynamic value) => value?.toString();
 
   Series toEntity() => Series(
     id: seriesId,

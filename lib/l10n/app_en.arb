@@ -157,6 +157,10 @@
   "@noMovies": {
     "description": "Shown when the selected category has no movies."
   },
+  "searchNoResults": "No results found for your search",
+  "@searchNoResults": {
+    "description": "Shown when a search returns no results."
+  },
   "rating": "Rating",
   "@rating": {
     "description": "Label for content rating."

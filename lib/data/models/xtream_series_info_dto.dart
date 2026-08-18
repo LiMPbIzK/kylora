@@ -30,15 +30,15 @@ class XtreamSeriesInfoDto {
         ? rawInfo
         : <String, dynamic>{};
 
-    final String? plot = info['plot'] as String?;
-    final String? genre = info['genre'] as String?;
-    final String? director = info['director'] as String?;
-    final String? cast = info['cast'] as String?;
-    final String? releaseDate = info['releaseDate'] as String?;
-    final String? rating = info['rating'] as String?;
-    final String? backdropPath = info['backdrop_path'] as String?;
+    final String? plot = _str(info['plot']);
+    final String? genre = _join(info['genre']);
+    final String? director = _str(info['director']);
+    final String? cast = _join(info['cast']);
+    final String? releaseDate = _str(info['releaseDate']);
+    final String? rating = _str(info['rating']);
+    final String? backdropPath = _str(info['backdrop_path']);
 
-    final List<Season> seasons = _parseSeasons(json['seasons']);
+    final List<Season> seasons = _parseSeasons(json);
 
     return XtreamSeriesInfoDto(
       seasons: seasons,
@@ -52,18 +52,38 @@ class XtreamSeriesInfoDto {
     );
   }
 
-  /// Parsea las temporadas y sus episodios desde el bloque `seasons`.
-  static List<Season> _parseSeasons(dynamic raw) {
-    final Map<String, dynamic> seasonsMap =
-        raw is Map<String, dynamic> ? raw : <String, dynamic>{};
+  /// Convierte cualquier valor JSON (string o número) a `String?`.
+  static String? _str(dynamic value) => value?.toString();
+
+  /// Convierte a string un valor que puede ser lista (une sus elementos).
+  static String? _join(dynamic value) {
+    if (value is List<dynamic>) {
+      final List<String> parts = value
+          .map((dynamic item) => item.toString())
+          .toList();
+      return parts.isEmpty ? null : parts.join(', ');
+    }
+    return _str(value);
+  }
+
+  /// Parsea las temporadas y sus episodios desde el bloque `episodes`.
+  ///
+  /// En la mayoría de servidores Xtream, el detalle trae el bloque `episodes`
+  /// como un mapa `{ "<season_number>": [episodios] }`; el bloque `seasons`
+  /// solo contiene metadatos. Por robustez, usamos `episodes` con fallback a
+  /// `seasons` (algunas fuentes antiguas incluyen ahí los episodios).
+  static List<Season> _parseSeasons(Map<String, dynamic> json) {
+    final dynamic rawMap = json['episodes'] ?? json['seasons'];
+    final Map<String, dynamic> map =
+        rawMap is Map<String, dynamic> ? rawMap : <String, dynamic>{};
 
     final List<Season> result = <Season>[];
-    for (final MapEntry<String, dynamic> entry in seasonsMap.entries) {
+    for (final MapEntry<String, dynamic> entry in map.entries) {
       final int? seasonNumber = int.tryParse(entry.key);
       if (seasonNumber == null) continue;
 
-      final dynamic value = entry.value;
       final List<Episode> episodes = <Episode>[];
+      final dynamic value = entry.value;
       if (value is List<dynamic>) {
         for (final dynamic item in value) {
           if (item is! Map<String, dynamic>) continue;
@@ -84,9 +104,14 @@ class XtreamSeriesInfoDto {
     final int? episodeId = int.tryParse(id?.toString() ?? '');
     if (episodeId == null) return null;
 
+    final Map<String, dynamic> info =
+        json['info'] is Map<String, dynamic>
+        ? json['info'] as Map<String, dynamic>
+        : <String, dynamic>{};
+
     final String name = _firstNonEmpty(<String?>[
-      json['title'] as String?,
-      json['name'] as String?,
+      _str(json['title']),
+      _str(json['name']),
     ]) ??
         '';
 
@@ -98,21 +123,29 @@ class XtreamSeriesInfoDto {
       name: name,
       episodeNumber: episodeNum,
       cover: _firstNonEmpty(<String?>[
-        json['info'] is Map<String, dynamic>
-            ? (json['info'] as Map<String, dynamic>)['movie_image'] as String?
-            : null,
-        json['cover'] as String?,
+        _str(info['movie_image']),
+        _str(json['cover']),
       ]),
-      releaseDate: json['airdate'] as String?,
+      releaseDate: _firstNonEmpty(<String?>[
+        _str(info['releasedate']),
+        _str(json['airdate']),
+        _str(json['release_date']),
+      ]),
       plot: _firstNonEmpty(<String?>[
-        json['info'] is Map<String, dynamic>
-            ? (json['info'] as Map<String, dynamic>)['plot'] as String?
-            : null,
-        json['plot'] as String?,
+        _str(info['plot']),
+        _str(json['plot']),
       ]),
-      duration: json['duration'] as String?,
-      containerExtension: json['container_extension'] as String?,
-      seasonNumber: int.tryParse(json['season']?.toString() ?? ''),
+      duration: _firstNonEmpty(<String?>[
+        _str(info['duration']),
+        _str(json['duration']),
+      ]),
+      containerExtension: _firstNonEmpty(<String?>[
+        _str(json['container_extension']),
+        _str(json['ext']),
+      ]),
+      seasonNumber: int.tryParse(
+        json['season']?.toString() ?? _str(info['season']) ?? '',
+      ),
     );
   }
 

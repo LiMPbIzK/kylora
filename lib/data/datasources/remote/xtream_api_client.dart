@@ -1,4 +1,5 @@
 import 'package:dio/dio.dart';
+import 'package:flutter/foundation.dart';
 
 import '../../../core/constants/app_constants.dart';
 import '../../models/xtream_category_dto.dart';
@@ -71,14 +72,14 @@ class XtreamApiClient {
     required String username,
     required String password,
   }) async {
-    final dynamic data = await _getList(
+    final List<dynamic> data = await _getList(
       serverUrl: serverUrl,
       username: username,
       password: password,
       action: 'get_live_categories',
-    );
+    ) as List<dynamic>;
     return data
-        .map(
+        .map<XtreamCategoryDto>(
           (dynamic item) =>
               XtreamCategoryDto.fromJson(item as Map<String, dynamic>),
         )
@@ -92,7 +93,7 @@ class XtreamApiClient {
     required String password,
     int? categoryId,
   }) async {
-    final dynamic data = await _getList(
+    final List<dynamic> data = await _getList(
       serverUrl: serverUrl,
       username: username,
       password: password,
@@ -100,9 +101,9 @@ class XtreamApiClient {
       extra: <String, String>{
         if (categoryId != null) 'category_id': '$categoryId',
       },
-    );
+    ) as List<dynamic>;
     return data
-        .map(
+        .map<XtreamStreamDto>(
           (dynamic item) =>
               XtreamStreamDto.fromJson(item as Map<String, dynamic>),
         )
@@ -115,14 +116,14 @@ class XtreamApiClient {
     required String username,
     required String password,
   }) async {
-    final dynamic data = await _getList(
+    final List<dynamic> data = await _getList(
       serverUrl: serverUrl,
       username: username,
       password: password,
       action: 'get_vod_categories',
-    );
+    ) as List<dynamic>;
     return data
-        .map(
+        .map<XtreamCategoryDto>(
           (dynamic item) =>
               XtreamCategoryDto.fromJson(item as Map<String, dynamic>),
         )
@@ -136,7 +137,7 @@ class XtreamApiClient {
     required String password,
     int? categoryId,
   }) async {
-    final dynamic data = await _getList(
+    final List<dynamic> data = await _getList(
       serverUrl: serverUrl,
       username: username,
       password: password,
@@ -144,9 +145,9 @@ class XtreamApiClient {
       extra: <String, String>{
         if (categoryId != null) 'category_id': '$categoryId',
       },
-    );
+    ) as List<dynamic>;
     return data
-        .map(
+        .map<XtreamVodStreamDto>(
           (dynamic item) =>
               XtreamVodStreamDto.fromJson(item as Map<String, dynamic>),
         )
@@ -159,14 +160,14 @@ class XtreamApiClient {
     required String username,
     required String password,
   }) async {
-    final dynamic data = await _getList(
+    final List<dynamic> data = await _getList(
       serverUrl: serverUrl,
       username: username,
       password: password,
       action: 'get_series_categories',
-    );
+    ) as List<dynamic>;
     return data
-        .map(
+        .map<XtreamCategoryDto>(
           (dynamic item) =>
               XtreamCategoryDto.fromJson(item as Map<String, dynamic>),
         )
@@ -180,7 +181,7 @@ class XtreamApiClient {
     required String password,
     int? categoryId,
   }) async {
-    final dynamic data = await _getList(
+    final List<dynamic> data = await _getList(
       serverUrl: serverUrl,
       username: username,
       password: password,
@@ -188,9 +189,9 @@ class XtreamApiClient {
       extra: <String, String>{
         if (categoryId != null) 'category_id': '$categoryId',
       },
-    );
+    ) as List<dynamic>;
     return data
-        .map(
+        .map<XtreamSeriesDto>(
           (dynamic item) =>
               XtreamSeriesDto.fromJson(item as Map<String, dynamic>),
         )
@@ -245,16 +246,31 @@ class XtreamApiClient {
       final Response<dynamic> response = await _dio.get<dynamic>(
         uri.toString(),
       );
+      if (kDebugMode) {
+        debugPrint('XAPI[$action] status=${response.statusCode} '
+            'dataType=${response.data.runtimeType} '
+            'dataLen=${response.data is List ? (response.data as List).length : -1}');
+      }
       if (response.statusCode != 200) {
         throw XtreamNetworkException('HTTP ${response.statusCode}');
       }
       final dynamic data = response.data;
       if (data is! List<dynamic>) {
-        throw const FormatException('Respuesta de lista inválida');
+        throw FormatException(
+          'Respuesta de lista inválida para $action: ${data.runtimeType}',
+        );
       }
       return data;
     } on DioException catch (e) {
-      throw XtreamNetworkException(e.message ?? 'Fallo de red', cause: e);
+      throw XtreamNetworkException(
+        'DioException($action) type=${e.type} msg=${e.message} '
+        'status=${e.response?.statusCode}',
+        cause: e,
+      );
+    } on TypeError catch (e) {
+      throw XtreamNetworkException('TypeError($action) ${e.toString()}', cause: e);
+    } on FormatException catch (e) {
+      throw XtreamNetworkException('FormatException($action) ${e.toString()}', cause: e);
     }
   }
 }

@@ -21,38 +21,50 @@ class VodScreen extends StatefulWidget {
 }
 
 class _VodScreenState extends State<VodScreen> {
+  final TextEditingController _searchController = TextEditingController();
+
   @override
   void initState() {
     super.initState();
     WidgetsBinding.instance.addPostFrameCallback((_) {
-      if (mounted) context.read<VodBloc>().add(const VodStarted());
+      if (!mounted) return;
+      final VodBloc bloc = context.read<VodBloc>();
+      // Solo carga si el catálogo aún no está disponible, para no vaciar la
+      // rejilla al volver de una ficha de detalle.
+      if (bloc.state is! VodLoaded) {
+        bloc.add(const VodStarted());
+      }
     });
+  }
+
+  @override
+  void dispose() {
+    _searchController.dispose();
+    super.dispose();
   }
 
   @override
   Widget build(BuildContext context) {
     final AppLocalizations l10n = AppLocalizations.of(context)!;
 
-    return Scaffold(
-      appBar: AppBar(title: Text(l10n.movies)),
-      body: BlocBuilder<VodBloc, VodState>(
-        builder: (context, state) {
-          return switch (state) {
-            VodLoading() => const Center(child: CircularProgressIndicator()),
-            VodFailure() => _ErrorView(message: l10n.vodLoadError),
-            VodLoaded() => _VodContent(state: state),
-          };
-        },
-      ),
+    return BlocBuilder<VodBloc, VodState>(
+      builder: (context, state) {
+        return switch (state) {
+          VodLoading() => const Center(child: CircularProgressIndicator()),
+          VodFailure() => _ErrorView(message: l10n.vodLoadError),
+          VodLoaded() => _VodContent(state: state, controller: _searchController),
+        };
+      },
     );
   }
 }
 
-/// Contenido del catálogo: chips de categorías y rejilla de pósters.
+/// Contenido del catálogo: buscador, chips de categorías y rejilla de pósters.
 class _VodContent extends StatelessWidget {
-  const _VodContent({required this.state});
+  const _VodContent({required this.state, required this.controller});
 
   final VodLoaded state;
+  final TextEditingController controller;
 
   @override
   Widget build(BuildContext context) {
@@ -60,6 +72,34 @@ class _VodContent extends StatelessWidget {
 
     return Column(
       children: <Widget>[
+        Padding(
+          padding: const EdgeInsets.fromLTRB(12, 8, 12, 0),
+          child: TextField(
+            controller: controller,
+            onChanged: (String value) =>
+                context.read<VodBloc>().add(VodSearchChanged(value)),
+            decoration: InputDecoration(
+              hintText: l10n.searchPlaceholder,
+              prefixIcon: const Icon(Icons.search),
+              suffixIcon: state.isSearching
+                  ? IconButton(
+                      icon: const Icon(Icons.clear),
+                      onPressed: () {
+                        controller.clear();
+                        context
+                            .read<VodBloc>()
+                            .add(const VodSearchChanged(''));
+                      },
+                    )
+                  : null,
+              isDense: true,
+              border: OutlineInputBorder(
+                borderRadius: BorderRadius.circular(12),
+                borderSide: const BorderSide(color: AppColors.surfaceVariant),
+              ),
+            ),
+          ),
+        ),
         SizedBox(
           height: 48,
           child: ListView(
@@ -87,7 +127,9 @@ class _VodContent extends StatelessWidget {
         const Divider(height: 1),
         Expanded(
           child: state.movies.isEmpty
-              ? Center(child: Text(l10n.noMovies))
+              ? Center(
+                  child: Text(state.isSearching ? l10n.searchNoResults : l10n.noMovies),
+                )
               : GridView.builder(
                   padding: const EdgeInsets.all(12),
                   gridDelegate:

@@ -1,4 +1,4 @@
-/// Solicitud de reproducción para la ruta `/play`.
+/// Solicitud de reproducción para el overlay de reproducción.
 /// Encapsula el título a mostrar y la función que construye la URL del stream.
 class PlaybackRequest {
   const PlaybackRequest({required this.title, required this.urlBuilder});

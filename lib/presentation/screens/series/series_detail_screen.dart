@@ -1,8 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
-import 'package:go_router/go_router.dart';
 
-import '../../../app.dart';
+import '../../../core/media/playback_request.dart';
 import '../../../core/theme/app_theme.dart';
 import '../../../domain/entities/episode.dart';
 import '../../../domain/entities/season.dart';
@@ -14,14 +13,17 @@ import '../../blocs/series/series_bloc.dart';
 import '../../blocs/series/series_event.dart';
 import '../../blocs/series/series_state.dart';
 import '../../shared_widgets/media_poster.dart';
-import '../player/playback_request.dart';
+import '../player/playback_scope.dart';
 
 /// Detalle de una serie con sus temporadas y episodios reproducibles.
+///
+/// Usa el [SeriesBloc] compartido del catálogo (no crea uno propio), de modo
+/// que al navegar a otra ruta y volver el estado `SeriesDetailLoaded` se
+/// conserva y no se pierden los episodios ya cargados.
 class SeriesDetailScreen extends StatefulWidget {
-  const SeriesDetailScreen({super.key, required this.series, required this.bloc});
+  const SeriesDetailScreen({super.key, required this.series});
 
   final Series series;
-  final SeriesBloc bloc;
 
   @override
   State<SeriesDetailScreen> createState() => _SeriesDetailScreenState();
@@ -29,18 +31,31 @@ class SeriesDetailScreen extends StatefulWidget {
 
 class _SeriesDetailScreenState extends State<SeriesDetailScreen> {
   int _selectedSeason = 0;
+  late final SeriesBloc _bloc;
 
-  SeriesBloc get _bloc => widget.bloc;
+  SeriesBloc get bloc => _bloc;
 
   @override
   void initState() {
     super.initState();
-    _bloc.add(SeriesDetailRequested(widget.series));
+    _bloc = context.read<SeriesBloc>();
+    // Solo recarga si el bloc no tiene aún cargada esta serie, para no
+    // volver a vaciar la lista al regresar de reproducir un capítulo.
+    final SeriesState state = _bloc.state;
+    if (state is! SeriesDetailLoaded || state.series.id != widget.series.id) {
+      _bloc.add(SeriesDetailRequested(widget.series));
+    } else if (_selectedSeason == 0) {
+      _selectedSeason = state.info.seasons.isNotEmpty
+          ? state.info.seasons.first.number
+          : 0;
+    }
   }
 
   @override
   void dispose() {
-    _bloc.close();
+    // Al salir del detalle, devolvemos el bloc al catálogo para que la rejilla
+    // del tab vuelva a mostrarse (sin cerrar el bloc compartido).
+    _bloc.add(const SeriesDetailClosed());
     super.dispose();
   }
 
@@ -59,17 +74,28 @@ class _SeriesDetailScreenState extends State<SeriesDetailScreen> {
               message: AppLocalizations.of(context)!.seriesDetailLoadError,
               bloc: _bloc,
             ),
-            SeriesDetailLoaded() => _DetailContent(
-              series: widget.series,
-              info: state.info,
-              selectedSeason: _selectedSeason,
-              onSeasonSelected: (int value) =>
-                  setState(() => _selectedSeason = value),
-            ),
+            SeriesDetailLoaded() =>
+              _buildDetail(context, state.info),
             _ => const SizedBox.shrink(),
           };
         },
       ),
+    );
+  }
+
+  Widget _buildDetail(BuildContext context, SeriesInfo info) {
+    final List<Season> seasons = info.seasons;
+    int effective = _selectedSeason;
+    if (seasons.isNotEmpty &&
+        !seasons.any((Season s) => s.number == _selectedSeason)) {
+      // Selecciona la primera temporada por defecto para mostrar sus épocas.
+      effective = seasons.first.number;
+    }
+    return _DetailContent(
+      series: widget.series,
+      info: info,
+      selectedSeason: effective,
+      onSeasonSelected: (int value) => setState(() => _selectedSeason = value),
     );
   }
 }
@@ -205,10 +231,12 @@ class _EpisodeTile extends StatelessWidget {
       trailing: const Icon(Icons.play_circle_outline, color: AppColors.primary),
       onTap: () {
         final IptvRepository repository = context.read<IptvRepository>();
-        context.push(
-          Routes.play,
-          extra: PlaybackRequest(
-            title: '${series.name} — ${episode.name.isEmpty ? 'E${episode.episodeNumber}' : episode.name}',
+        final String episodeTitle = episode.name.isEmpty
+            ? 'E${episode.episodeNumber}'
+            : episode.name;
+        PlaybackScope.of(context).play(
+          PlaybackRequest(
+            title: '${series.name} — $episodeTitle',
             urlBuilder: () => repository.buildEpisodeStreamUrl(episode),
           ),
         );

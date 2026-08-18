@@ -126,6 +126,9 @@ class AppLocalizationsEs extends AppLocalizations {
   String get noMovies => 'No hay películas en esta categoría';
 
   @override
+  String get searchNoResults => 'No se encontraron resultados para tu búsqueda';
+
+  @override
   String get rating => 'Puntuación';
 
   @override

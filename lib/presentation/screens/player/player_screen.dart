@@ -1,10 +1,14 @@
 import 'dart:async';
 
+import 'package:flutter/gestures.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:media_kit/media_kit.dart' hide PlayerState;
 import 'package:media_kit_video/media_kit_video.dart';
 
+import '../../../core/media/app_player.dart';
+import '../../../core/media/playback_controller.dart';
+import '../../../core/media/playback_request.dart';
 import '../../../core/theme/app_theme.dart';
 import '../../../l10n/app_localizations.dart';
 import '../../blocs/player/player_bloc.dart';
@@ -12,17 +16,14 @@ import '../../blocs/player/player_event.dart';
 import '../../blocs/player/player_state.dart';
 
 /// Reproductor genérico (directo, VOD o series) con OSD de controles y pistas.
+///
+/// Se monta **una sola vez** como overlay persistente y es dirigido por
+/// [PlaybackController]: nunca se desmonta al navegar, de modo que el `Video`
+/// (y su superficie gráfica) no se recrea y se evita el crash de ANGLE/Windows.
 class PlayerScreen extends StatefulWidget {
-  const PlayerScreen({
-    super.key,
-    required this.title,
-    required this.bloc,
-  });
+  const PlayerScreen({super.key, required this.controller});
 
-  /// Título del contenido que se reproduce.
-  final String title;
-
-  final PlayerBloc bloc;
+  final PlaybackController controller;
 
   @override
   State<PlayerScreen> createState() => _PlayerScreenState();
@@ -30,17 +31,31 @@ class PlayerScreen extends StatefulWidget {
 
 class _PlayerScreenState extends State<PlayerScreen> {
   late final VideoController _videoController;
+  late final PlayerBloc _bloc;
   Timer? _hideTimer;
   bool _osdVisible = true;
-
-  PlayerBloc get _bloc => widget.bloc;
+  String _title = '';
 
   @override
   void initState() {
     super.initState();
+    // Un único bloc/player para toda la sesión (no se recrea por navegación).
+    _bloc = PlayerBloc(AppPlayer.instance.player);
     _videoController = VideoController(_bloc.player);
-    _bloc.add(const PlayerPlayRequested());
-    _scheduleHide();
+    widget.controller.addListener(_onControllerChanged);
+    _onControllerChanged();
+  }
+
+  void _onControllerChanged() {
+    final PlaybackRequest? request = widget.controller.current;
+    if (request != null) {
+      if (_title != request.title || _bloc.streamUrl == null) {
+        setState(() => _title = request.title);
+        _bloc.add(PlayerPlayRequested(request.urlBuilder));
+      }
+    } else if (!_bloc.isClosed) {
+      _bloc.player.stop();
+    }
   }
 
   void _scheduleHide() {
@@ -52,6 +67,16 @@ class _PlayerScreenState extends State<PlayerScreen> {
     });
   }
 
+  /// Muestra el OSD y programa su ocultado tras la inactividad.
+  void _showOsd() {
+    if (!_osdVisible) {
+      setState(() => _osdVisible = true);
+    }
+    _scheduleHide();
+  }
+
+  void _onMouseHover(PointerHoverEvent event) => _showOsd();
+
   void _toggleOsd() {
     setState(() => _osdVisible = !_osdVisible);
     if (_osdVisible) _scheduleHide();
@@ -61,8 +86,14 @@ class _PlayerScreenState extends State<PlayerScreen> {
     _hideTimer?.cancel();
   }
 
+  void _closePlayer() {
+    _bloc.player.stop();
+    widget.controller.stop();
+  }
+
   @override
   void dispose() {
+    widget.controller.removeListener(_onControllerChanged);
     _hideTimer?.cancel();
     _bloc.close();
     super.dispose();
@@ -72,32 +103,38 @@ class _PlayerScreenState extends State<PlayerScreen> {
   Widget build(BuildContext context) {
     return Scaffold(
       backgroundColor: Colors.black,
-      body: GestureDetector(
-        behavior: HitTestBehavior.opaque,
-        onTap: _toggleOsd,
-        child: Stack(
-          fit: StackFit.expand,
-          children: <Widget>[
-            Video(controller: _videoController),
-            BlocBuilder<PlayerBloc, PlayerState>(
-              bloc: _bloc,
-              builder: (context, state) {
-                if (state is PlayerLoading) {
-                  return const Center(
-                    child: CircularProgressIndicator(color: AppColors.primary),
-                  );
-                }
-                if (state is PlayerError && state.retriesLeft == 0) {
-                  return _ErrorOverlay(
-                    message: AppLocalizations.of(context)!.streamError,
-                    onRetry: () => _bloc.add(const PlayerRetryRequested()),
-                  );
-                }
-                return const SizedBox.shrink();
-              },
-            ),
-            if (_osdVisible) _buildOsd(),
-          ],
+      body: MouseRegion(
+        onHover: _onMouseHover,
+        onExit: (_) => _scheduleHide(),
+        child: GestureDetector(
+          behavior: HitTestBehavior.opaque,
+          onTap: _toggleOsd,
+          child: Stack(
+            fit: StackFit.expand,
+            children: <Widget>[
+              Video(controller: _videoController),
+              BlocBuilder<PlayerBloc, PlayerState>(
+                bloc: _bloc,
+                builder: (context, state) {
+                  if (state is PlayerLoading) {
+                    return const Center(
+                      child: CircularProgressIndicator(
+                        color: AppColors.primary,
+                      ),
+                    );
+                  }
+                  if (state is PlayerError && state.retriesLeft == 0) {
+                    return _ErrorOverlay(
+                      message: AppLocalizations.of(context)!.streamError,
+                      onRetry: () => _bloc.add(const PlayerRetryRequested()),
+                    );
+                  }
+                  return const SizedBox.shrink();
+                },
+              ),
+              if (_osdVisible) _buildOsd(),
+            ],
+          ),
         ),
       ),
     );
@@ -124,7 +161,7 @@ class _PlayerScreenState extends State<PlayerScreen> {
                     tooltip: l10n.settings,
                     icon: const Icon(Icons.arrow_back),
                     color: Colors.white,
-                    onPressed: () => Navigator.of(context).maybePop(),
+                    onPressed: _closePlayer,
                   ),
                   Expanded(
                     child: Column(
@@ -136,7 +173,7 @@ class _PlayerScreenState extends State<PlayerScreen> {
                               ?.copyWith(color: Colors.white70),
                         ),
                         Text(
-                          widget.title,
+                          _title,
                           maxLines: 1,
                           overflow: TextOverflow.ellipsis,
                           style: const TextStyle(

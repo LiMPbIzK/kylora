@@ -8,9 +8,14 @@ sealed class PlayerEvent extends Equatable {
   List<Object?> get props => <Object?>[];
 }
 
-/// Inicia la reproducción del contenido configurado.
+/// Carga y reproduce el contenido cuya URL construye [urlBuilder].
 final class PlayerPlayRequested extends PlayerEvent {
-  const PlayerPlayRequested();
+  const PlayerPlayRequested(this.urlBuilder);
+
+  final Future<String> Function() urlBuilder;
+
+  @override
+  List<Object?> get props => <Object?>[];
 }
 
 /// Reintenta la reproducción tras un error.

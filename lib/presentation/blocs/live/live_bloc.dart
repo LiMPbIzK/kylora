@@ -1,3 +1,4 @@
+import 'package:flutter/foundation.dart' hide Category;
 import 'package:flutter_bloc/flutter_bloc.dart';
 
 import '../../../domain/entities/category.dart';
@@ -32,7 +33,11 @@ class LiveBloc extends Bloc<LiveEvent, LiveState> {
           channels: channels,
         ),
       );
-    } catch (_) {
+    } catch (e, stack) {
+      if (kDebugMode) {
+        debugPrint('LiveBloc error: ${e.runtimeType}: $e');
+        debugPrint('$stack');
+      }
       emit(const LiveFailure('liveLoadError'));
     }
   }

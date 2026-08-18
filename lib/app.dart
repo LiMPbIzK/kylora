@@ -5,6 +5,7 @@ import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:flutter_localizations/flutter_localizations.dart';
 import 'package:go_router/go_router.dart';
 
+import 'core/media/playback_controller.dart';
 import 'core/theme/app_theme.dart';
 import 'domain/entities/movie.dart';
 import 'domain/entities/series.dart';
@@ -13,19 +14,15 @@ import 'l10n/app_localizations.dart';
 import 'presentation/blocs/auth/auth_bloc.dart';
 import 'presentation/blocs/auth/auth_state.dart';
 import 'presentation/blocs/live/live_bloc.dart';
-import 'presentation/blocs/player/player_bloc.dart';
 import 'presentation/blocs/series/series_bloc.dart';
 import 'presentation/blocs/vod/vod_bloc.dart';
 import 'presentation/screens/auth/login_screen.dart';
-import 'presentation/screens/dashboard/dashboard_screen.dart';
-import 'presentation/screens/live/live_screen.dart';
-import 'presentation/screens/player/player_screen.dart';
-import 'presentation/screens/player/playback_request.dart';
+import 'presentation/screens/dashboard/home_shell_screen.dart';
+import 'presentation/screens/player/playback_overlay.dart';
+import 'presentation/screens/player/playback_scope.dart';
 import 'presentation/screens/series/series_detail_screen.dart';
-import 'presentation/screens/series/series_screen.dart';
 import 'presentation/screens/splash/splash_screen.dart';
 import 'presentation/screens/vod/movie_detail_screen.dart';
-import 'presentation/screens/vod/vod_screen.dart';
 
 /// Configuración de navegación de la aplicación.
 abstract final class AppRouter {
@@ -61,15 +58,7 @@ abstract final class AppRouter {
         ),
         GoRoute(
           path: Routes.dashboard,
-          builder: (context, state) => const DashboardScreen(),
-        ),
-        GoRoute(
-          path: Routes.live,
-          builder: (context, state) => const LiveScreen(),
-        ),
-        GoRoute(
-          path: Routes.vod,
-          builder: (context, state) => const VodScreen(),
+          builder: (context, state) => const HomeShellScreen(),
         ),
         GoRoute(
           path: Routes.movieDetail,
@@ -77,27 +66,10 @@ abstract final class AppRouter {
               MovieDetailScreen(movie: state.extra! as Movie),
         ),
         GoRoute(
-          path: Routes.series,
-          builder: (context, state) => const SeriesScreen(),
-        ),
-        GoRoute(
           path: Routes.seriesDetail,
           builder: (context, state) {
             final Series series = state.extra! as Series;
-            return SeriesDetailScreen(
-              series: series,
-              bloc: SeriesBloc(context.read<IptvRepository>()),
-            );
-          },
-        ),
-        GoRoute(
-          path: Routes.play,
-          builder: (context, state) {
-            final PlaybackRequest request = state.extra! as PlaybackRequest;
-            return PlayerScreen(
-              title: request.title,
-              bloc: PlayerBloc(request.urlBuilder),
-            );
+            return SeriesDetailScreen(series: series);
           },
         ),
       ],
@@ -110,12 +82,8 @@ abstract final class Routes {
   static const String splash = '/';
   static const String login = '/login';
   static const String dashboard = '/dashboard';
-  static const String live = '/live';
-  static const String vod = '/vod';
   static const String movieDetail = '/movie';
-  static const String series = '/series';
   static const String seriesDetail = '/series-detail';
-  static const String play = '/play';
 }
 
 /// Adapta el stream del bloc a un [Listenable] para `go_router`.
@@ -142,6 +110,7 @@ class KyloraApp extends StatelessWidget {
     required this.vodBloc,
     required this.seriesBloc,
     required this.repository,
+    required this.playbackController,
   });
 
   final AuthBloc authBloc;
@@ -149,6 +118,7 @@ class KyloraApp extends StatelessWidget {
   final VodBloc vodBloc;
   final SeriesBloc seriesBloc;
   final IptvRepository repository;
+  final PlaybackController playbackController;
 
   @override
   Widget build(BuildContext context) {
@@ -161,23 +131,30 @@ class KyloraApp extends StatelessWidget {
       ],
       child: RepositoryProvider<IptvRepository>.value(
         value: repository,
-        child: MaterialApp.router(
-          title: 'Kylora',
-          debugShowCheckedModeBanner: false,
-          theme: AppTheme.dark,
-          routerConfig: AppRouter.router(authBloc),
-          localizationsDelegates: const <LocalizationsDelegate<Object>>[
-            AppLocalizations.delegate,
-            GlobalMaterialLocalizations.delegate,
-            GlobalWidgetsLocalizations.delegate,
-            GlobalCupertinoLocalizations.delegate,
-          ],
-          supportedLocales: AppLocalizations.supportedLocales,
-          localeResolutionCallback:
-              (Locale? locale, Iterable<Locale> supportedLocales) {
-                // Detección automática del sistema; el usuario podrá cambiarlo en M9.
-                return null;
-              },
+        child: PlaybackScope(
+          controller: playbackController,
+          child: MaterialApp.router(
+            title: 'Kylora',
+            debugShowCheckedModeBanner: false,
+            theme: AppTheme.dark,
+            routerConfig: AppRouter.router(authBloc),
+            localizationsDelegates: const <LocalizationsDelegate<Object>>[
+              AppLocalizations.delegate,
+              GlobalMaterialLocalizations.delegate,
+              GlobalWidgetsLocalizations.delegate,
+              GlobalCupertinoLocalizations.delegate,
+            ],
+            supportedLocales: AppLocalizations.supportedLocales,
+            localeResolutionCallback:
+                (Locale? locale, Iterable<Locale> supportedLocales) {
+                  // Detección automática del sistema; el usuario podrá cambiarlo en M9.
+                  return null;
+                },
+            builder: (context, child) => PlaybackOverlay(
+              controller: playbackController,
+              child: child ?? const SizedBox.shrink(),
+            ),
+          ),
         ),
       ),
     );
