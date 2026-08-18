@@ -70,6 +70,19 @@ class AppLocalizationsEn extends AppLocalizations {
   String get liveTv => 'Live TV';
 
   @override
+  String get allCategories => 'All';
+
+  @override
+  String get noChannels => 'No channels in this category';
+
+  @override
+  String get liveLoadError =>
+      'Could not load the live catalog. Check your connection and try again.';
+
+  @override
+  String get retry => 'Retry';
+
+  @override
   String get movies => 'Movies';
 
   @override

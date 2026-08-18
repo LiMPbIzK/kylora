@@ -85,6 +85,22 @@
   "@liveTv": {
     "description": "Panel section for live channels."
   },
+  "allCategories": "All",
+  "@allCategories": {
+    "description": "Chip label to show all live channels without filtering."
+  },
+  "noChannels": "No channels in this category",
+  "@noChannels": {
+    "description": "Shown when the selected category has no channels."
+  },
+  "liveLoadError": "Could not load the live catalog. Check your connection and try again.",
+  "@liveLoadError": {
+    "description": "Error message when the live catalog fails to load."
+  },
+  "retry": "Retry",
+  "@retry": {
+    "description": "Button to retry a failed operation."
+  },
   "movies": "Movies",
   "@movies": {
     "description": "Panel section for VOD movies."

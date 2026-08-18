@@ -139,8 +139,8 @@ Built on `flutter_localizations` + `intl` with generated ARB files and automatic
 ## 🗺️ Roadmap
 
 - [x] **M0 — Foundation:** project scaffold, dependencies, folder structure, i18n (en/es), theme, router
-- [ ] **M1 — Xtream subscription:** login, secure storage, session persistence, account status
-- [ ] **M2 — Live catalog:** Drift schema + indexing, categories, channel list with logos
+- [x] **M1 — Xtream subscription:** login, secure storage, session persistence, account status
+- [x] **M2 — Live catalog:** Drift schema + indexing, categories, channel list with logos
 - [ ] **M3 — Player:** media_kit integration, OSD controls, audio/subtitle tracks, retry handling
 - [ ] **M4 — VOD & Series:** grids, detail views, series episodes
 - [ ] **M5 — EPG:** now/next in channel list, full schedule view, XMLTV + Xtream short EPG

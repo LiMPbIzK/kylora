@@ -9,7 +9,8 @@ abstract final class AppConstants {
   static const String xtreamUserInfoKey = 'user_info';
 
   /// Cabecera `User-Agent` identificativa del cliente.
-  static String get userAgent => kDebugMode ? 'Kylora/1.0 (debug)' : 'Kylora/1.0';
+  static String get userAgent =>
+      kDebugMode ? 'Kylora/1.0 (debug)' : 'Kylora/1.0';
 }
 
 /// Timeouts de red centralizados.

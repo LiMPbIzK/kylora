@@ -206,6 +206,30 @@ abstract class AppLocalizations {
   /// **'Live TV'**
   String get liveTv;
 
+  /// Chip label to show all live channels without filtering.
+  ///
+  /// In en, this message translates to:
+  /// **'All'**
+  String get allCategories;
+
+  /// Shown when the selected category has no channels.
+  ///
+  /// In en, this message translates to:
+  /// **'No channels in this category'**
+  String get noChannels;
+
+  /// Error message when the live catalog fails to load.
+  ///
+  /// In en, this message translates to:
+  /// **'Could not load the live catalog. Check your connection and try again.'**
+  String get liveLoadError;
+
+  /// Button to retry a failed operation.
+  ///
+  /// In en, this message translates to:
+  /// **'Retry'**
+  String get retry;
+
   /// Panel section for VOD movies.
   ///
   /// In en, this message translates to:

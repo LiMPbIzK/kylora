@@ -33,12 +33,12 @@ class _LoginScreenState extends State<LoginScreen> {
     if (!_formKey.currentState!.validate()) return;
     FocusScope.of(context).unfocus();
     context.read<AuthBloc>().add(
-          AuthLoginRequested(
-            serverUrl: _serverController.text.trim(),
-            username: _usernameController.text.trim(),
-            password: _passwordController.text,
-          ),
-        );
+      AuthLoginRequested(
+        serverUrl: _serverController.text.trim(),
+        username: _usernameController.text.trim(),
+        password: _passwordController.text,
+      ),
+    );
   }
 
   String? _serverValidator(String? value) {
@@ -75,7 +75,9 @@ class _LoginScreenState extends State<LoginScreen> {
                 listener: (context, state) {
                   if (state is AuthFailure) {
                     ScaffoldMessenger.of(context).showSnackBar(
-                      SnackBar(content: Text(_localizeError(l10n, state.message))),
+                      SnackBar(
+                        content: Text(_localizeError(l10n, state.message)),
+                      ),
                     );
                   }
                 },
@@ -86,12 +88,17 @@ class _LoginScreenState extends State<LoginScreen> {
                       mainAxisSize: MainAxisSize.min,
                       crossAxisAlignment: CrossAxisAlignment.stretch,
                       children: <Widget>[
-                        const Icon(Icons.live_tv, size: 72, color: AppColors.primary),
+                        const Icon(
+                          Icons.live_tv,
+                          size: 72,
+                          color: AppColors.primary,
+                        ),
                         const SizedBox(height: 12),
                         Text(
                           'Kylora',
                           textAlign: TextAlign.center,
-                          style: Theme.of(context).textTheme.headlineMedium?.copyWith(
+                          style: Theme.of(context).textTheme.headlineMedium
+                              ?.copyWith(
                                 color: AppColors.primary,
                                 fontWeight: FontWeight.bold,
                               ),
@@ -100,8 +107,11 @@ class _LoginScreenState extends State<LoginScreen> {
                         Text(
                           l10n.loginTitle,
                           textAlign: TextAlign.center,
-                          style: Theme.of(context).textTheme.titleMedium?.copyWith(
-                                color: AppColors.onSurface.withValues(alpha: 0.7),
+                          style: Theme.of(context).textTheme.titleMedium
+                              ?.copyWith(
+                                color: AppColors.onSurface.withValues(
+                                  alpha: 0.7,
+                                ),
                               ),
                         ),
                         const SizedBox(height: 32),
@@ -149,12 +159,16 @@ class _LoginScreenState extends State<LoginScreen> {
                             return FilledButton(
                               onPressed: loading ? null : _submit,
                               child: Padding(
-                                padding: const EdgeInsets.symmetric(vertical: 6),
+                                padding: const EdgeInsets.symmetric(
+                                  vertical: 6,
+                                ),
                                 child: loading
                                     ? const SizedBox(
                                         width: 20,
                                         height: 20,
-                                        child: CircularProgressIndicator(strokeWidth: 2),
+                                        child: CircularProgressIndicator(
+                                          strokeWidth: 2,
+                                        ),
                                       )
                                     : Text(l10n.loginButton),
                               ),

@@ -70,6 +70,19 @@ class AppLocalizationsEs extends AppLocalizations {
   String get liveTv => 'Televisión en Directo';
 
   @override
+  String get allCategories => 'Todas';
+
+  @override
+  String get noChannels => 'No hay canales en esta categoría';
+
+  @override
+  String get liveLoadError =>
+      'No se pudo cargar el catálogo en directo. Revisa tu conexión e inténtalo de nuevo.';
+
+  @override
+  String get retry => 'Reintentar';
+
+  @override
   String get movies => 'Películas';
 
   @override

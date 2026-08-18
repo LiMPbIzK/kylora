@@ -139,8 +139,8 @@ Construida sobre `flutter_localizations` + `intl` con archivos ARB generados y d
 ## 🗺️ Hoja de ruta
 
 - [x] **M0 — Fundación:** andamiaje del proyecto, dependencias, estructura de carpetas, i18n (es/en), tema, router
-- [ ] **M1 — Suscripción Xtream:** login, almacenamiento seguro, persistencia de sesión, estado de la cuenta
-- [ ] **M2 — Catálogo en directo:** esquema Drift + indexado, categorías, lista de canales con logos
+- [x] **M1 — Suscripción Xtream:** login, almacenamiento seguro, persistencia de sesión, estado de la cuenta
+- [x] **M2 — Catálogo en directo:** esquema Drift + indexado, categorías, lista de canales con logos
 - [ ] **M3 — Reproductor:** integración de media_kit, OSD de controles, pistas de audio/subtítulos, reintentos
 - [ ] **M4 — VOD y Series:** rejillas, vistas de detalle, episodios de series
 - [ ] **M5 — EPG:** ahora/siguiente en la lista de canales, vista de programación completa, XMLTV + short EPG de Xtream

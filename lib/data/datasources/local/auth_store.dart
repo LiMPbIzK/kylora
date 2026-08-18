@@ -16,7 +16,7 @@ class StoredCredentials {
 /// Almacenamiento cifrado de credenciales (flutter_secure_storage).
 class AuthStore {
   AuthStore({FlutterSecureStorage? storage})
-      : _storage = storage ?? const FlutterSecureStorage();
+    : _storage = storage ?? const FlutterSecureStorage();
 
   static const String _kServerUrl = 'xtream_server_url';
   static const String _kUsername = 'xtream_username';

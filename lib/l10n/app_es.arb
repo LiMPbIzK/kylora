@@ -85,6 +85,22 @@
   "@liveTv": {
     "description": "Sección del panel para canales en directo."
   },
+  "allCategories": "Todas",
+  "@allCategories": {
+    "description": "Etiqueta del chip para mostrar todos los canales sin filtrar."
+  },
+  "noChannels": "No hay canales en esta categoría",
+  "@noChannels": {
+    "description": "Se muestra cuando la categoría seleccionada no tiene canales."
+  },
+  "liveLoadError": "No se pudo cargar el catálogo en directo. Revisa tu conexión e inténtalo de nuevo.",
+  "@liveLoadError": {
+    "description": "Mensaje de error cuando falla la carga del catálogo en directo."
+  },
+  "retry": "Reintentar",
+  "@retry": {
+    "description": "Botón para reintentar una operación fallida."
+  },
   "movies": "Películas",
   "@movies": {
     "description": "Sección del panel para películas VOD."

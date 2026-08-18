@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
+import 'package:go_router/go_router.dart';
 import 'package:intl/intl.dart';
 
 import '../../../core/theme/app_theme.dart';
@@ -8,6 +9,7 @@ import '../../../l10n/app_localizations.dart';
 import '../../blocs/auth/auth_bloc.dart';
 import '../../blocs/auth/auth_event.dart';
 import '../../blocs/auth/auth_state.dart';
+import '../../../app.dart';
 
 /// Menú principal: Directo, VOD, Series, Favoritos y Ajustes.
 /// Muestra el estado de cuenta y permite cerrar sesión.
@@ -29,7 +31,8 @@ class DashboardScreen extends StatelessWidget {
               return IconButton(
                 tooltip: l10n.signOut,
                 icon: const Icon(Icons.logout),
-                onPressed: () => context.read<AuthBloc>().add(const AuthLogoutRequested()),
+                onPressed: () =>
+                    context.read<AuthBloc>().add(const AuthLogoutRequested()),
               );
             },
           ),
@@ -48,6 +51,12 @@ class DashboardScreen extends StatelessWidget {
                 return _AccountCard(account: state.account);
               },
             ),
+            const SizedBox(height: 24),
+            FilledButton.icon(
+              icon: const Icon(Icons.live_tv),
+              label: Text(l10n.liveTv),
+              onPressed: () => context.go(Routes.live),
+            ),
           ],
         ),
       ),
@@ -64,18 +73,26 @@ class _AccountCard extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final AppLocalizations l10n = AppLocalizations.of(context)!;
-    final DateFormat dateFormat = DateFormat.yMMMMd(Localizations.localeOf(context).toString());
+    final DateFormat dateFormat = DateFormat.yMMMMd(
+      Localizations.localeOf(context).toString(),
+    );
 
-    final String statusText = account.isActive ? l10n.accountActive : l10n.accountExpired;
-    final Color statusColor = account.isActive ? AppColors.secondary : AppColors.error;
+    final String statusText = account.isActive
+        ? l10n.accountActive
+        : l10n.accountExpired;
+    final Color statusColor = account.isActive
+        ? AppColors.secondary
+        : AppColors.error;
     final String? expiresText = account.expiresAt != null
         ? l10n.accountExpiresOn(dateFormat.format(account.expiresAt!))
         : null;
     final String? connectionsText =
         (account.maxConnections != null && account.activeConnections != null)
-            ? l10n.accountConnections(
-                '${account.activeConnections}', '${account.maxConnections}')
-            : null;
+        ? l10n.accountConnections(
+            '${account.activeConnections}',
+            '${account.maxConnections}',
+          )
+        : null;
 
     return Card(
       child: Padding(
@@ -86,16 +103,14 @@ class _AccountCard extends StatelessWidget {
           children: <Widget>[
             Text(
               account.username,
-              style: Theme.of(context).textTheme.titleMedium?.copyWith(
-                    fontWeight: FontWeight.bold,
-                  ),
+              style: Theme.of(context).textTheme.titleMedium
+                  ?.copyWith(fontWeight: FontWeight.bold),
             ),
             const SizedBox(height: 4),
             Text(
               account.serverUrl,
-              style: Theme.of(context).textTheme.bodySmall?.copyWith(
-                    color: AppColors.onSurface.withValues(alpha: 0.6),
-                  ),
+              style: Theme.of(context).textTheme.bodySmall
+                  ?.copyWith(color: AppColors.onSurface.withValues(alpha: 0.6)),
             ),
             const SizedBox(height: 12),
             Row(
@@ -103,14 +118,17 @@ class _AccountCard extends StatelessWidget {
               children: <Widget>[
                 Icon(Icons.circle, size: 10, color: statusColor),
                 const SizedBox(width: 8),
-                Text(l10n.accountStatus, style: Theme.of(context).textTheme.bodyMedium),
+                Text(
+                  l10n.accountStatus,
+                  style: Theme.of(context).textTheme.bodyMedium,
+                ),
                 const SizedBox(width: 8),
                 Text(
                   statusText,
                   style: Theme.of(context).textTheme.bodyMedium?.copyWith(
-                        color: statusColor,
-                        fontWeight: FontWeight.w600,
-                      ),
+                    color: statusColor,
+                    fontWeight: FontWeight.w600,
+                  ),
                 ),
               ],
             ),
@@ -120,7 +138,10 @@ class _AccountCard extends StatelessWidget {
             ],
             if (connectionsText != null) ...[
               const SizedBox(height: 8),
-              Text(connectionsText, style: Theme.of(context).textTheme.bodyMedium),
+              Text(
+                connectionsText,
+                style: Theme.of(context).textTheme.bodyMedium,
+              ),
             ],
           ],
         ),

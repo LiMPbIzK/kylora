@@ -1,3 +1,5 @@
+import '../entities/category.dart';
+import '../entities/channel.dart';
 import '../entities/user_account.dart';
 
 /// Contrato de repositorio agnóstico de fuente IPTV.
@@ -15,4 +17,10 @@ abstract interface class IptvRepository {
 
   /// Cierra sesión y borra credenciales almacenadas.
   Future<void> logout();
+
+  /// Categorías de canales en directo.
+  Future<List<Category>> fetchLiveCategories();
+
+  /// Canales en directo. Si [categoryId] es nulo, devuelve todos los canales.
+  Future<List<Channel>> fetchLiveChannels({int? categoryId});
 }

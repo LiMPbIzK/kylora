@@ -22,16 +22,17 @@ class UserAccount extends Equatable {
 
   bool get isActive => status.toLowerCase() == 'active';
 
-  bool get isExpired => expiresAt != null && expiresAt!.isBefore(DateTime.now());
+  bool get isExpired =>
+      expiresAt != null && expiresAt!.isBefore(DateTime.now());
 
   @override
   List<Object?> get props => [
-        serverUrl,
-        username,
-        password,
-        status,
-        expiresAt,
-        maxConnections,
-        activeConnections,
-      ];
+    serverUrl,
+    username,
+    password,
+    status,
+    expiresAt,
+    maxConnections,
+    activeConnections,
+  ];
 }

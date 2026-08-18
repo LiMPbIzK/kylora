@@ -37,9 +37,7 @@ abstract final class AppTheme {
         color: AppColors.surface,
         margin: EdgeInsets.zero,
       ),
-      dividerTheme: const DividerThemeData(
-        color: AppColors.surfaceVariant,
-      ),
+      dividerTheme: const DividerThemeData(color: AppColors.surfaceVariant),
       focusColor: AppColors.focusGlow,
     );
   }
