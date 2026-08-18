@@ -82,7 +82,7 @@ lib/
 
 * [Flutter 3.x](https://docs.flutter.dev/get-started/install) (canal estable) con Dart 3.x
 * **Windows:** Visual Studio 2022 con la carga de trabajo *Desktop development with C++* (toolchain CMake)
-* **Android / Android TV:** Android SDK (minSdk 23, targetSdk 35)
+* **Android / Android TV:** Android SDK (minSdk 23, compileSdk 37)
 
 > **Linux y macOS** se añadirán tras la v1.0.0 (hito M10): el código base es multiplataforma, solo requieren builds y packaging específicos.
 
@@ -138,7 +138,7 @@ Construida sobre `flutter_localizations` + `intl` con archivos ARB generados y d
 
 ## 🗺️ Hoja de ruta
 
-- [ ] **M0 — Fundación:** andamiaje del proyecto, dependencias, estructura de carpetas, i18n (es/en), tema, router
+- [x] **M0 — Fundación:** andamiaje del proyecto, dependencias, estructura de carpetas, i18n (es/en), tema, router
 - [ ] **M1 — Suscripción Xtream:** login, almacenamiento seguro, persistencia de sesión, estado de la cuenta
 - [ ] **M2 — Catálogo en directo:** esquema Drift + indexado, categorías, lista de canales con logos
 - [ ] **M3 — Reproductor:** integración de media_kit, OSD de controles, pistas de audio/subtítulos, reintentos

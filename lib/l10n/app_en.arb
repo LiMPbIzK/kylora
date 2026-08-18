@@ -1,0 +1,71 @@
+{
+  "@@locale": "en",
+  "appTitle": "Kylora",
+  "@appTitle": {
+    "description": "Application title shown in the window and launcher."
+  },
+  "loginTitle": "Connect to IPTV",
+  "@loginTitle": {
+    "description": "Title of the login screen."
+  },
+  "serverUrl": "Server URL",
+  "@serverUrl": {
+    "description": "Label for the Xtream server URL field."
+  },
+  "username": "Username",
+  "@username": {
+    "description": "Label for the username field."
+  },
+  "password": "Password",
+  "@password": {
+    "description": "Label for the password field."
+  },
+  "loginButton": "Sign In",
+  "@loginButton": {
+    "description": "Button to authenticate with the Xtream provider."
+  },
+  "liveTv": "Live TV",
+  "@liveTv": {
+    "description": "Dashboard section for live channels."
+  },
+  "movies": "Movies",
+  "@movies": {
+    "description": "Dashboard section for VOD movies."
+  },
+  "series": "Series",
+  "@series": {
+    "description": "Dashboard section for series."
+  },
+  "favorites": "Favorites",
+  "@favorites": {
+    "description": "Dashboard section for favorite content."
+  },
+  "settings": "Settings",
+  "@settings": {
+    "description": "Dashboard section for application settings."
+  },
+  "epgNoProgram": "No program information available",
+  "@epgNoProgram": {
+    "description": "Shown when no EPG program is available for a channel."
+  },
+  "searchPlaceholder": "Search channels, movies...",
+  "@searchPlaceholder": {
+    "description": "Placeholder for the search field."
+  },
+  "audioTrack": "Audio Track",
+  "@audioTrack": {
+    "description": "Player option to select the audio track."
+  },
+  "subtitles": "Subtitles",
+  "@subtitles": {
+    "description": "Player option to select subtitles."
+  },
+  "streamError": "Playback error. Retrying...",
+  "@streamError": {
+    "description": "Shown when playback fails and a retry is attempted."
+  },
+  "language": "Language",
+  "@language": {
+    "description": "Label for the language selector."
+  }
+}

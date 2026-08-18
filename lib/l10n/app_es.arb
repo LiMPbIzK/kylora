@@ -1,0 +1,71 @@
+{
+  "@@locale": "es",
+  "appTitle": "Kylora",
+  "@appTitle": {
+    "description": "Título de la aplicación mostrado en la ventana y el lanzador."
+  },
+  "loginTitle": "Conectar a IPTV",
+  "@loginTitle": {
+    "description": "Título de la pantalla de inicio de sesión."
+  },
+  "serverUrl": "URL del Servidor",
+  "@serverUrl": {
+    "description": "Etiqueta del campo de URL del servidor Xtream."
+  },
+  "username": "Usuario",
+  "@username": {
+    "description": "Etiqueta del campo de usuario."
+  },
+  "password": "Contraseña",
+  "@password": {
+    "description": "Etiqueta del campo de contraseña."
+  },
+  "loginButton": "Iniciar Sesión",
+  "@loginButton": {
+    "description": "Botón para autenticarse con el proveedor Xtream."
+  },
+  "liveTv": "Televisión en Directo",
+  "@liveTv": {
+    "description": "Sección del panel para canales en directo."
+  },
+  "movies": "Películas",
+  "@movies": {
+    "description": "Sección del panel para películas VOD."
+  },
+  "series": "Series",
+  "@series": {
+    "description": "Sección del panel para series."
+  },
+  "favorites": "Favoritos",
+  "@favorites": {
+    "description": "Sección del panel para contenido favorito."
+  },
+  "settings": "Ajustes",
+  "@settings": {
+    "description": "Sección del panel para ajustes de la aplicación."
+  },
+  "epgNoProgram": "Sin información de programación",
+  "@epgNoProgram": {
+    "description": "Se muestra cuando no hay información EPG disponible para un canal."
+  },
+  "searchPlaceholder": "Buscar canales, películas...",
+  "@searchPlaceholder": {
+    "description": "Texto de marcador de posición del campo de búsqueda."
+  },
+  "audioTrack": "Pista de Audio",
+  "@audioTrack": {
+    "description": "Opción del reproductor para seleccionar la pista de audio."
+  },
+  "subtitles": "Subtítulos",
+  "@subtitles": {
+    "description": "Opción del reproductor para seleccionar subtítulos."
+  },
+  "streamError": "Error de reproducción. Reintentando...",
+  "@streamError": {
+    "description": "Se muestra cuando falla la reproducción y se intenta de nuevo."
+  },
+  "language": "Idioma",
+  "@language": {
+    "description": "Etiqueta del selector de idioma."
+  }
+}

@@ -1,0 +1,12 @@
+<?xml version="1.0" encoding="utf-8"?>
+<network-security-config>
+    <!-- El tráfico HTTP en claro se permite solo para dominios del stream de
+         páginas que lo requieran (proveedores sin HTTPS). La lista se amplía
+         desde código en tiempo de ejecución para servidores IPTV añadidos
+         por el usuario. Por defecto, cleartext permanece deshabilitado. -->
+    <base-config cleartextTrafficPermitted="false">
+        <trust-anchors>
+            <certificates src="system" />
+        </trust-anchors>
+    </base-config>
+</network-security-config>
