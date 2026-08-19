@@ -159,4 +159,37 @@ class AppLocalizationsEs extends AppLocalizations {
 
   @override
   String get language => 'Idioma';
+
+  @override
+  String get history => 'Historial';
+
+  @override
+  String get noFavorites => 'No tienes favoritos aún';
+
+  @override
+  String get favoritesLoadError => 'No se pudo cargar los favoritos';
+
+  @override
+  String get noHistory => 'No hay historial de reproducción';
+
+  @override
+  String get historyLoadError => 'No se pudo cargar el historial';
+
+  @override
+  String get justNow => 'Ahora mismo';
+
+  @override
+  String minutesAgo(int minutes) {
+    return 'Hace $minutes min';
+  }
+
+  @override
+  String hoursAgo(int hours) {
+    return 'Hace $hours h';
+  }
+
+  @override
+  String daysAgo(int days) {
+    return 'Hace $days días';
+  }
 }

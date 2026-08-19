@@ -200,5 +200,60 @@
   "language": "Idioma",
   "@language": {
     "description": "Etiqueta del selector de idioma."
+  },
+  "favorites": "Favoritos",
+  "@favorites": {
+    "description": "Sección del panel para contenido favorito."
+  },
+  "history": "Historial",
+  "@history": {
+    "description": "Sección del panel para el historial de reproducción."
+  },
+  "noFavorites": "No tienes favoritos aún",
+  "@noFavorites": {
+    "description": "Se muestra cuando la lista de favoritos está vacía."
+  },
+  "favoritesLoadError": "No se pudo cargar los favoritos",
+  "@favoritesLoadError": {
+    "description": "Mensaje de error cuando falla la carga de favoritos."
+  },
+  "noHistory": "No hay historial de reproducción",
+  "@noHistory": {
+    "description": "Se muestra cuando el historial está vacío."
+  },
+  "historyLoadError": "No se pudo cargar el historial",
+  "@historyLoadError": {
+    "description": "Mensaje de error cuando falla la carga del historial."
+  },
+  "justNow": "Ahora mismo",
+  "@justNow": {
+    "description": "Texto para contenido reproducido hace menos de un minuto."
+  },
+  "minutesAgo": "Hace {minutes} min",
+  "@minutesAgo": {
+    "description": "Texto para contenido reproducido hace minutos.",
+    "placeholders": {
+      "minutes": {
+        "type": "int"
+      }
+    }
+  },
+  "hoursAgo": "Hace {hours} h",
+  "@hoursAgo": {
+    "description": "Texto para contenido reproducido hace horas.",
+    "placeholders": {
+      "hours": {
+        "type": "int"
+      }
+    }
+  },
+  "daysAgo": "Hace {days} días",
+  "@daysAgo": {
+    "description": "Texto para contenido reproducido hace días.",
+    "placeholders": {
+      "days": {
+        "type": "int"
+      }
+    }
   }
 }

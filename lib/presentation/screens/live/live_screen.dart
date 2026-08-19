@@ -28,6 +28,8 @@ class LiveScreen extends StatefulWidget {
 }
 
 class _LiveScreenState extends State<LiveScreen> {
+  final TextEditingController _searchController = TextEditingController();
+
   @override
   void initState() {
     super.initState();
@@ -35,6 +37,12 @@ class _LiveScreenState extends State<LiveScreen> {
     WidgetsBinding.instance.addPostFrameCallback((_) {
       if (mounted) context.read<LiveBloc>().add(const LiveStarted());
     });
+  }
+
+  @override
+  void dispose() {
+    _searchController.dispose();
+    super.dispose();
   }
 
   @override
@@ -46,18 +54,19 @@ class _LiveScreenState extends State<LiveScreen> {
         return switch (state) {
           LiveLoading() => const Center(child: CircularProgressIndicator()),
           LiveFailure() => _ErrorView(message: l10n.liveLoadError),
-          LiveLoaded() => _LiveContent(state: state),
+          LiveLoaded() => _LiveContent(state: state, controller: _searchController),
         };
       },
     );
   }
 }
 
-/// Contenido del catálogo: chips de categorías y lista de canales.
+/// Contenido del catálogo: buscador, chips de categorías y lista de canales.
 class _LiveContent extends StatelessWidget {
-  const _LiveContent({required this.state});
+  const _LiveContent({required this.state, required this.controller});
 
   final LiveLoaded state;
+  final TextEditingController controller;
 
   @override
   Widget build(BuildContext context) {
@@ -65,6 +74,32 @@ class _LiveContent extends StatelessWidget {
 
     return Column(
       children: <Widget>[
+        Padding(
+          padding: const EdgeInsets.fromLTRB(12, 8, 12, 0),
+          child: TextField(
+            controller: controller,
+            onChanged: (String value) =>
+                context.read<LiveBloc>().add(LiveSearchChanged(value)),
+            decoration: InputDecoration(
+              hintText: l10n.searchPlaceholder,
+              prefixIcon: const Icon(Icons.search),
+              suffixIcon: state.isSearching
+                  ? IconButton(
+                      icon: const Icon(Icons.clear),
+                      onPressed: () {
+                        controller.clear();
+                        context.read<LiveBloc>().add(const LiveSearchChanged(''));
+                      },
+                    )
+                  : null,
+              isDense: true,
+              border: OutlineInputBorder(
+                borderRadius: BorderRadius.circular(12),
+                borderSide: const BorderSide(color: AppColors.surfaceVariant),
+              ),
+            ),
+          ),
+        ),
         SizedBox(
           height: 48,
           child: ListView(
@@ -92,7 +127,11 @@ class _LiveContent extends StatelessWidget {
         const Divider(height: 1),
         Expanded(
           child: state.channels.isEmpty
-              ? Center(child: Text(l10n.noChannels))
+              ? Center(
+                  child: Text(
+                    state.isSearching ? l10n.searchNoResults : l10n.noChannels,
+                  ),
+                )
               : ListView.builder(
                   itemCount: state.channels.length,
                   itemBuilder: (context, index) {
@@ -196,6 +235,8 @@ class _ChannelTileState extends State<_ChannelTile> {
           PlaybackRequest(
             title: widget.channel.name,
             urlBuilder: () => repository.buildStreamUrl(widget.channel),
+            contentType: 'live',
+            contentId: widget.channel.id,
           ),
         );
       },

@@ -1,7 +1,10 @@
 import '../entities/category.dart';
 import '../entities/channel.dart';
+import '../entities/content_type.dart';
 import '../entities/epg.dart';
 import '../entities/episode.dart';
+import '../entities/favorite_item.dart';
+import '../entities/history_item.dart';
 import '../entities/movie.dart';
 import '../entities/series.dart';
 import '../entities/series_info.dart';
@@ -58,4 +61,22 @@ abstract interface class IptvRepository {
 
   /// Obtiene la programación EPG completa de un canal en directo.
   Future<List<EpgEntry>> fetchFullEpg(int streamId);
+
+  /// Añade un elemento a favoritos.
+  Future<void> addToFavorite(FavoriteItem item);
+
+  /// Elimina un elemento de favoritos.
+  Future<void> removeFromFavorite(int contentId, ContentType type);
+
+  /// Comprueba si un elemento está en favoritos.
+  Future<bool> isFavorite(int contentId, ContentType type);
+
+  /// Obtiene todos los favoritos del usuario.
+  Future<List<FavoriteItem>> getFavorites();
+
+  /// Registra una entrada en el historial de reproducción.
+  Future<void> addToHistory(HistoryItem item);
+
+  /// Obtiene el historial de reproducción ordenado por fecha (más reciente primero).
+  Future<List<HistoryItem>> getHistory();
 }

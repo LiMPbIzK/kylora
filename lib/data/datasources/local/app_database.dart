@@ -28,7 +28,32 @@ class LiveChannels extends Table {
   TextColumn get epgChannelId => text().nullable()();
 }
 
-@DriftDatabase(tables: <Type>[LiveCategories, LiveChannels])
+/// Tipo de contenido para favoritos e historial.
+enum ContentType { live, vod, series }
+
+/// Favoritos del usuario (persistente).
+class Favorites extends Table {
+  IntColumn get id => integer().autoIncrement()();
+  IntColumn get contentId => integer()();
+  TextColumn get contentType => text()();
+  TextColumn get name => text()();
+  TextColumn get logo => text().nullable()();
+  DateTimeColumn get addedAt => dateTime()();
+}
+
+/// Historial de reproducción (persistente).
+class History extends Table {
+  IntColumn get id => integer().autoIncrement()();
+  IntColumn get contentId => integer()();
+  TextColumn get contentType => text()();
+  TextColumn get name => text()();
+  TextColumn get logo => text().nullable()();
+  DateTimeColumn get watchedAt => dateTime()();
+  IntColumn get position => integer().withDefault(const Constant(0))();
+  IntColumn get duration => integer().nullable()();
+}
+
+@DriftDatabase(tables: <Type>[LiveCategories, LiveChannels, Favorites, History])
 class AppDatabase extends _$AppDatabase {
   AppDatabase([QueryExecutor? executor])
     : super(executor ?? _openDefaultConnection());
@@ -43,5 +68,18 @@ class AppDatabase extends _$AppDatabase {
   }
 
   @override
-  int get schemaVersion => 1;
+  int get schemaVersion => 2;
+
+  @override
+  MigrationStrategy get migration {
+    return MigrationStrategy(
+      onCreate: (Migrator m) => m.createAll(),
+      onUpgrade: (Migrator m, int from, int to) async {
+        if (from < 2) {
+          await m.createTable(favorites);
+          await m.createTable(history);
+        }
+      },
+    );
+  }
 }

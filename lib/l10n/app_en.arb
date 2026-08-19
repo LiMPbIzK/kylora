@@ -200,5 +200,60 @@
   "language": "Language",
   "@language": {
     "description": "Label of the language selector."
+  },
+  "favorites": "Favorites",
+  "@favorites": {
+    "description": "Panel section for favorite content."
+  },
+  "history": "History",
+  "@history": {
+    "description": "Panel section for the playback history."
+  },
+  "noFavorites": "No favorites yet",
+  "@noFavorites": {
+    "description": "Shown when the favorites list is empty."
+  },
+  "favoritesLoadError": "Could not load favorites",
+  "@favoritesLoadError": {
+    "description": "Error message when favorites fail to load."
+  },
+  "noHistory": "No playback history",
+  "@noHistory": {
+    "description": "Shown when the history is empty."
+  },
+  "historyLoadError": "Could not load history",
+  "@historyLoadError": {
+    "description": "Error message when history fails to load."
+  },
+  "justNow": "Just now",
+  "@justNow": {
+    "description": "Text for content played less than a minute ago."
+  },
+  "minutesAgo": "{minutes} min ago",
+  "@minutesAgo": {
+    "description": "Text for content played minutes ago.",
+    "placeholders": {
+      "minutes": {
+        "type": "int"
+      }
+    }
+  },
+  "hoursAgo": "{hours} h ago",
+  "@hoursAgo": {
+    "description": "Text for content played hours ago.",
+    "placeholders": {
+      "hours": {
+        "type": "int"
+      }
+    }
+  },
+  "daysAgo": "{days} days ago",
+  "@daysAgo": {
+    "description": "Text for content played days ago.",
+    "placeholders": {
+      "days": {
+        "type": "int"
+      }
+    }
   }
 }

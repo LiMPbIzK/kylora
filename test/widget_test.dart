@@ -6,8 +6,11 @@ import 'package:kylora/core/media/playback_controller.dart';
 import 'package:kylora/data/datasources/remote/xtream_api_client.dart';
 import 'package:kylora/domain/entities/category.dart';
 import 'package:kylora/domain/entities/channel.dart';
+import 'package:kylora/domain/entities/content_type.dart' as domain;
 import 'package:kylora/domain/entities/epg.dart';
 import 'package:kylora/domain/entities/episode.dart';
+import 'package:kylora/domain/entities/favorite_item.dart';
+import 'package:kylora/domain/entities/history_item.dart';
 import 'package:kylora/domain/entities/movie.dart';
 import 'package:kylora/domain/entities/season.dart';
 import 'package:kylora/domain/entities/series.dart';
@@ -18,6 +21,8 @@ import 'package:kylora/presentation/blocs/auth/auth_bloc.dart';
 import 'package:kylora/presentation/blocs/auth/auth_event.dart';
 import 'package:kylora/presentation/blocs/auth/auth_state.dart';
 import 'package:kylora/presentation/blocs/epg/epg_bloc.dart';
+import 'package:kylora/presentation/blocs/favorites/favorites_bloc.dart';
+import 'package:kylora/presentation/blocs/history/history_bloc.dart';
 import 'package:kylora/presentation/blocs/live/live_bloc.dart';
 import 'package:kylora/presentation/blocs/series/series_bloc.dart';
 import 'package:kylora/presentation/blocs/vod/vod_bloc.dart';
@@ -166,6 +171,24 @@ class _FakeRepository implements IptvRepository {
   Future<List<EpgEntry>> fetchFullEpg(int streamId) async {
     return <EpgEntry>[];
   }
+
+  @override
+  Future<void> addToFavorite(FavoriteItem item) async {}
+
+  @override
+  Future<void> removeFromFavorite(int contentId, domain.ContentType type) async {}
+
+  @override
+  Future<bool> isFavorite(int contentId, domain.ContentType type) async => false;
+
+  @override
+  Future<List<FavoriteItem>> getFavorites() async => <FavoriteItem>[];
+
+  @override
+  Future<void> addToHistory(HistoryItem item) async {}
+
+  @override
+  Future<List<HistoryItem>> getHistory() async => <HistoryItem>[];
 }
 
 void main() {
@@ -184,6 +207,8 @@ void main() {
         vodBloc: VodBloc(repository),
         seriesBloc: SeriesBloc(repository),
         epgBloc: EpgBloc(repository),
+        favoritesBloc: FavoritesBloc(repository),
+        historyBloc: HistoryBloc(repository),
         repository: repository,
         playbackController: PlaybackController(),
       ),
@@ -418,6 +443,30 @@ class _FailingRepository implements IptvRepository {
 
   @override
   Future<List<EpgEntry>> fetchFullEpg(int streamId) async =>
+      throw UnimplementedError();
+
+  @override
+  Future<void> addToFavorite(FavoriteItem item) async =>
+      throw UnimplementedError();
+
+  @override
+  Future<void> removeFromFavorite(int contentId, domain.ContentType type) async =>
+      throw UnimplementedError();
+
+  @override
+  Future<bool> isFavorite(int contentId, domain.ContentType type) async =>
+      throw UnimplementedError();
+
+  @override
+  Future<List<FavoriteItem>> getFavorites() async =>
+      throw UnimplementedError();
+
+  @override
+  Future<void> addToHistory(HistoryItem item) async =>
+      throw UnimplementedError();
+
+  @override
+  Future<List<HistoryItem>> getHistory() async =>
       throw UnimplementedError();
 }
 

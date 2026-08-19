@@ -636,11 +636,913 @@ class LiveChannelsCompanion extends UpdateCompanion<LiveChannel> {
   }
 }
 
+class $FavoritesTable extends Favorites
+    with TableInfo<$FavoritesTable, Favorite> {
+  @override
+  final GeneratedDatabase attachedDatabase;
+  final String? _alias;
+  $FavoritesTable(this.attachedDatabase, [this._alias]);
+  static const VerificationMeta _idMeta = const VerificationMeta('id');
+  @override
+  late final GeneratedColumn<int> id = GeneratedColumn<int>(
+    'id',
+    aliasedName,
+    false,
+    hasAutoIncrement: true,
+    type: DriftSqlType.int,
+    requiredDuringInsert: false,
+    defaultConstraints: GeneratedColumn.constraintIsAlways(
+      'PRIMARY KEY AUTOINCREMENT',
+    ),
+  );
+  static const VerificationMeta _contentIdMeta = const VerificationMeta(
+    'contentId',
+  );
+  @override
+  late final GeneratedColumn<int> contentId = GeneratedColumn<int>(
+    'content_id',
+    aliasedName,
+    false,
+    type: DriftSqlType.int,
+    requiredDuringInsert: true,
+  );
+  static const VerificationMeta _contentTypeMeta = const VerificationMeta(
+    'contentType',
+  );
+  @override
+  late final GeneratedColumn<String> contentType = GeneratedColumn<String>(
+    'content_type',
+    aliasedName,
+    false,
+    type: DriftSqlType.string,
+    requiredDuringInsert: true,
+  );
+  static const VerificationMeta _nameMeta = const VerificationMeta('name');
+  @override
+  late final GeneratedColumn<String> name = GeneratedColumn<String>(
+    'name',
+    aliasedName,
+    false,
+    type: DriftSqlType.string,
+    requiredDuringInsert: true,
+  );
+  static const VerificationMeta _logoMeta = const VerificationMeta('logo');
+  @override
+  late final GeneratedColumn<String> logo = GeneratedColumn<String>(
+    'logo',
+    aliasedName,
+    true,
+    type: DriftSqlType.string,
+    requiredDuringInsert: false,
+  );
+  static const VerificationMeta _addedAtMeta = const VerificationMeta(
+    'addedAt',
+  );
+  @override
+  late final GeneratedColumn<DateTime> addedAt = GeneratedColumn<DateTime>(
+    'added_at',
+    aliasedName,
+    false,
+    type: DriftSqlType.dateTime,
+    requiredDuringInsert: true,
+  );
+  @override
+  List<GeneratedColumn> get $columns => [
+    id,
+    contentId,
+    contentType,
+    name,
+    logo,
+    addedAt,
+  ];
+  @override
+  String get aliasedName => _alias ?? actualTableName;
+  @override
+  String get actualTableName => $name;
+  static const String $name = 'favorites';
+  @override
+  VerificationContext validateIntegrity(
+    Insertable<Favorite> instance, {
+    bool isInserting = false,
+  }) {
+    final context = VerificationContext();
+    final data = instance.toColumns(true);
+    if (data.containsKey('id')) {
+      context.handle(_idMeta, id.isAcceptableOrUnknown(data['id']!, _idMeta));
+    }
+    if (data.containsKey('content_id')) {
+      context.handle(
+        _contentIdMeta,
+        contentId.isAcceptableOrUnknown(data['content_id']!, _contentIdMeta),
+      );
+    } else if (isInserting) {
+      context.missing(_contentIdMeta);
+    }
+    if (data.containsKey('content_type')) {
+      context.handle(
+        _contentTypeMeta,
+        contentType.isAcceptableOrUnknown(
+          data['content_type']!,
+          _contentTypeMeta,
+        ),
+      );
+    } else if (isInserting) {
+      context.missing(_contentTypeMeta);
+    }
+    if (data.containsKey('name')) {
+      context.handle(
+        _nameMeta,
+        name.isAcceptableOrUnknown(data['name']!, _nameMeta),
+      );
+    } else if (isInserting) {
+      context.missing(_nameMeta);
+    }
+    if (data.containsKey('logo')) {
+      context.handle(
+        _logoMeta,
+        logo.isAcceptableOrUnknown(data['logo']!, _logoMeta),
+      );
+    }
+    if (data.containsKey('added_at')) {
+      context.handle(
+        _addedAtMeta,
+        addedAt.isAcceptableOrUnknown(data['added_at']!, _addedAtMeta),
+      );
+    } else if (isInserting) {
+      context.missing(_addedAtMeta);
+    }
+    return context;
+  }
+
+  @override
+  Set<GeneratedColumn> get $primaryKey => {id};
+  @override
+  Favorite map(Map<String, dynamic> data, {String? tablePrefix}) {
+    final effectivePrefix = tablePrefix != null ? '$tablePrefix.' : '';
+    return Favorite(
+      id: attachedDatabase.typeMapping.read(
+        DriftSqlType.int,
+        data['${effectivePrefix}id'],
+      )!,
+      contentId: attachedDatabase.typeMapping.read(
+        DriftSqlType.int,
+        data['${effectivePrefix}content_id'],
+      )!,
+      contentType: attachedDatabase.typeMapping.read(
+        DriftSqlType.string,
+        data['${effectivePrefix}content_type'],
+      )!,
+      name: attachedDatabase.typeMapping.read(
+        DriftSqlType.string,
+        data['${effectivePrefix}name'],
+      )!,
+      logo: attachedDatabase.typeMapping.read(
+        DriftSqlType.string,
+        data['${effectivePrefix}logo'],
+      ),
+      addedAt: attachedDatabase.typeMapping.read(
+        DriftSqlType.dateTime,
+        data['${effectivePrefix}added_at'],
+      )!,
+    );
+  }
+
+  @override
+  $FavoritesTable createAlias(String alias) {
+    return $FavoritesTable(attachedDatabase, alias);
+  }
+}
+
+class Favorite extends DataClass implements Insertable<Favorite> {
+  final int id;
+  final int contentId;
+  final String contentType;
+  final String name;
+  final String? logo;
+  final DateTime addedAt;
+  const Favorite({
+    required this.id,
+    required this.contentId,
+    required this.contentType,
+    required this.name,
+    this.logo,
+    required this.addedAt,
+  });
+  @override
+  Map<String, Expression> toColumns(bool nullToAbsent) {
+    final map = <String, Expression>{};
+    map['id'] = Variable<int>(id);
+    map['content_id'] = Variable<int>(contentId);
+    map['content_type'] = Variable<String>(contentType);
+    map['name'] = Variable<String>(name);
+    if (!nullToAbsent || logo != null) {
+      map['logo'] = Variable<String>(logo);
+    }
+    map['added_at'] = Variable<DateTime>(addedAt);
+    return map;
+  }
+
+  FavoritesCompanion toCompanion(bool nullToAbsent) {
+    return FavoritesCompanion(
+      id: Value(id),
+      contentId: Value(contentId),
+      contentType: Value(contentType),
+      name: Value(name),
+      logo: logo == null && nullToAbsent ? const Value.absent() : Value(logo),
+      addedAt: Value(addedAt),
+    );
+  }
+
+  factory Favorite.fromJson(
+    Map<String, dynamic> json, {
+    ValueSerializer? serializer,
+  }) {
+    serializer ??= driftRuntimeOptions.defaultSerializer;
+    return Favorite(
+      id: serializer.fromJson<int>(json['id']),
+      contentId: serializer.fromJson<int>(json['contentId']),
+      contentType: serializer.fromJson<String>(json['contentType']),
+      name: serializer.fromJson<String>(json['name']),
+      logo: serializer.fromJson<String?>(json['logo']),
+      addedAt: serializer.fromJson<DateTime>(json['addedAt']),
+    );
+  }
+  @override
+  Map<String, dynamic> toJson({ValueSerializer? serializer}) {
+    serializer ??= driftRuntimeOptions.defaultSerializer;
+    return <String, dynamic>{
+      'id': serializer.toJson<int>(id),
+      'contentId': serializer.toJson<int>(contentId),
+      'contentType': serializer.toJson<String>(contentType),
+      'name': serializer.toJson<String>(name),
+      'logo': serializer.toJson<String?>(logo),
+      'addedAt': serializer.toJson<DateTime>(addedAt),
+    };
+  }
+
+  Favorite copyWith({
+    int? id,
+    int? contentId,
+    String? contentType,
+    String? name,
+    Value<String?> logo = const Value.absent(),
+    DateTime? addedAt,
+  }) => Favorite(
+    id: id ?? this.id,
+    contentId: contentId ?? this.contentId,
+    contentType: contentType ?? this.contentType,
+    name: name ?? this.name,
+    logo: logo.present ? logo.value : this.logo,
+    addedAt: addedAt ?? this.addedAt,
+  );
+  Favorite copyWithCompanion(FavoritesCompanion data) {
+    return Favorite(
+      id: data.id.present ? data.id.value : this.id,
+      contentId: data.contentId.present ? data.contentId.value : this.contentId,
+      contentType: data.contentType.present
+          ? data.contentType.value
+          : this.contentType,
+      name: data.name.present ? data.name.value : this.name,
+      logo: data.logo.present ? data.logo.value : this.logo,
+      addedAt: data.addedAt.present ? data.addedAt.value : this.addedAt,
+    );
+  }
+
+  @override
+  String toString() {
+    return (StringBuffer('Favorite(')
+          ..write('id: $id, ')
+          ..write('contentId: $contentId, ')
+          ..write('contentType: $contentType, ')
+          ..write('name: $name, ')
+          ..write('logo: $logo, ')
+          ..write('addedAt: $addedAt')
+          ..write(')'))
+        .toString();
+  }
+
+  @override
+  int get hashCode =>
+      Object.hash(id, contentId, contentType, name, logo, addedAt);
+  @override
+  bool operator ==(Object other) =>
+      identical(this, other) ||
+      (other is Favorite &&
+          other.id == this.id &&
+          other.contentId == this.contentId &&
+          other.contentType == this.contentType &&
+          other.name == this.name &&
+          other.logo == this.logo &&
+          other.addedAt == this.addedAt);
+}
+
+class FavoritesCompanion extends UpdateCompanion<Favorite> {
+  final Value<int> id;
+  final Value<int> contentId;
+  final Value<String> contentType;
+  final Value<String> name;
+  final Value<String?> logo;
+  final Value<DateTime> addedAt;
+  const FavoritesCompanion({
+    this.id = const Value.absent(),
+    this.contentId = const Value.absent(),
+    this.contentType = const Value.absent(),
+    this.name = const Value.absent(),
+    this.logo = const Value.absent(),
+    this.addedAt = const Value.absent(),
+  });
+  FavoritesCompanion.insert({
+    this.id = const Value.absent(),
+    required int contentId,
+    required String contentType,
+    required String name,
+    this.logo = const Value.absent(),
+    required DateTime addedAt,
+  }) : contentId = Value(contentId),
+       contentType = Value(contentType),
+       name = Value(name),
+       addedAt = Value(addedAt);
+  static Insertable<Favorite> custom({
+    Expression<int>? id,
+    Expression<int>? contentId,
+    Expression<String>? contentType,
+    Expression<String>? name,
+    Expression<String>? logo,
+    Expression<DateTime>? addedAt,
+  }) {
+    return RawValuesInsertable({
+      if (id != null) 'id': id,
+      if (contentId != null) 'content_id': contentId,
+      if (contentType != null) 'content_type': contentType,
+      if (name != null) 'name': name,
+      if (logo != null) 'logo': logo,
+      if (addedAt != null) 'added_at': addedAt,
+    });
+  }
+
+  FavoritesCompanion copyWith({
+    Value<int>? id,
+    Value<int>? contentId,
+    Value<String>? contentType,
+    Value<String>? name,
+    Value<String?>? logo,
+    Value<DateTime>? addedAt,
+  }) {
+    return FavoritesCompanion(
+      id: id ?? this.id,
+      contentId: contentId ?? this.contentId,
+      contentType: contentType ?? this.contentType,
+      name: name ?? this.name,
+      logo: logo ?? this.logo,
+      addedAt: addedAt ?? this.addedAt,
+    );
+  }
+
+  @override
+  Map<String, Expression> toColumns(bool nullToAbsent) {
+    final map = <String, Expression>{};
+    if (id.present) {
+      map['id'] = Variable<int>(id.value);
+    }
+    if (contentId.present) {
+      map['content_id'] = Variable<int>(contentId.value);
+    }
+    if (contentType.present) {
+      map['content_type'] = Variable<String>(contentType.value);
+    }
+    if (name.present) {
+      map['name'] = Variable<String>(name.value);
+    }
+    if (logo.present) {
+      map['logo'] = Variable<String>(logo.value);
+    }
+    if (addedAt.present) {
+      map['added_at'] = Variable<DateTime>(addedAt.value);
+    }
+    return map;
+  }
+
+  @override
+  String toString() {
+    return (StringBuffer('FavoritesCompanion(')
+          ..write('id: $id, ')
+          ..write('contentId: $contentId, ')
+          ..write('contentType: $contentType, ')
+          ..write('name: $name, ')
+          ..write('logo: $logo, ')
+          ..write('addedAt: $addedAt')
+          ..write(')'))
+        .toString();
+  }
+}
+
+class $HistoryTable extends History with TableInfo<$HistoryTable, HistoryData> {
+  @override
+  final GeneratedDatabase attachedDatabase;
+  final String? _alias;
+  $HistoryTable(this.attachedDatabase, [this._alias]);
+  static const VerificationMeta _idMeta = const VerificationMeta('id');
+  @override
+  late final GeneratedColumn<int> id = GeneratedColumn<int>(
+    'id',
+    aliasedName,
+    false,
+    hasAutoIncrement: true,
+    type: DriftSqlType.int,
+    requiredDuringInsert: false,
+    defaultConstraints: GeneratedColumn.constraintIsAlways(
+      'PRIMARY KEY AUTOINCREMENT',
+    ),
+  );
+  static const VerificationMeta _contentIdMeta = const VerificationMeta(
+    'contentId',
+  );
+  @override
+  late final GeneratedColumn<int> contentId = GeneratedColumn<int>(
+    'content_id',
+    aliasedName,
+    false,
+    type: DriftSqlType.int,
+    requiredDuringInsert: true,
+  );
+  static const VerificationMeta _contentTypeMeta = const VerificationMeta(
+    'contentType',
+  );
+  @override
+  late final GeneratedColumn<String> contentType = GeneratedColumn<String>(
+    'content_type',
+    aliasedName,
+    false,
+    type: DriftSqlType.string,
+    requiredDuringInsert: true,
+  );
+  static const VerificationMeta _nameMeta = const VerificationMeta('name');
+  @override
+  late final GeneratedColumn<String> name = GeneratedColumn<String>(
+    'name',
+    aliasedName,
+    false,
+    type: DriftSqlType.string,
+    requiredDuringInsert: true,
+  );
+  static const VerificationMeta _logoMeta = const VerificationMeta('logo');
+  @override
+  late final GeneratedColumn<String> logo = GeneratedColumn<String>(
+    'logo',
+    aliasedName,
+    true,
+    type: DriftSqlType.string,
+    requiredDuringInsert: false,
+  );
+  static const VerificationMeta _watchedAtMeta = const VerificationMeta(
+    'watchedAt',
+  );
+  @override
+  late final GeneratedColumn<DateTime> watchedAt = GeneratedColumn<DateTime>(
+    'watched_at',
+    aliasedName,
+    false,
+    type: DriftSqlType.dateTime,
+    requiredDuringInsert: true,
+  );
+  static const VerificationMeta _positionMeta = const VerificationMeta(
+    'position',
+  );
+  @override
+  late final GeneratedColumn<int> position = GeneratedColumn<int>(
+    'position',
+    aliasedName,
+    false,
+    type: DriftSqlType.int,
+    requiredDuringInsert: false,
+    defaultValue: const Constant(0),
+  );
+  static const VerificationMeta _durationMeta = const VerificationMeta(
+    'duration',
+  );
+  @override
+  late final GeneratedColumn<int> duration = GeneratedColumn<int>(
+    'duration',
+    aliasedName,
+    true,
+    type: DriftSqlType.int,
+    requiredDuringInsert: false,
+  );
+  @override
+  List<GeneratedColumn> get $columns => [
+    id,
+    contentId,
+    contentType,
+    name,
+    logo,
+    watchedAt,
+    position,
+    duration,
+  ];
+  @override
+  String get aliasedName => _alias ?? actualTableName;
+  @override
+  String get actualTableName => $name;
+  static const String $name = 'history';
+  @override
+  VerificationContext validateIntegrity(
+    Insertable<HistoryData> instance, {
+    bool isInserting = false,
+  }) {
+    final context = VerificationContext();
+    final data = instance.toColumns(true);
+    if (data.containsKey('id')) {
+      context.handle(_idMeta, id.isAcceptableOrUnknown(data['id']!, _idMeta));
+    }
+    if (data.containsKey('content_id')) {
+      context.handle(
+        _contentIdMeta,
+        contentId.isAcceptableOrUnknown(data['content_id']!, _contentIdMeta),
+      );
+    } else if (isInserting) {
+      context.missing(_contentIdMeta);
+    }
+    if (data.containsKey('content_type')) {
+      context.handle(
+        _contentTypeMeta,
+        contentType.isAcceptableOrUnknown(
+          data['content_type']!,
+          _contentTypeMeta,
+        ),
+      );
+    } else if (isInserting) {
+      context.missing(_contentTypeMeta);
+    }
+    if (data.containsKey('name')) {
+      context.handle(
+        _nameMeta,
+        name.isAcceptableOrUnknown(data['name']!, _nameMeta),
+      );
+    } else if (isInserting) {
+      context.missing(_nameMeta);
+    }
+    if (data.containsKey('logo')) {
+      context.handle(
+        _logoMeta,
+        logo.isAcceptableOrUnknown(data['logo']!, _logoMeta),
+      );
+    }
+    if (data.containsKey('watched_at')) {
+      context.handle(
+        _watchedAtMeta,
+        watchedAt.isAcceptableOrUnknown(data['watched_at']!, _watchedAtMeta),
+      );
+    } else if (isInserting) {
+      context.missing(_watchedAtMeta);
+    }
+    if (data.containsKey('position')) {
+      context.handle(
+        _positionMeta,
+        position.isAcceptableOrUnknown(data['position']!, _positionMeta),
+      );
+    }
+    if (data.containsKey('duration')) {
+      context.handle(
+        _durationMeta,
+        duration.isAcceptableOrUnknown(data['duration']!, _durationMeta),
+      );
+    }
+    return context;
+  }
+
+  @override
+  Set<GeneratedColumn> get $primaryKey => {id};
+  @override
+  HistoryData map(Map<String, dynamic> data, {String? tablePrefix}) {
+    final effectivePrefix = tablePrefix != null ? '$tablePrefix.' : '';
+    return HistoryData(
+      id: attachedDatabase.typeMapping.read(
+        DriftSqlType.int,
+        data['${effectivePrefix}id'],
+      )!,
+      contentId: attachedDatabase.typeMapping.read(
+        DriftSqlType.int,
+        data['${effectivePrefix}content_id'],
+      )!,
+      contentType: attachedDatabase.typeMapping.read(
+        DriftSqlType.string,
+        data['${effectivePrefix}content_type'],
+      )!,
+      name: attachedDatabase.typeMapping.read(
+        DriftSqlType.string,
+        data['${effectivePrefix}name'],
+      )!,
+      logo: attachedDatabase.typeMapping.read(
+        DriftSqlType.string,
+        data['${effectivePrefix}logo'],
+      ),
+      watchedAt: attachedDatabase.typeMapping.read(
+        DriftSqlType.dateTime,
+        data['${effectivePrefix}watched_at'],
+      )!,
+      position: attachedDatabase.typeMapping.read(
+        DriftSqlType.int,
+        data['${effectivePrefix}position'],
+      )!,
+      duration: attachedDatabase.typeMapping.read(
+        DriftSqlType.int,
+        data['${effectivePrefix}duration'],
+      ),
+    );
+  }
+
+  @override
+  $HistoryTable createAlias(String alias) {
+    return $HistoryTable(attachedDatabase, alias);
+  }
+}
+
+class HistoryData extends DataClass implements Insertable<HistoryData> {
+  final int id;
+  final int contentId;
+  final String contentType;
+  final String name;
+  final String? logo;
+  final DateTime watchedAt;
+  final int position;
+  final int? duration;
+  const HistoryData({
+    required this.id,
+    required this.contentId,
+    required this.contentType,
+    required this.name,
+    this.logo,
+    required this.watchedAt,
+    required this.position,
+    this.duration,
+  });
+  @override
+  Map<String, Expression> toColumns(bool nullToAbsent) {
+    final map = <String, Expression>{};
+    map['id'] = Variable<int>(id);
+    map['content_id'] = Variable<int>(contentId);
+    map['content_type'] = Variable<String>(contentType);
+    map['name'] = Variable<String>(name);
+    if (!nullToAbsent || logo != null) {
+      map['logo'] = Variable<String>(logo);
+    }
+    map['watched_at'] = Variable<DateTime>(watchedAt);
+    map['position'] = Variable<int>(position);
+    if (!nullToAbsent || duration != null) {
+      map['duration'] = Variable<int>(duration);
+    }
+    return map;
+  }
+
+  HistoryCompanion toCompanion(bool nullToAbsent) {
+    return HistoryCompanion(
+      id: Value(id),
+      contentId: Value(contentId),
+      contentType: Value(contentType),
+      name: Value(name),
+      logo: logo == null && nullToAbsent ? const Value.absent() : Value(logo),
+      watchedAt: Value(watchedAt),
+      position: Value(position),
+      duration: duration == null && nullToAbsent
+          ? const Value.absent()
+          : Value(duration),
+    );
+  }
+
+  factory HistoryData.fromJson(
+    Map<String, dynamic> json, {
+    ValueSerializer? serializer,
+  }) {
+    serializer ??= driftRuntimeOptions.defaultSerializer;
+    return HistoryData(
+      id: serializer.fromJson<int>(json['id']),
+      contentId: serializer.fromJson<int>(json['contentId']),
+      contentType: serializer.fromJson<String>(json['contentType']),
+      name: serializer.fromJson<String>(json['name']),
+      logo: serializer.fromJson<String?>(json['logo']),
+      watchedAt: serializer.fromJson<DateTime>(json['watchedAt']),
+      position: serializer.fromJson<int>(json['position']),
+      duration: serializer.fromJson<int?>(json['duration']),
+    );
+  }
+  @override
+  Map<String, dynamic> toJson({ValueSerializer? serializer}) {
+    serializer ??= driftRuntimeOptions.defaultSerializer;
+    return <String, dynamic>{
+      'id': serializer.toJson<int>(id),
+      'contentId': serializer.toJson<int>(contentId),
+      'contentType': serializer.toJson<String>(contentType),
+      'name': serializer.toJson<String>(name),
+      'logo': serializer.toJson<String?>(logo),
+      'watchedAt': serializer.toJson<DateTime>(watchedAt),
+      'position': serializer.toJson<int>(position),
+      'duration': serializer.toJson<int?>(duration),
+    };
+  }
+
+  HistoryData copyWith({
+    int? id,
+    int? contentId,
+    String? contentType,
+    String? name,
+    Value<String?> logo = const Value.absent(),
+    DateTime? watchedAt,
+    int? position,
+    Value<int?> duration = const Value.absent(),
+  }) => HistoryData(
+    id: id ?? this.id,
+    contentId: contentId ?? this.contentId,
+    contentType: contentType ?? this.contentType,
+    name: name ?? this.name,
+    logo: logo.present ? logo.value : this.logo,
+    watchedAt: watchedAt ?? this.watchedAt,
+    position: position ?? this.position,
+    duration: duration.present ? duration.value : this.duration,
+  );
+  HistoryData copyWithCompanion(HistoryCompanion data) {
+    return HistoryData(
+      id: data.id.present ? data.id.value : this.id,
+      contentId: data.contentId.present ? data.contentId.value : this.contentId,
+      contentType: data.contentType.present
+          ? data.contentType.value
+          : this.contentType,
+      name: data.name.present ? data.name.value : this.name,
+      logo: data.logo.present ? data.logo.value : this.logo,
+      watchedAt: data.watchedAt.present ? data.watchedAt.value : this.watchedAt,
+      position: data.position.present ? data.position.value : this.position,
+      duration: data.duration.present ? data.duration.value : this.duration,
+    );
+  }
+
+  @override
+  String toString() {
+    return (StringBuffer('HistoryData(')
+          ..write('id: $id, ')
+          ..write('contentId: $contentId, ')
+          ..write('contentType: $contentType, ')
+          ..write('name: $name, ')
+          ..write('logo: $logo, ')
+          ..write('watchedAt: $watchedAt, ')
+          ..write('position: $position, ')
+          ..write('duration: $duration')
+          ..write(')'))
+        .toString();
+  }
+
+  @override
+  int get hashCode => Object.hash(
+    id,
+    contentId,
+    contentType,
+    name,
+    logo,
+    watchedAt,
+    position,
+    duration,
+  );
+  @override
+  bool operator ==(Object other) =>
+      identical(this, other) ||
+      (other is HistoryData &&
+          other.id == this.id &&
+          other.contentId == this.contentId &&
+          other.contentType == this.contentType &&
+          other.name == this.name &&
+          other.logo == this.logo &&
+          other.watchedAt == this.watchedAt &&
+          other.position == this.position &&
+          other.duration == this.duration);
+}
+
+class HistoryCompanion extends UpdateCompanion<HistoryData> {
+  final Value<int> id;
+  final Value<int> contentId;
+  final Value<String> contentType;
+  final Value<String> name;
+  final Value<String?> logo;
+  final Value<DateTime> watchedAt;
+  final Value<int> position;
+  final Value<int?> duration;
+  const HistoryCompanion({
+    this.id = const Value.absent(),
+    this.contentId = const Value.absent(),
+    this.contentType = const Value.absent(),
+    this.name = const Value.absent(),
+    this.logo = const Value.absent(),
+    this.watchedAt = const Value.absent(),
+    this.position = const Value.absent(),
+    this.duration = const Value.absent(),
+  });
+  HistoryCompanion.insert({
+    this.id = const Value.absent(),
+    required int contentId,
+    required String contentType,
+    required String name,
+    this.logo = const Value.absent(),
+    required DateTime watchedAt,
+    this.position = const Value.absent(),
+    this.duration = const Value.absent(),
+  }) : contentId = Value(contentId),
+       contentType = Value(contentType),
+       name = Value(name),
+       watchedAt = Value(watchedAt);
+  static Insertable<HistoryData> custom({
+    Expression<int>? id,
+    Expression<int>? contentId,
+    Expression<String>? contentType,
+    Expression<String>? name,
+    Expression<String>? logo,
+    Expression<DateTime>? watchedAt,
+    Expression<int>? position,
+    Expression<int>? duration,
+  }) {
+    return RawValuesInsertable({
+      if (id != null) 'id': id,
+      if (contentId != null) 'content_id': contentId,
+      if (contentType != null) 'content_type': contentType,
+      if (name != null) 'name': name,
+      if (logo != null) 'logo': logo,
+      if (watchedAt != null) 'watched_at': watchedAt,
+      if (position != null) 'position': position,
+      if (duration != null) 'duration': duration,
+    });
+  }
+
+  HistoryCompanion copyWith({
+    Value<int>? id,
+    Value<int>? contentId,
+    Value<String>? contentType,
+    Value<String>? name,
+    Value<String?>? logo,
+    Value<DateTime>? watchedAt,
+    Value<int>? position,
+    Value<int?>? duration,
+  }) {
+    return HistoryCompanion(
+      id: id ?? this.id,
+      contentId: contentId ?? this.contentId,
+      contentType: contentType ?? this.contentType,
+      name: name ?? this.name,
+      logo: logo ?? this.logo,
+      watchedAt: watchedAt ?? this.watchedAt,
+      position: position ?? this.position,
+      duration: duration ?? this.duration,
+    );
+  }
+
+  @override
+  Map<String, Expression> toColumns(bool nullToAbsent) {
+    final map = <String, Expression>{};
+    if (id.present) {
+      map['id'] = Variable<int>(id.value);
+    }
+    if (contentId.present) {
+      map['content_id'] = Variable<int>(contentId.value);
+    }
+    if (contentType.present) {
+      map['content_type'] = Variable<String>(contentType.value);
+    }
+    if (name.present) {
+      map['name'] = Variable<String>(name.value);
+    }
+    if (logo.present) {
+      map['logo'] = Variable<String>(logo.value);
+    }
+    if (watchedAt.present) {
+      map['watched_at'] = Variable<DateTime>(watchedAt.value);
+    }
+    if (position.present) {
+      map['position'] = Variable<int>(position.value);
+    }
+    if (duration.present) {
+      map['duration'] = Variable<int>(duration.value);
+    }
+    return map;
+  }
+
+  @override
+  String toString() {
+    return (StringBuffer('HistoryCompanion(')
+          ..write('id: $id, ')
+          ..write('contentId: $contentId, ')
+          ..write('contentType: $contentType, ')
+          ..write('name: $name, ')
+          ..write('logo: $logo, ')
+          ..write('watchedAt: $watchedAt, ')
+          ..write('position: $position, ')
+          ..write('duration: $duration')
+          ..write(')'))
+        .toString();
+  }
+}
+
 abstract class _$AppDatabase extends GeneratedDatabase {
   _$AppDatabase(QueryExecutor e) : super(e);
   $AppDatabaseManager get managers => $AppDatabaseManager(this);
   late final $LiveCategoriesTable liveCategories = $LiveCategoriesTable(this);
   late final $LiveChannelsTable liveChannels = $LiveChannelsTable(this);
+  late final $FavoritesTable favorites = $FavoritesTable(this);
+  late final $HistoryTable history = $HistoryTable(this);
   late final Index liveChannelsNameIdx = Index(
     'live_channels_name_idx',
     'CREATE INDEX live_channels_name_idx ON live_channels (name)',
@@ -652,6 +1554,8 @@ abstract class _$AppDatabase extends GeneratedDatabase {
   List<DatabaseSchemaEntity> get allSchemaEntities => [
     liveCategories,
     liveChannels,
+    favorites,
+    history,
     liveChannelsNameIdx,
   ];
 }
@@ -1017,6 +1921,461 @@ typedef $$LiveChannelsTableProcessedTableManager =
       LiveChannel,
       PrefetchHooks Function()
     >;
+typedef $$FavoritesTableCreateCompanionBuilder = FavoritesCompanion Function({
+  Value<int> id,
+  required int contentId,
+  required String contentType,
+  required String name,
+  Value<String?> logo,
+  required DateTime addedAt,
+});
+typedef $$FavoritesTableUpdateCompanionBuilder = FavoritesCompanion Function({
+  Value<int> id,
+  Value<int> contentId,
+  Value<String> contentType,
+  Value<String> name,
+  Value<String?> logo,
+  Value<DateTime> addedAt,
+});
+
+class $$FavoritesTableFilterComposer
+    extends Composer<_$AppDatabase, $FavoritesTable> {
+  $$FavoritesTableFilterComposer({
+    required super.$db,
+    required super.$table,
+    super.joinBuilder,
+    super.$addJoinBuilderToRootComposer,
+    super.$removeJoinBuilderFromRootComposer,
+  });
+  ColumnFilters<int> get id => $composableBuilder(
+    column: $table.id,
+    builder: (column) => ColumnFilters(column),
+  );
+
+  ColumnFilters<int> get contentId => $composableBuilder(
+    column: $table.contentId,
+    builder: (column) => ColumnFilters(column),
+  );
+
+  ColumnFilters<String> get contentType => $composableBuilder(
+    column: $table.contentType,
+    builder: (column) => ColumnFilters(column),
+  );
+
+  ColumnFilters<String> get name => $composableBuilder(
+    column: $table.name,
+    builder: (column) => ColumnFilters(column),
+  );
+
+  ColumnFilters<String> get logo => $composableBuilder(
+    column: $table.logo,
+    builder: (column) => ColumnFilters(column),
+  );
+
+  ColumnFilters<DateTime> get addedAt => $composableBuilder(
+    column: $table.addedAt,
+    builder: (column) => ColumnFilters(column),
+  );
+}
+
+class $$FavoritesTableOrderingComposer
+    extends Composer<_$AppDatabase, $FavoritesTable> {
+  $$FavoritesTableOrderingComposer({
+    required super.$db,
+    required super.$table,
+    super.joinBuilder,
+    super.$addJoinBuilderToRootComposer,
+    super.$removeJoinBuilderFromRootComposer,
+  });
+  ColumnOrderings<int> get id => $composableBuilder(
+    column: $table.id,
+    builder: (column) => ColumnOrderings(column),
+  );
+
+  ColumnOrderings<int> get contentId => $composableBuilder(
+    column: $table.contentId,
+    builder: (column) => ColumnOrderings(column),
+  );
+
+  ColumnOrderings<String> get contentType => $composableBuilder(
+    column: $table.contentType,
+    builder: (column) => ColumnOrderings(column),
+  );
+
+  ColumnOrderings<String> get name => $composableBuilder(
+    column: $table.name,
+    builder: (column) => ColumnOrderings(column),
+  );
+
+  ColumnOrderings<String> get logo => $composableBuilder(
+    column: $table.logo,
+    builder: (column) => ColumnOrderings(column),
+  );
+
+  ColumnOrderings<DateTime> get addedAt => $composableBuilder(
+    column: $table.addedAt,
+    builder: (column) => ColumnOrderings(column),
+  );
+}
+
+class $$FavoritesTableAnnotationComposer
+    extends Composer<_$AppDatabase, $FavoritesTable> {
+  $$FavoritesTableAnnotationComposer({
+    required super.$db,
+    required super.$table,
+    super.joinBuilder,
+    super.$addJoinBuilderToRootComposer,
+    super.$removeJoinBuilderFromRootComposer,
+  });
+  GeneratedColumn<int> get id =>
+      $composableBuilder(column: $table.id, builder: (column) => column);
+
+  GeneratedColumn<int> get contentId =>
+      $composableBuilder(column: $table.contentId, builder: (column) => column);
+
+  GeneratedColumn<String> get contentType => $composableBuilder(
+    column: $table.contentType,
+    builder: (column) => column,
+  );
+
+  GeneratedColumn<String> get name =>
+      $composableBuilder(column: $table.name, builder: (column) => column);
+
+  GeneratedColumn<String> get logo =>
+      $composableBuilder(column: $table.logo, builder: (column) => column);
+
+  GeneratedColumn<DateTime> get addedAt =>
+      $composableBuilder(column: $table.addedAt, builder: (column) => column);
+}
+
+class $$FavoritesTableTableManager
+    extends
+        RootTableManager<
+          _$AppDatabase,
+          $FavoritesTable,
+          Favorite,
+          $$FavoritesTableFilterComposer,
+          $$FavoritesTableOrderingComposer,
+          $$FavoritesTableAnnotationComposer,
+          $$FavoritesTableCreateCompanionBuilder,
+          $$FavoritesTableUpdateCompanionBuilder,
+          (Favorite, BaseReferences<_$AppDatabase, $FavoritesTable, Favorite>),
+          Favorite,
+          PrefetchHooks Function()
+        > {
+  $$FavoritesTableTableManager(_$AppDatabase db, $FavoritesTable table)
+    : super(
+        TableManagerState(
+          db: db,
+          table: table,
+          createFilteringComposer: () =>
+              $$FavoritesTableFilterComposer($db: db, $table: table),
+          createOrderingComposer: () =>
+              $$FavoritesTableOrderingComposer($db: db, $table: table),
+          createComputedFieldComposer: () =>
+              $$FavoritesTableAnnotationComposer($db: db, $table: table),
+          updateCompanionCallback:
+              ({
+                Value<int> id = const Value.absent(),
+                Value<int> contentId = const Value.absent(),
+                Value<String> contentType = const Value.absent(),
+                Value<String> name = const Value.absent(),
+                Value<String?> logo = const Value.absent(),
+                Value<DateTime> addedAt = const Value.absent(),
+              }) => FavoritesCompanion(
+                id: id,
+                contentId: contentId,
+                contentType: contentType,
+                name: name,
+                logo: logo,
+                addedAt: addedAt,
+              ),
+          createCompanionCallback:
+              ({
+                Value<int> id = const Value.absent(),
+                required int contentId,
+                required String contentType,
+                required String name,
+                Value<String?> logo = const Value.absent(),
+                required DateTime addedAt,
+              }) => FavoritesCompanion.insert(
+                id: id,
+                contentId: contentId,
+                contentType: contentType,
+                name: name,
+                logo: logo,
+                addedAt: addedAt,
+              ),
+          withReferenceMapper: (p0) => p0
+              .map((e) => (e.readTable(table), BaseReferences(db, table, e)))
+              .toList(),
+          prefetchHooksCallback: null,
+        ),
+      );
+}
+
+typedef $$FavoritesTableProcessedTableManager =
+    ProcessedTableManager<
+      _$AppDatabase,
+      $FavoritesTable,
+      Favorite,
+      $$FavoritesTableFilterComposer,
+      $$FavoritesTableOrderingComposer,
+      $$FavoritesTableAnnotationComposer,
+      $$FavoritesTableCreateCompanionBuilder,
+      $$FavoritesTableUpdateCompanionBuilder,
+      (Favorite, BaseReferences<_$AppDatabase, $FavoritesTable, Favorite>),
+      Favorite,
+      PrefetchHooks Function()
+    >;
+typedef $$HistoryTableCreateCompanionBuilder = HistoryCompanion Function({
+  Value<int> id,
+  required int contentId,
+  required String contentType,
+  required String name,
+  Value<String?> logo,
+  required DateTime watchedAt,
+  Value<int> position,
+  Value<int?> duration,
+});
+typedef $$HistoryTableUpdateCompanionBuilder = HistoryCompanion Function({
+  Value<int> id,
+  Value<int> contentId,
+  Value<String> contentType,
+  Value<String> name,
+  Value<String?> logo,
+  Value<DateTime> watchedAt,
+  Value<int> position,
+  Value<int?> duration,
+});
+
+class $$HistoryTableFilterComposer
+    extends Composer<_$AppDatabase, $HistoryTable> {
+  $$HistoryTableFilterComposer({
+    required super.$db,
+    required super.$table,
+    super.joinBuilder,
+    super.$addJoinBuilderToRootComposer,
+    super.$removeJoinBuilderFromRootComposer,
+  });
+  ColumnFilters<int> get id => $composableBuilder(
+    column: $table.id,
+    builder: (column) => ColumnFilters(column),
+  );
+
+  ColumnFilters<int> get contentId => $composableBuilder(
+    column: $table.contentId,
+    builder: (column) => ColumnFilters(column),
+  );
+
+  ColumnFilters<String> get contentType => $composableBuilder(
+    column: $table.contentType,
+    builder: (column) => ColumnFilters(column),
+  );
+
+  ColumnFilters<String> get name => $composableBuilder(
+    column: $table.name,
+    builder: (column) => ColumnFilters(column),
+  );
+
+  ColumnFilters<String> get logo => $composableBuilder(
+    column: $table.logo,
+    builder: (column) => ColumnFilters(column),
+  );
+
+  ColumnFilters<DateTime> get watchedAt => $composableBuilder(
+    column: $table.watchedAt,
+    builder: (column) => ColumnFilters(column),
+  );
+
+  ColumnFilters<int> get position => $composableBuilder(
+    column: $table.position,
+    builder: (column) => ColumnFilters(column),
+  );
+
+  ColumnFilters<int> get duration => $composableBuilder(
+    column: $table.duration,
+    builder: (column) => ColumnFilters(column),
+  );
+}
+
+class $$HistoryTableOrderingComposer
+    extends Composer<_$AppDatabase, $HistoryTable> {
+  $$HistoryTableOrderingComposer({
+    required super.$db,
+    required super.$table,
+    super.joinBuilder,
+    super.$addJoinBuilderToRootComposer,
+    super.$removeJoinBuilderFromRootComposer,
+  });
+  ColumnOrderings<int> get id => $composableBuilder(
+    column: $table.id,
+    builder: (column) => ColumnOrderings(column),
+  );
+
+  ColumnOrderings<int> get contentId => $composableBuilder(
+    column: $table.contentId,
+    builder: (column) => ColumnOrderings(column),
+  );
+
+  ColumnOrderings<String> get contentType => $composableBuilder(
+    column: $table.contentType,
+    builder: (column) => ColumnOrderings(column),
+  );
+
+  ColumnOrderings<String> get name => $composableBuilder(
+    column: $table.name,
+    builder: (column) => ColumnOrderings(column),
+  );
+
+  ColumnOrderings<String> get logo => $composableBuilder(
+    column: $table.logo,
+    builder: (column) => ColumnOrderings(column),
+  );
+
+  ColumnOrderings<DateTime> get watchedAt => $composableBuilder(
+    column: $table.watchedAt,
+    builder: (column) => ColumnOrderings(column),
+  );
+
+  ColumnOrderings<int> get position => $composableBuilder(
+    column: $table.position,
+    builder: (column) => ColumnOrderings(column),
+  );
+
+  ColumnOrderings<int> get duration => $composableBuilder(
+    column: $table.duration,
+    builder: (column) => ColumnOrderings(column),
+  );
+}
+
+class $$HistoryTableAnnotationComposer
+    extends Composer<_$AppDatabase, $HistoryTable> {
+  $$HistoryTableAnnotationComposer({
+    required super.$db,
+    required super.$table,
+    super.joinBuilder,
+    super.$addJoinBuilderToRootComposer,
+    super.$removeJoinBuilderFromRootComposer,
+  });
+  GeneratedColumn<int> get id =>
+      $composableBuilder(column: $table.id, builder: (column) => column);
+
+  GeneratedColumn<int> get contentId =>
+      $composableBuilder(column: $table.contentId, builder: (column) => column);
+
+  GeneratedColumn<String> get contentType => $composableBuilder(
+    column: $table.contentType,
+    builder: (column) => column,
+  );
+
+  GeneratedColumn<String> get name =>
+      $composableBuilder(column: $table.name, builder: (column) => column);
+
+  GeneratedColumn<String> get logo =>
+      $composableBuilder(column: $table.logo, builder: (column) => column);
+
+  GeneratedColumn<DateTime> get watchedAt =>
+      $composableBuilder(column: $table.watchedAt, builder: (column) => column);
+
+  GeneratedColumn<int> get position =>
+      $composableBuilder(column: $table.position, builder: (column) => column);
+
+  GeneratedColumn<int> get duration =>
+      $composableBuilder(column: $table.duration, builder: (column) => column);
+}
+
+class $$HistoryTableTableManager
+    extends
+        RootTableManager<
+          _$AppDatabase,
+          $HistoryTable,
+          HistoryData,
+          $$HistoryTableFilterComposer,
+          $$HistoryTableOrderingComposer,
+          $$HistoryTableAnnotationComposer,
+          $$HistoryTableCreateCompanionBuilder,
+          $$HistoryTableUpdateCompanionBuilder,
+          (
+            HistoryData,
+            BaseReferences<_$AppDatabase, $HistoryTable, HistoryData>,
+          ),
+          HistoryData,
+          PrefetchHooks Function()
+        > {
+  $$HistoryTableTableManager(_$AppDatabase db, $HistoryTable table)
+    : super(
+        TableManagerState(
+          db: db,
+          table: table,
+          createFilteringComposer: () =>
+              $$HistoryTableFilterComposer($db: db, $table: table),
+          createOrderingComposer: () =>
+              $$HistoryTableOrderingComposer($db: db, $table: table),
+          createComputedFieldComposer: () =>
+              $$HistoryTableAnnotationComposer($db: db, $table: table),
+          updateCompanionCallback:
+              ({
+                Value<int> id = const Value.absent(),
+                Value<int> contentId = const Value.absent(),
+                Value<String> contentType = const Value.absent(),
+                Value<String> name = const Value.absent(),
+                Value<String?> logo = const Value.absent(),
+                Value<DateTime> watchedAt = const Value.absent(),
+                Value<int> position = const Value.absent(),
+                Value<int?> duration = const Value.absent(),
+              }) => HistoryCompanion(
+                id: id,
+                contentId: contentId,
+                contentType: contentType,
+                name: name,
+                logo: logo,
+                watchedAt: watchedAt,
+                position: position,
+                duration: duration,
+              ),
+          createCompanionCallback:
+              ({
+                Value<int> id = const Value.absent(),
+                required int contentId,
+                required String contentType,
+                required String name,
+                Value<String?> logo = const Value.absent(),
+                required DateTime watchedAt,
+                Value<int> position = const Value.absent(),
+                Value<int?> duration = const Value.absent(),
+              }) => HistoryCompanion.insert(
+                id: id,
+                contentId: contentId,
+                contentType: contentType,
+                name: name,
+                logo: logo,
+                watchedAt: watchedAt,
+                position: position,
+                duration: duration,
+              ),
+          withReferenceMapper: (p0) => p0
+              .map((e) => (e.readTable(table), BaseReferences(db, table, e)))
+              .toList(),
+          prefetchHooksCallback: null,
+        ),
+      );
+}
+
+typedef $$HistoryTableProcessedTableManager =
+    ProcessedTableManager<
+      _$AppDatabase,
+      $HistoryTable,
+      HistoryData,
+      $$HistoryTableFilterComposer,
+      $$HistoryTableOrderingComposer,
+      $$HistoryTableAnnotationComposer,
+      $$HistoryTableCreateCompanionBuilder,
+      $$HistoryTableUpdateCompanionBuilder,
+      (HistoryData, BaseReferences<_$AppDatabase, $HistoryTable, HistoryData>),
+      HistoryData,
+      PrefetchHooks Function()
+    >;
 
 class $AppDatabaseManager {
   final _$AppDatabase _db;
@@ -1025,4 +2384,8 @@ class $AppDatabaseManager {
       $$LiveCategoriesTableTableManager(_db, _db.liveCategories);
   $$LiveChannelsTableTableManager get liveChannels =>
       $$LiveChannelsTableTableManager(_db, _db.liveChannels);
+  $$FavoritesTableTableManager get favorites =>
+      $$FavoritesTableTableManager(_db, _db.favorites);
+  $$HistoryTableTableManager get history =>
+      $$HistoryTableTableManager(_db, _db.history);
 }

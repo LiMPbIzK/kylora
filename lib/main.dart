@@ -15,6 +15,8 @@ import 'data/repositories/xtream_repository.dart';
 import 'presentation/blocs/auth/auth_bloc.dart';
 import 'presentation/blocs/auth/auth_event.dart';
 import 'presentation/blocs/epg/epg_bloc.dart';
+import 'presentation/blocs/favorites/favorites_bloc.dart';
+import 'presentation/blocs/history/history_bloc.dart';
 import 'presentation/blocs/live/live_bloc.dart';
 import 'presentation/blocs/series/series_bloc.dart';
 import 'presentation/blocs/vod/vod_bloc.dart';
@@ -36,6 +38,7 @@ void main() {
   final XtreamRepository repository = XtreamRepository(
     XtreamApiClient(dio),
     AuthStore(),
+    database,
     cache: LiveCacheStore(database),
   );
 
@@ -44,6 +47,8 @@ void main() {
   final VodBloc vodBloc = VodBloc(repository);
   final SeriesBloc seriesBloc = SeriesBloc(repository);
   final EpgBloc epgBloc = EpgBloc(repository);
+  final FavoritesBloc favoritesBloc = FavoritesBloc(repository);
+  final HistoryBloc historyBloc = HistoryBloc(repository);
 
   runApp(
     KyloraApp(
@@ -52,6 +57,8 @@ void main() {
       vodBloc: vodBloc,
       seriesBloc: seriesBloc,
       epgBloc: epgBloc,
+      favoritesBloc: favoritesBloc,
+      historyBloc: historyBloc,
       repository: repository,
       playbackController: PlaybackController(),
     ),

@@ -238,6 +238,8 @@ class _EpisodeTile extends StatelessWidget {
           PlaybackRequest(
             title: '${series.name} — $episodeTitle',
             urlBuilder: () => repository.buildEpisodeStreamUrl(episode),
+            contentType: 'series',
+            contentId: episode.id,
           ),
         );
       },

@@ -22,3 +22,13 @@ final class LiveCategorySelected extends LiveEvent {
   @override
   List<Object?> get props => <Object?>[categoryId];
 }
+
+/// Cambia el texto de búsqueda en la lista de canales.
+final class LiveSearchChanged extends LiveEvent {
+  const LiveSearchChanged(this.query);
+
+  final String query;
+
+  @override
+  List<Object?> get props => <Object?>[query];
+}

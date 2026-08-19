@@ -12,12 +12,14 @@ class LiveBloc extends Bloc<LiveEvent, LiveState> {
   LiveBloc(this._repository) : super(const LiveLoading()) {
     on<LiveStarted>(_onStarted);
     on<LiveCategorySelected>(_onCategorySelected);
+    on<LiveSearchChanged>(_onSearchChanged);
   }
 
   final IptvRepository _repository;
 
   List<Category> _categories = <Category>[];
   List<Channel> _allChannels = <Channel>[];
+  String _query = '';
 
   Future<void> _onStarted(LiveStarted event, Emitter<LiveState> emit) async {
     emit(const LiveLoading());
@@ -26,12 +28,9 @@ class LiveBloc extends Bloc<LiveEvent, LiveState> {
       final List<Channel> channels = await _repository.fetchLiveChannels();
       _categories = categories;
       _allChannels = channels;
+      _query = '';
       emit(
-        LiveLoaded(
-          categories: categories,
-          selectedCategoryId: null,
-          channels: channels,
-        ),
+        _buildLoaded(selectedCategoryId: null),
       );
     } catch (e, stack) {
       if (kDebugMode) {
@@ -49,21 +48,35 @@ class LiveBloc extends Bloc<LiveEvent, LiveState> {
     if (state is! LiveLoaded) return;
     final LiveLoaded current = state as LiveLoaded;
     if (current.selectedCategoryId == event.categoryId) return;
+    emit(_buildLoaded(selectedCategoryId: event.categoryId));
+  }
 
-    final List<Channel> channels = event.categoryId == null
-        ? _allChannels
-        : _allChannels
-              .where(
-                (Channel channel) => channel.categoryId == event.categoryId,
-              )
-              .toList();
+  Future<void> _onSearchChanged(
+    LiveSearchChanged event,
+    Emitter<LiveState> emit,
+  ) async {
+    if (state is! LiveLoaded) return;
+    _query = event.query;
+    final LiveLoaded current = state as LiveLoaded;
+    emit(_buildLoaded(selectedCategoryId: current.selectedCategoryId));
+  }
 
-    emit(
-      LiveLoaded(
-        categories: _categories,
-        selectedCategoryId: event.categoryId,
-        channels: channels,
-      ),
+  /// Construye el estado cargado combinando categoría y búsqueda.
+  LiveLoaded _buildLoaded({required int? selectedCategoryId}) {
+    final String term = _query.trim().toLowerCase();
+    final List<Channel> channels = _allChannels.where((Channel channel) {
+      final bool matchCategory =
+          selectedCategoryId == null || channel.categoryId == selectedCategoryId;
+      final bool matchQuery =
+          term.isEmpty || channel.name.toLowerCase().contains(term);
+      return matchCategory && matchQuery;
+    }).toList();
+
+    return LiveLoaded(
+      categories: _categories,
+      selectedCategoryId: selectedCategoryId,
+      channels: channels,
+      query: _query,
     );
   }
 }

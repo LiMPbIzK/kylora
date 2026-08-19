@@ -10,6 +10,9 @@ import '../../../core/media/app_player.dart';
 import '../../../core/media/playback_controller.dart';
 import '../../../core/media/playback_request.dart';
 import '../../../core/theme/app_theme.dart';
+import '../../../domain/entities/content_type.dart';
+import '../../../domain/entities/history_item.dart';
+import '../../../domain/repositories/iptv_repository.dart';
 import '../../../l10n/app_localizations.dart';
 import '../../blocs/player/player_bloc.dart';
 import '../../blocs/player/player_event.dart';
@@ -52,10 +55,24 @@ class _PlayerScreenState extends State<PlayerScreen> {
       if (_title != request.title || _bloc.streamUrl == null) {
         setState(() => _title = request.title);
         _bloc.add(PlayerPlayRequested(request.urlBuilder));
+        _recordHistory(request);
       }
     } else if (!_bloc.isClosed) {
       _bloc.player.stop();
     }
+  }
+
+  void _recordHistory(PlaybackRequest request) {
+    if (request.contentType == null || request.contentId == null) return;
+    final IptvRepository repository = context.read<IptvRepository>();
+    repository.addToHistory(
+      HistoryItem(
+        contentId: request.contentId!,
+        contentType: ContentType.values.byName(request.contentType!),
+        name: request.title,
+        watchedAt: DateTime.now(),
+      ),
+    );
   }
 
   void _scheduleHide() {

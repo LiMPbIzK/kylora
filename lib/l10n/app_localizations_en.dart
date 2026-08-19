@@ -159,4 +159,37 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get language => 'Language';
+
+  @override
+  String get history => 'History';
+
+  @override
+  String get noFavorites => 'No favorites yet';
+
+  @override
+  String get favoritesLoadError => 'Could not load favorites';
+
+  @override
+  String get noHistory => 'No playback history';
+
+  @override
+  String get historyLoadError => 'Could not load history';
+
+  @override
+  String get justNow => 'Just now';
+
+  @override
+  String minutesAgo(int minutes) {
+    return '$minutes min ago';
+  }
+
+  @override
+  String hoursAgo(int hours) {
+    return '$hours h ago';
+  }
+
+  @override
+  String daysAgo(int days) {
+    return '$days days ago';
+  }
 }

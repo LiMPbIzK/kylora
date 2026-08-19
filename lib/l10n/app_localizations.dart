@@ -379,6 +379,60 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'Language'**
   String get language;
+
+  /// Panel section for the playback history.
+  ///
+  /// In en, this message translates to:
+  /// **'History'**
+  String get history;
+
+  /// Shown when the favorites list is empty.
+  ///
+  /// In en, this message translates to:
+  /// **'No favorites yet'**
+  String get noFavorites;
+
+  /// Error message when favorites fail to load.
+  ///
+  /// In en, this message translates to:
+  /// **'Could not load favorites'**
+  String get favoritesLoadError;
+
+  /// Shown when the history is empty.
+  ///
+  /// In en, this message translates to:
+  /// **'No playback history'**
+  String get noHistory;
+
+  /// Error message when history fails to load.
+  ///
+  /// In en, this message translates to:
+  /// **'Could not load history'**
+  String get historyLoadError;
+
+  /// Text for content played less than a minute ago.
+  ///
+  /// In en, this message translates to:
+  /// **'Just now'**
+  String get justNow;
+
+  /// Text for content played minutes ago.
+  ///
+  /// In en, this message translates to:
+  /// **'{minutes} min ago'**
+  String minutesAgo(int minutes);
+
+  /// Text for content played hours ago.
+  ///
+  /// In en, this message translates to:
+  /// **'{hours} h ago'**
+  String hoursAgo(int hours);
+
+  /// Text for content played days ago.
+  ///
+  /// In en, this message translates to:
+  /// **'{days} days ago'**
+  String daysAgo(int days);
 }
 
 class _AppLocalizationsDelegate

@@ -77,6 +77,8 @@ class MovieDetailScreen extends StatelessWidget {
                 PlaybackRequest(
                   title: movie.name,
                   urlBuilder: () => repository.buildVodStreamUrl(movie),
+                  contentType: 'vod',
+                  contentId: movie.id,
                 ),
               );
             },

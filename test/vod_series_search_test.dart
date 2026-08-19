@@ -2,8 +2,11 @@ import 'package:flutter_test/flutter_test.dart';
 
 import 'package:kylora/domain/entities/category.dart';
 import 'package:kylora/domain/entities/channel.dart';
+import 'package:kylora/domain/entities/content_type.dart' as domain;
 import 'package:kylora/domain/entities/epg.dart';
 import 'package:kylora/domain/entities/episode.dart';
+import 'package:kylora/domain/entities/favorite_item.dart';
+import 'package:kylora/domain/entities/history_item.dart';
 import 'package:kylora/domain/entities/movie.dart';
 import 'package:kylora/domain/entities/series.dart';
 import 'package:kylora/domain/entities/series_info.dart';
@@ -86,6 +89,30 @@ class _FakeRepo implements IptvRepository {
 
   @override
   Future<List<EpgEntry>> fetchFullEpg(int streamId) async =>
+      throw UnimplementedError();
+
+  @override
+  Future<void> addToFavorite(FavoriteItem item) async =>
+      throw UnimplementedError();
+
+  @override
+  Future<void> removeFromFavorite(int contentId, domain.ContentType type) async =>
+      throw UnimplementedError();
+
+  @override
+  Future<bool> isFavorite(int contentId, domain.ContentType type) async =>
+      throw UnimplementedError();
+
+  @override
+  Future<List<FavoriteItem>> getFavorites() async =>
+      throw UnimplementedError();
+
+  @override
+  Future<void> addToHistory(HistoryItem item) async =>
+      throw UnimplementedError();
+
+  @override
+  Future<List<HistoryItem>> getHistory() async =>
       throw UnimplementedError();
 }
 

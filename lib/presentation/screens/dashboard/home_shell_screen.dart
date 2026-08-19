@@ -1,6 +1,8 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
+import 'package:go_router/go_router.dart';
 
+import '../../../app.dart';
 import '../../../core/theme/app_theme.dart';
 import '../../../l10n/app_localizations.dart';
 import '../../blocs/auth/auth_bloc.dart';
@@ -25,6 +27,16 @@ class HomeShellScreen extends StatelessWidget {
         appBar: AppBar(
           title: const Text('Kylora'),
           actions: <Widget>[
+            IconButton(
+              tooltip: l10n.favorites,
+              icon: const Icon(Icons.favorite_border),
+              onPressed: () => context.push(Routes.favorites),
+            ),
+            IconButton(
+              tooltip: l10n.history,
+              icon: const Icon(Icons.history),
+              onPressed: () => context.push(Routes.history),
+            ),
             BlocBuilder<AuthBloc, AuthState>(
               buildWhen: (previous, current) => current is AuthAuthenticated,
               builder: (context, state) {

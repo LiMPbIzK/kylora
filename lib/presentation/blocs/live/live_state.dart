@@ -22,19 +22,23 @@ final class LiveLoaded extends LiveState {
     required this.categories,
     required this.selectedCategoryId,
     required this.channels,
+    this.query = '',
   });
 
   final List<Category> categories;
   final int? selectedCategoryId;
   final List<Channel> channels;
+  final String query;
 
   bool get isAllSelected => selectedCategoryId == null;
+  bool get isSearching => query.trim().isNotEmpty;
 
   @override
   List<Object?> get props => <Object?>[
     categories,
     selectedCategoryId,
     channels,
+    query,
   ];
 }
 

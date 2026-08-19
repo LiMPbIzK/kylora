@@ -1,7 +1,12 @@
+import 'package:drift/drift.dart';
+
 import '../../domain/entities/category.dart';
 import '../../domain/entities/channel.dart';
+import '../../domain/entities/content_type.dart' as domain;
 import '../../domain/entities/epg.dart';
 import '../../domain/entities/episode.dart';
+import '../../domain/entities/favorite_item.dart';
+import '../../domain/entities/history_item.dart';
 import '../../domain/entities/movie.dart';
 import '../../domain/entities/series.dart';
 import '../../domain/entities/series_info.dart';
@@ -20,11 +25,16 @@ import '../models/xtream_vod_stream_dto.dart';
 
 /// Implementación Xtream del contrato [IptvRepository].
 class XtreamRepository implements IptvRepository {
-  XtreamRepository(this._apiClient, this._authStore, {LiveCacheStore? cache})
-    : _cache = cache ?? LiveCacheStore(AppDatabase());
+  XtreamRepository(
+    this._apiClient,
+    this._authStore,
+    this._db, {
+    LiveCacheStore? cache,
+  }) : _cache = cache ?? LiveCacheStore(_db);
 
   final XtreamApiClient _apiClient;
   final AuthStore _authStore;
+  final AppDatabase _db;
   final LiveCacheStore _cache;
 
   @override
@@ -205,6 +215,91 @@ class XtreamRepository implements IptvRepository {
       password: credentials.password,
       streamId: streamId,
     );
+  }
+
+  @override
+  Future<void> addToFavorite(FavoriteItem item) async {
+    await _db.into(_db.favorites).insert(
+      FavoritesCompanion.insert(
+        contentId: item.contentId,
+        contentType: item.contentType.name,
+        name: item.name,
+        logo: Value(item.logo),
+        addedAt: DateTime.now(),
+      ),
+    );
+  }
+
+  @override
+  Future<void> removeFromFavorite(int contentId, domain.ContentType type) async {
+    await (_db.delete(_db.favorites)
+          ..where((f) => f.contentId.equals(contentId))
+          ..where((f) => f.contentType.equals(type.name)))
+        .go();
+  }
+
+  @override
+  Future<bool> isFavorite(int contentId, domain.ContentType type) async {
+    final List<Favorite> rows = await (_db.select(_db.favorites)
+          ..where((f) => f.contentId.equals(contentId))
+          ..where((f) => f.contentType.equals(type.name)))
+        .get();
+    return rows.isNotEmpty;
+  }
+
+  @override
+  Future<List<FavoriteItem>> getFavorites() async {
+    final List<Favorite> rows = await _db.select(_db.favorites).get();
+    return rows
+        .map((Favorite row) => FavoriteItem(
+              contentId: row.contentId,
+              contentType: _parseContentType(row.contentType),
+              name: row.name,
+              logo: row.logo,
+            ))
+        .toList();
+  }
+
+  @override
+  Future<void> addToHistory(HistoryItem item) async {
+    await _db.into(_db.history).insert(
+      HistoryCompanion.insert(
+        contentId: item.contentId,
+        contentType: item.contentType.name,
+        name: item.name,
+        logo: Value(item.logo),
+        watchedAt: item.watchedAt,
+        position: Value(item.position),
+        duration: Value(item.duration),
+      ),
+    );
+  }
+
+  @override
+  Future<List<HistoryItem>> getHistory() async {
+    final List<HistoryData> rows = await (_db.select(_db.history)
+          ..orderBy([(t) => OrderingTerm.desc(t.watchedAt)]))
+        .get();
+    return rows
+        .map((HistoryData row) => HistoryItem(
+              contentId: row.contentId,
+              contentType: _parseContentType(row.contentType),
+              name: row.name,
+              logo: row.logo,
+              watchedAt: row.watchedAt,
+              position: row.position,
+              duration: row.duration,
+            ))
+        .toList();
+  }
+
+  domain.ContentType _parseContentType(String value) {
+    return switch (value) {
+      'live' => domain.ContentType.live,
+      'vod' => domain.ContentType.vod,
+      'series' => domain.ContentType.series,
+      _ => domain.ContentType.live,
+    };
   }
 
   @override
