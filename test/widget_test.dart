@@ -6,6 +6,7 @@ import 'package:kylora/core/media/playback_controller.dart';
 import 'package:kylora/data/datasources/remote/xtream_api_client.dart';
 import 'package:kylora/domain/entities/category.dart';
 import 'package:kylora/domain/entities/channel.dart';
+import 'package:kylora/domain/entities/epg.dart';
 import 'package:kylora/domain/entities/episode.dart';
 import 'package:kylora/domain/entities/movie.dart';
 import 'package:kylora/domain/entities/season.dart';
@@ -16,6 +17,7 @@ import 'package:kylora/domain/repositories/iptv_repository.dart';
 import 'package:kylora/presentation/blocs/auth/auth_bloc.dart';
 import 'package:kylora/presentation/blocs/auth/auth_event.dart';
 import 'package:kylora/presentation/blocs/auth/auth_state.dart';
+import 'package:kylora/presentation/blocs/epg/epg_bloc.dart';
 import 'package:kylora/presentation/blocs/live/live_bloc.dart';
 import 'package:kylora/presentation/blocs/series/series_bloc.dart';
 import 'package:kylora/presentation/blocs/vod/vod_bloc.dart';
@@ -154,6 +156,16 @@ class _FakeRepository implements IptvRepository {
   Future<String> buildEpisodeStreamUrl(Episode episode) async {
     return 'http://server:8080/series/user/pass/${episode.id}.mp4';
   }
+
+  @override
+  Future<List<EpgEntry>> fetchShortEpg(int streamId) async {
+    return <EpgEntry>[];
+  }
+
+  @override
+  Future<List<EpgEntry>> fetchFullEpg(int streamId) async {
+    return <EpgEntry>[];
+  }
 }
 
 void main() {
@@ -171,6 +183,7 @@ void main() {
         liveBloc: LiveBloc(repository),
         vodBloc: VodBloc(repository),
         seriesBloc: SeriesBloc(repository),
+        epgBloc: EpgBloc(repository),
         repository: repository,
         playbackController: PlaybackController(),
       ),
@@ -397,6 +410,14 @@ class _FailingRepository implements IptvRepository {
 
   @override
   Future<String> buildEpisodeStreamUrl(Episode episode) async =>
+      throw UnimplementedError();
+
+  @override
+  Future<List<EpgEntry>> fetchShortEpg(int streamId) async =>
+      throw UnimplementedError();
+
+  @override
+  Future<List<EpgEntry>> fetchFullEpg(int streamId) async =>
       throw UnimplementedError();
 }
 

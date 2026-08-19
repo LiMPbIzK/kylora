@@ -4,6 +4,8 @@ import 'package:flutter/material.dart';
 abstract final class AppColors {
   static const Color primary = Color(0xFF6C5CE7);
   static const Color onPrimary = Colors.white;
+  static const Color primaryContainer = Color(0xFF3D2E7C);
+  static const Color onSurfaceVariant = Color(0xFF9A9EA8);
   static const Color secondary = Color(0xFF00CEC9);
   static const Color background = Color(0xFF0F1117);
   static const Color surface = Color(0xFF1A1D27);

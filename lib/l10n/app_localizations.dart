@@ -260,6 +260,30 @@ abstract class AppLocalizations {
   /// **'No program information'**
   String get epgNoProgram;
 
+  /// Shown when the EPG for a channel fails to load.
+  ///
+  /// In en, this message translates to:
+  /// **'Could not load the program guide'**
+  String get epgLoadError;
+
+  /// Tooltip of the button that opens the full EPG guide of a channel.
+  ///
+  /// In en, this message translates to:
+  /// **'Program guide'**
+  String get epgGuide;
+
+  /// Label of the currently on-air program in the channel list.
+  ///
+  /// In en, this message translates to:
+  /// **'Now'**
+  String get nowEpg;
+
+  /// Label of the upcoming program in the channel list.
+  ///
+  /// In en, this message translates to:
+  /// **'Next'**
+  String get nextEpg;
+
   /// Placeholder text of the search field.
   ///
   /// In en, this message translates to:

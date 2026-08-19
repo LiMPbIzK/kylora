@@ -121,6 +121,22 @@
   "@epgNoProgram": {
     "description": "Se muestra cuando no hay información EPG disponible para un canal."
   },
+  "epgLoadError": "No se pudo cargar la guía de programación",
+  "@epgLoadError": {
+    "description": "Se muestra cuando falla la carga del EPG de un canal."
+  },
+  "epgGuide": "Guía de programación",
+  "@epgGuide": {
+    "description": "Tooltip del botón que abre la guía EPG completa de un canal."
+  },
+  "nowEpg": "Ahora",
+  "@nowEpg": {
+    "description": "Etiqueta del programa en emisión en la lista de canales."
+  },
+  "nextEpg": "Siguiente",
+  "@nextEpg": {
+    "description": "Etiqueta del siguiente programa en la lista de canales."
+  },
   "searchPlaceholder": "Buscar canales, películas...",
   "@searchPlaceholder": {
     "description": "Texto de marcador de posición del campo de búsqueda."

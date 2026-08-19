@@ -1,5 +1,6 @@
 import '../entities/category.dart';
 import '../entities/channel.dart';
+import '../entities/epg.dart';
 import '../entities/episode.dart';
 import '../entities/movie.dart';
 import '../entities/series.dart';
@@ -51,4 +52,10 @@ abstract interface class IptvRepository {
 
   /// Construye la URL de reproducción de un episodio de una serie.
   Future<String> buildEpisodeStreamUrl(Episode episode);
+
+  /// Obtiene el EPG corto (ahora/siguiente) de un canal en directo.
+  Future<List<EpgEntry>> fetchShortEpg(int streamId);
+
+  /// Obtiene la programación EPG completa de un canal en directo.
+  Future<List<EpgEntry>> fetchFullEpg(int streamId);
 }

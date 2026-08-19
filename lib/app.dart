@@ -7,17 +7,20 @@ import 'package:go_router/go_router.dart';
 
 import 'core/media/playback_controller.dart';
 import 'core/theme/app_theme.dart';
+import 'domain/entities/channel.dart';
 import 'domain/entities/movie.dart';
 import 'domain/entities/series.dart';
 import 'domain/repositories/iptv_repository.dart';
 import 'l10n/app_localizations.dart';
 import 'presentation/blocs/auth/auth_bloc.dart';
 import 'presentation/blocs/auth/auth_state.dart';
+import 'presentation/blocs/epg/epg_bloc.dart';
 import 'presentation/blocs/live/live_bloc.dart';
 import 'presentation/blocs/series/series_bloc.dart';
 import 'presentation/blocs/vod/vod_bloc.dart';
 import 'presentation/screens/auth/login_screen.dart';
 import 'presentation/screens/dashboard/home_shell_screen.dart';
+import 'presentation/screens/live/program_guide_screen.dart';
 import 'presentation/screens/player/playback_overlay.dart';
 import 'presentation/screens/player/playback_scope.dart';
 import 'presentation/screens/series/series_detail_screen.dart';
@@ -72,6 +75,13 @@ abstract final class AppRouter {
             return SeriesDetailScreen(series: series);
           },
         ),
+        GoRoute(
+          path: Routes.programGuide,
+          builder: (context, state) {
+            final Channel channel = state.extra! as Channel;
+            return ProgramGuideScreen(channel: channel);
+          },
+        ),
       ],
     );
   }
@@ -84,6 +94,7 @@ abstract final class Routes {
   static const String dashboard = '/dashboard';
   static const String movieDetail = '/movie';
   static const String seriesDetail = '/series-detail';
+  static const String programGuide = '/program-guide';
 }
 
 /// Adapta el stream del bloc a un [Listenable] para `go_router`.
@@ -109,6 +120,7 @@ class KyloraApp extends StatelessWidget {
     required this.liveBloc,
     required this.vodBloc,
     required this.seriesBloc,
+    required this.epgBloc,
     required this.repository,
     required this.playbackController,
   });
@@ -117,6 +129,7 @@ class KyloraApp extends StatelessWidget {
   final LiveBloc liveBloc;
   final VodBloc vodBloc;
   final SeriesBloc seriesBloc;
+  final EpgBloc epgBloc;
   final IptvRepository repository;
   final PlaybackController playbackController;
 
@@ -128,6 +141,7 @@ class KyloraApp extends StatelessWidget {
         BlocProvider<LiveBloc>(create: (_) => liveBloc),
         BlocProvider<VodBloc>(create: (_) => vodBloc),
         BlocProvider<SeriesBloc>(create: (_) => seriesBloc),
+        BlocProvider<EpgBloc>(create: (_) => epgBloc),
       ],
       child: RepositoryProvider<IptvRepository>.value(
         value: repository,

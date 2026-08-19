@@ -2,6 +2,7 @@ import 'package:flutter_test/flutter_test.dart';
 
 import 'package:kylora/domain/entities/category.dart';
 import 'package:kylora/domain/entities/channel.dart';
+import 'package:kylora/domain/entities/epg.dart';
 import 'package:kylora/domain/entities/episode.dart';
 import 'package:kylora/domain/entities/movie.dart';
 import 'package:kylora/domain/entities/series.dart';
@@ -77,6 +78,14 @@ class _FakeRepo implements IptvRepository {
 
   @override
   Future<String> buildEpisodeStreamUrl(Episode episode) async =>
+      throw UnimplementedError();
+
+  @override
+  Future<List<EpgEntry>> fetchShortEpg(int streamId) async =>
+      throw UnimplementedError();
+
+  @override
+  Future<List<EpgEntry>> fetchFullEpg(int streamId) async =>
       throw UnimplementedError();
 }
 

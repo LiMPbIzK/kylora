@@ -1,13 +1,19 @@
 import 'package:cached_network_image/cached_network_image.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
+import 'package:go_router/go_router.dart';
 
+import '../../../app.dart';
 import '../../../core/media/playback_request.dart';
 import '../../../core/theme/app_theme.dart';
 import '../../../domain/entities/category.dart';
 import '../../../domain/entities/channel.dart';
+import '../../../domain/entities/epg.dart';
 import '../../../domain/repositories/iptv_repository.dart';
 import '../../../l10n/app_localizations.dart';
+import '../../blocs/epg/epg_bloc.dart';
+import '../../blocs/epg/epg_event.dart';
+import '../../blocs/epg/epg_state.dart';
 import '../../blocs/live/live_bloc.dart';
 import '../../blocs/live/live_event.dart';
 import '../../blocs/live/live_state.dart';
@@ -130,35 +136,139 @@ class _CategoryChip extends StatelessWidget {
   }
 }
 
-/// Fila de canal con logo en red.
-class _ChannelTile extends StatelessWidget {
+/// Fila de canal con logo, programa ahora/siguiente y acceso a la guía.
+class _ChannelTile extends StatefulWidget {
   const _ChannelTile({required this.channel});
 
   final Channel channel;
 
   @override
+  State<_ChannelTile> createState() => _ChannelTileState();
+}
+
+class _ChannelTileState extends State<_ChannelTile> {
+  @override
+  void initState() {
+    super.initState();
+    // Carga el EPG corto (ahora/siguiente) del canal si aún no está en caché.
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      if (mounted) {
+        context.read<EpgBloc>().add(EpgNowNextRequested(widget.channel.id));
+      }
+    });
+  }
+
+  @override
   Widget build(BuildContext context) {
-    final String? number = channel.number != null ? '${channel.number}' : null;
+    final String? number =
+        widget.channel.number != null ? '${widget.channel.number}' : null;
 
     return ListTile(
-      leading: _ChannelLogo(logo: channel.logo),
-      title: Text(channel.name, maxLines: 1, overflow: TextOverflow.ellipsis),
-      subtitle: number != null ? Text('CH $number') : null,
-      trailing: const Icon(
-        Icons.chevron_right,
-        color: AppColors.surfaceVariant,
+      leading: _ChannelLogo(logo: widget.channel.logo),
+      title: Text(
+        widget.channel.name,
+        maxLines: 1,
+        overflow: TextOverflow.ellipsis,
+      ),
+      subtitle: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: <Widget>[
+          if (number != null)
+            Text('CH $number', style: const TextStyle(fontSize: 12)),
+          _EpgLine(streamId: widget.channel.id),
+        ],
+      ),
+      isThreeLine: true,
+      trailing: IconButton(
+        tooltip: context.l10n.epgGuide,
+        icon: const Icon(
+          Icons.calendar_view_day,
+          color: AppColors.primary,
+        ),
+        onPressed: () => context.push(
+          Routes.programGuide,
+          extra: widget.channel,
+        ),
       ),
       onTap: () {
         final IptvRepository repository = context.read<IptvRepository>();
         PlaybackScope.of(context).play(
           PlaybackRequest(
-            title: channel.name,
-            urlBuilder: () => repository.buildStreamUrl(channel),
+            title: widget.channel.name,
+            urlBuilder: () => repository.buildStreamUrl(widget.channel),
           ),
         );
       },
     );
   }
+}
+
+/// Línea que muestra el programa actual y el siguiente de un canal.
+class _EpgLine extends StatelessWidget {
+  const _EpgLine({required this.streamId});
+
+  final int streamId;
+
+  @override
+  Widget build(BuildContext context) {
+    return BlocBuilder<EpgBloc, EpgState>(
+      buildWhen: (previous, current) =>
+          current is EpgNowNextLoaded &&
+          current.streamId == streamId,
+      builder: (context, state) {
+        if (state is! EpgNowNextLoaded || state.streamId != streamId) {
+          return const SizedBox.shrink();
+        }
+        final List<String> lines = <String>[];
+        if (state.now != null) {
+          lines.add(_nowLabel(context.l10n, state.now!));
+        }
+        if (state.next != null) {
+          lines.add(_nextLabel(context.l10n, state.next!));
+        }
+        if (lines.isEmpty) {
+          return Text(
+            context.l10n.epgNoProgram,
+            maxLines: 1,
+            overflow: TextOverflow.ellipsis,
+            style: const TextStyle(fontSize: 12),
+          );
+        }
+        return Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: <Widget>[
+            for (final String line in lines)
+              Text(
+                line,
+                maxLines: 1,
+                overflow: TextOverflow.ellipsis,
+                style: const TextStyle(fontSize: 12),
+              ),
+          ],
+        );
+      },
+    );
+  }
+
+  String _nowLabel(AppLocalizations l10n, EpgEntry entry) {
+    final String time = _hour(entry.start);
+    return '${l10n.nowEpg} $time · ${entry.title}';
+  }
+
+  String _nextLabel(AppLocalizations l10n, EpgEntry entry) {
+    final String time = _hour(entry.start);
+    return '${l10n.nextEpg} $time · ${entry.title}';
+  }
+
+  String _hour(DateTime time) {
+    final String hh = time.hour.toString().padLeft(2, '0');
+    final String mm = time.minute.toString().padLeft(2, '0');
+    return '$hh:$mm';
+  }
+}
+
+extension on BuildContext {
+  AppLocalizations get l10n => AppLocalizations.of(this)!;
 }
 
 /// Logo del canal con placeholder y manejo de errores de carga.

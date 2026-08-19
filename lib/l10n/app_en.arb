@@ -121,6 +121,22 @@
   "@epgNoProgram": {
     "description": "Shown when no EPG information is available for a channel."
   },
+  "epgLoadError": "Could not load the program guide",
+  "@epgLoadError": {
+    "description": "Shown when the EPG for a channel fails to load."
+  },
+  "epgGuide": "Program guide",
+  "@epgGuide": {
+    "description": "Tooltip of the button that opens the full EPG guide of a channel."
+  },
+  "nowEpg": "Now",
+  "@nowEpg": {
+    "description": "Label of the currently on-air program in the channel list."
+  },
+  "nextEpg": "Next",
+  "@nextEpg": {
+    "description": "Label of the upcoming program in the channel list."
+  },
   "searchPlaceholder": "Search channels, movies...",
   "@searchPlaceholder": {
     "description": "Placeholder text of the search field."

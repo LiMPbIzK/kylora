@@ -1,5 +1,6 @@
 import '../../domain/entities/category.dart';
 import '../../domain/entities/channel.dart';
+import '../../domain/entities/epg.dart';
 import '../../domain/entities/episode.dart';
 import '../../domain/entities/movie.dart';
 import '../../domain/entities/series.dart';
@@ -182,6 +183,28 @@ class XtreamRepository implements IptvRepository {
         '${Uri.encodeComponent(credentials.username)}/'
         '${Uri.encodeComponent(credentials.password)}/'
         '${episode.id}.$extension';
+  }
+
+  @override
+  Future<List<EpgEntry>> fetchShortEpg(int streamId) async {
+    final StoredCredentials credentials = await _requireCredentials();
+    return _apiClient.fetchShortEpg(
+      serverUrl: credentials.serverUrl,
+      username: credentials.username,
+      password: credentials.password,
+      streamId: streamId,
+    );
+  }
+
+  @override
+  Future<List<EpgEntry>> fetchFullEpg(int streamId) async {
+    final StoredCredentials credentials = await _requireCredentials();
+    return _apiClient.fetchFullEpg(
+      serverUrl: credentials.serverUrl,
+      username: credentials.username,
+      password: credentials.password,
+      streamId: streamId,
+    );
   }
 
   @override

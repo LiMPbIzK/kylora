@@ -14,6 +14,7 @@ import 'data/datasources/remote/xtream_api_client.dart';
 import 'data/repositories/xtream_repository.dart';
 import 'presentation/blocs/auth/auth_bloc.dart';
 import 'presentation/blocs/auth/auth_event.dart';
+import 'presentation/blocs/epg/epg_bloc.dart';
 import 'presentation/blocs/live/live_bloc.dart';
 import 'presentation/blocs/series/series_bloc.dart';
 import 'presentation/blocs/vod/vod_bloc.dart';
@@ -42,6 +43,7 @@ void main() {
   final LiveBloc liveBloc = LiveBloc(repository);
   final VodBloc vodBloc = VodBloc(repository);
   final SeriesBloc seriesBloc = SeriesBloc(repository);
+  final EpgBloc epgBloc = EpgBloc(repository);
 
   runApp(
     KyloraApp(
@@ -49,6 +51,7 @@ void main() {
       liveBloc: liveBloc,
       vodBloc: vodBloc,
       seriesBloc: seriesBloc,
+      epgBloc: epgBloc,
       repository: repository,
       playbackController: PlaybackController(),
     ),

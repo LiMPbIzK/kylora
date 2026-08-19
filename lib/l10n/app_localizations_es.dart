@@ -98,6 +98,18 @@ class AppLocalizationsEs extends AppLocalizations {
   String get epgNoProgram => 'Sin información de programación';
 
   @override
+  String get epgLoadError => 'No se pudo cargar la guía de programación';
+
+  @override
+  String get epgGuide => 'Guía de programación';
+
+  @override
+  String get nowEpg => 'Ahora';
+
+  @override
+  String get nextEpg => 'Siguiente';
+
+  @override
   String get searchPlaceholder => 'Buscar canales, películas...';
 
   @override

@@ -2,7 +2,9 @@ import 'package:dio/dio.dart';
 import 'package:flutter/foundation.dart';
 
 import '../../../core/constants/app_constants.dart';
+import '../../../domain/entities/epg.dart';
 import '../../models/xtream_category_dto.dart';
+import '../../models/xtream_epg_dto.dart';
 import '../../models/xtream_series_dto.dart';
 import '../../models/xtream_series_info_dto.dart';
 import '../../models/xtream_stream_dto.dart';
@@ -222,6 +224,90 @@ class XtreamApiClient {
         throw const FormatException('Respuesta de info de serie inválida');
       }
       return XtreamSeriesInfoDto.fromJson(data);
+    } on DioException catch (e) {
+      throw XtreamNetworkException(e.message ?? 'Fallo de red', cause: e);
+    }
+  }
+
+  /// Obtiene el EPG corto (ahora/siguiente) de un canal en directo.
+  ///
+  /// La respuesta de `get_short_epg` trae el bloque `epg_listings` con un
+  /// número de programas próximos (limitado por [limit]).
+  Future<List<EpgEntry>> fetchShortEpg({
+    required String serverUrl,
+    required String username,
+    required String password,
+    required int streamId,
+    int limit = 4,
+  }) async {
+    final List<EpgEntry> entries = await _fetchEpgListings(
+      serverUrl: serverUrl,
+      username: username,
+      password: password,
+      action: 'get_short_epg',
+      extra: <String, String>{
+        'stream_id': '$streamId',
+        'limit': '$limit',
+      },
+    );
+    return entries;
+  }
+
+  /// Obtiene la programación completa (XMLTV/simple) de un canal en directo.
+  ///
+  /// `get_simple_data_table` devuelve todo el EPG disponible del canal dentro
+  /// del bloque `epg_listings`.
+  Future<List<EpgEntry>> fetchFullEpg({
+    required String serverUrl,
+    required String username,
+    required String password,
+    required int streamId,
+  }) async {
+    return _fetchEpgListings(
+      serverUrl: serverUrl,
+      username: username,
+      password: password,
+      action: 'get_simple_data_table',
+      extra: <String, String>{'stream_id': '$streamId'},
+    );
+  }
+
+  /// GET a `player_api.php` que devuelve el bloque `epg_listings`.
+  Future<List<EpgEntry>> _fetchEpgListings({
+    required String serverUrl,
+    required String username,
+    required String password,
+    required String action,
+    required Map<String, String> extra,
+  }) async {
+    final Uri uri = Uri.parse(serverUrl).resolve(
+      '${AppConstants.xtreamAuthPath}'
+      '?username=${Uri.encodeQueryComponent(username)}'
+      '&password=${Uri.encodeQueryComponent(password)}'
+      '&action=$action'
+      '${extra.entries.map((entry) => '&${entry.key}=${Uri.encodeQueryComponent(entry.value)}').join()}',
+    );
+    try {
+      final Response<dynamic> response = await _dio.get<dynamic>(uri.toString());
+      if (response.statusCode != 200) {
+        throw XtreamNetworkException('HTTP ${response.statusCode}');
+      }
+      final dynamic data = response.data;
+      if (data is! Map<String, dynamic>) {
+        throw FormatException('Respuesta de EPG inválida para $action');
+      }
+      final dynamic rawListings = data['epg_listings'];
+      if (rawListings is! List<dynamic>) {
+        return <EpgEntry>[];
+      }
+      final List<EpgEntry> result = <EpgEntry>[];
+      for (final dynamic item in rawListings) {
+        if (item is! Map<String, dynamic>) continue;
+        final EpgEntry? entry = XtreamEpgDto.parseListing(item);
+        if (entry != null) result.add(entry);
+      }
+      result.sort((EpgEntry a, EpgEntry b) => a.start.compareTo(b.start));
+      return result;
     } on DioException catch (e) {
       throw XtreamNetworkException(e.message ?? 'Fallo de red', cause: e);
     }
