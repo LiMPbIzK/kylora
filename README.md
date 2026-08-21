@@ -18,7 +18,7 @@
 
 * **Soporte multi-fuente:** Compatibilidad directa con la API Xtream Codes y listas estáticas M3U/M3U8 con EPG XMLTV.
 * **100% local y privado:** Sin backend propio, telemetría ni bases de datos externas. Tus credenciales y listas permanecen estrictamente en tu dispositivo.
-* **UI nativa multiplataforma:** Interfaz adaptada con controles táctiles responsivos para móvil/tablet y gestión completa del foco D-Pad para mandos de TV y navegación con teclado.
+* **UI nativa multiplataforma:** Interfaz adaptada con controles táctiles responsivos para móvil/tablet y gestión completa del foco D-Pad (anillos de foco, `autofocus`) para mandos de TV y navegación con teclado, con banner Leanback para Android TV/Fire TV.
 * **Motor acelerado por hardware:** Impulsado por `media_kit` (libmpv) para demuxing nativo de flujos MPEG-TS, HLS y MKV, con múltiples pistas de audio y selección de subtítulos embebidos. El OSD del reproductor incluye barra de progreso con búsqueda (seek), selectores centrados de audio/subtítulos, control de volumen y pantalla completa nativa.
 * **Indexación local inteligente:** El análisis pesado de listas se ejecuta en isolates en segundo plano y se indexa con Drift (SQLite) para búsqueda y categorización instantáneas.
 * **Multidioma (i18n):** Soporte nativo de inglés, español, francés, alemán, italiano y portugués.
@@ -146,7 +146,7 @@ Construida sobre `flutter_localizations` + `intl` con archivos ARB generados y d
 - [x] **M5 — EPG:** ahora/siguiente en la lista de canales, vista de programación completa, XMLTV + short EPG de Xtream
 - [x] **M6 — Favoritos, historial y búsqueda:** favoritos persistentes, historial de reproducción, búsqueda instantánea
 - [x] **M7 — Fuente M3U/XMLTV:** selector de fuente (Xtream/M3U), parseo de M3U y XMLTV en isolates, repositorio M3U con contrato unificado, persistencia multi-fuente
-- [ ] **M8 — Android TV / Fire TV:** gestión de foco D-Pad, banner leanback, navegación con mando
+- [x] **M8 — Android TV / Fire TV:** foco D-Pad con anillos y escala (TvFocusable), banner leanback, navegación con mando (Enter/OK y Back en el reproductor)
 - [ ] **M9 — Ajustes y release:** pantalla de Ajustes (datos de la cuenta, actualización manual del catálogo, selector de idioma, selector de temas dark/light, cambio de cuenta, bloqueo por PIN planificado), gestión de caché, idiomas restantes, v1.0.0
 - [ ] **M10 — Portabilidad Linux/macOS (post-v1.0.0):** builds de escritorio para Linux (.deb/.AppImage) y macOS (.dmg), notarización y CI por SO — sin cambios de lógica (v1.1)
 
