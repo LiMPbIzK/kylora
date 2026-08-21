@@ -212,6 +212,18 @@ abstract class AppLocalizations {
   /// **'Change account'**
   String get changeAccount;
 
+  /// Tooltip for the fullscreen button in the player.
+  ///
+  /// In en, this message translates to:
+  /// **'Fullscreen'**
+  String get fullscreen;
+
+  /// Tooltip for the button to exit fullscreen in the player.
+  ///
+  /// In en, this message translates to:
+  /// **'Exit fullscreen'**
+  String get exitFullscreen;
+
   /// Section label showing the account state.
   ///
   /// In en, this message translates to:

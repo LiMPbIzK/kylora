@@ -76,6 +76,14 @@
   "@changeAccount": {
     "description": "Botón para cerrar la sesión y volver al login para cambiar de cuenta o fuente."
   },
+  "fullscreen": "Pantalla completa",
+  "@fullscreen": {
+    "description": "Tooltip del botón de pantalla completa en el reproductor."
+  },
+  "exitFullscreen": "Salir de pantalla completa",
+  "@exitFullscreen": {
+    "description": "Tooltip del botón para salir de pantalla completa en el reproductor."
+  },
   "accountStatus": "Estado de la cuenta",
   "@accountStatus": {
     "description": "Etiqueta de la sección que muestra el estado de la cuenta."

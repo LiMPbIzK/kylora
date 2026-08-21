@@ -70,6 +70,12 @@ class AppLocalizationsEs extends AppLocalizations {
   String get changeAccount => 'Cambiar cuenta';
 
   @override
+  String get fullscreen => 'Pantalla completa';
+
+  @override
+  String get exitFullscreen => 'Salir de pantalla completa';
+
+  @override
   String get accountStatus => 'Estado de la cuenta';
 
   @override

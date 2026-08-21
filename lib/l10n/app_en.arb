@@ -76,6 +76,14 @@
   "@changeAccount": {
     "description": "Button to close the session and return to the login to change account or source."
   },
+  "fullscreen": "Fullscreen",
+  "@fullscreen": {
+    "description": "Tooltip for the fullscreen button in the player."
+  },
+  "exitFullscreen": "Exit fullscreen",
+  "@exitFullscreen": {
+    "description": "Tooltip for the button to exit fullscreen in the player."
+  },
   "accountStatus": "Account status",
   "@accountStatus": {
     "description": "Section label showing the account state."

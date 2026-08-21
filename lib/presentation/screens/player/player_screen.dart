@@ -32,12 +32,17 @@ class PlayerScreen extends StatefulWidget {
   State<PlayerScreen> createState() => _PlayerScreenState();
 }
 
+/// Tipo de selector de pistas abierto en el OSD (audio o subtítulos).
+enum _TrackPickerMode { audio, subtitles }
+
 class _PlayerScreenState extends State<PlayerScreen> {
   late final VideoController _videoController;
   late final PlayerBloc _bloc;
   Timer? _hideTimer;
   bool _osdVisible = true;
+  bool _isFullscreen = false;
   String _title = '';
+  _TrackPickerMode? _picker;
 
   @override
   void initState() {
@@ -108,6 +113,24 @@ class _PlayerScreenState extends State<PlayerScreen> {
     widget.controller.stop();
   }
 
+  /// Alterna pantalla completa usando el fullscreen nativo de media_kit.
+  ///
+  /// No se usa `toggleFullscreen(context)` porque empuja una ruta al Navigator
+  /// raíz, que quedaría oculta detrás del overlay persistente del reproductor.
+  /// En su lugar se invoca el modo nativo directo (`Utils.EnterNativeFullscreen`
+  /// en Windows/macOS/Linux; modo inmersivo en Android).
+  Future<void> _toggleFullscreen() async {
+    setState(() {
+      _isFullscreen = !_isFullscreen;
+      _scheduleHide();
+    });
+    if (_isFullscreen) {
+      await defaultEnterNativeFullscreen();
+    } else {
+      await defaultExitNativeFullscreen();
+    }
+  }
+
   @override
   void dispose() {
     widget.controller.removeListener(_onControllerChanged);
@@ -129,7 +152,13 @@ class _PlayerScreenState extends State<PlayerScreen> {
           child: Stack(
             fit: StackFit.expand,
             children: <Widget>[
-              Video(controller: _videoController),
+              Video(
+                controller: _videoController,
+                // Desactiva los controles nativos de media_kit (barra de
+                // progreso y botones superpuestos), que interferían con el OSD
+                // propio y capturan los gestos del menú de ajustes.
+                controls: NoVideoControls,
+              ),
               BlocBuilder<PlayerBloc, PlayerState>(
                 bloc: _bloc,
                 builder: (context, state) {
@@ -150,6 +179,8 @@ class _PlayerScreenState extends State<PlayerScreen> {
                 },
               ),
               if (_osdVisible) _buildOsd(),
+              if (_picker != null)
+                _buildTrackPicker(AppLocalizations.of(context)!),
             ],
           ),
         ),
@@ -170,46 +201,109 @@ class _PlayerScreenState extends State<PlayerScreen> {
           ),
         ),
         child: SafeArea(
-          child: Column(
-            children: <Widget>[
-              Row(
+child: Column(
                 children: <Widget>[
-                  IconButton(
-                    tooltip: l10n.settings,
-                    icon: const Icon(Icons.arrow_back),
-                    color: Colors.white,
-                    onPressed: _closePlayer,
-                  ),
-                  Expanded(
-                    child: Column(
-                      crossAxisAlignment: CrossAxisAlignment.start,
-                      children: <Widget>[
-                        Text(
-                          l10n.nowPlaying,
-                          style: Theme.of(context).textTheme.labelSmall
-                              ?.copyWith(color: Colors.white70),
+                  Row(
+                    children: <Widget>[
+                      IconButton(
+                        tooltip: l10n.settings,
+                        icon: const Icon(Icons.arrow_back),
+                        color: Colors.white,
+                        onPressed: _closePlayer,
+                      ),
+                      Expanded(
+                        child: Column(
+                          crossAxisAlignment: CrossAxisAlignment.start,
+                          children: <Widget>[
+                            Text(
+                              l10n.nowPlaying,
+                              style: Theme.of(context).textTheme.labelSmall
+                                  ?.copyWith(color: Colors.white70),
+                            ),
+                            Text(
+                              _title,
+                              maxLines: 1,
+                              overflow: TextOverflow.ellipsis,
+                              style: const TextStyle(
+                                color: Colors.white,
+                                fontWeight: FontWeight.bold,
+                              ),
+                            ),
+                          ],
                         ),
-                        Text(
-                          _title,
-                          maxLines: 1,
-                          overflow: TextOverflow.ellipsis,
-                          style: const TextStyle(
-                            color: Colors.white,
-                            fontWeight: FontWeight.bold,
-                          ),
-                        ),
-                      ],
-                    ),
+                      ),
+                    ],
                   ),
-                  _buildTracksMenu(l10n),
+                  const Spacer(),
+                  _buildProgressBar(l10n),
+                  _buildControlBar(l10n),
                 ],
               ),
-              const Spacer(),
-              _buildControlBar(l10n),
-            ],
-          ),
         ),
       ),
+    );
+  }
+
+  /// Barra de progreso con búsqueda (seek) para contenido VOD/series.
+  ///
+  /// Muestra un slider entre el tiempo actual y la duración cuando el stream
+  /// tiene duración conocida (no aplica a directos en vivo). Arrastrar o pulsar
+  /// en la barra salta a la posición indicada.
+  Widget _buildProgressBar(AppLocalizations l10n) {
+    return StreamBuilder<Duration>(
+      stream: _bloc.player.stream.position,
+      initialData: _bloc.player.state.position,
+      builder: (context, snapshot) {
+        final Duration position = snapshot.data ?? Duration.zero;
+        final Duration duration = _bloc.player.state.duration;
+        if (duration.inMilliseconds <= 0) {
+          return const SizedBox.shrink();
+        }
+        final double value = position.inMilliseconds
+            .clamp(0, duration.inMilliseconds)
+            .toDouble();
+        return Padding(
+          padding: const EdgeInsets.symmetric(horizontal: 16),
+          child: Row(
+            children: <Widget>[
+              Text(
+                _formatPosition(position),
+                style: const TextStyle(color: Colors.white, fontSize: 12),
+              ),
+              Expanded(
+                child: SliderTheme(
+                  data: SliderTheme.of(context).copyWith(
+                    trackHeight: 2,
+                    thumbShape: const RoundSliderThumbShape(
+                      enabledThumbRadius: 6,
+                    ),
+                    overlayShape: const RoundSliderOverlayShape(
+                      overlayRadius: 12,
+                    ),
+                  ),
+                  child: Slider(
+                    value: value,
+                    max: duration.inMilliseconds.toDouble(),
+                    activeColor: AppColors.primary,
+                    inactiveColor: Colors.white24,
+                    onChangeStart: (_) => _cancelHide(),
+                    onChangeEnd: (_) => _scheduleHide(),
+                    onChanged: (double v) {
+                      _bloc.player.seek(
+                        Duration(milliseconds: v.round()),
+                      );
+                    },
+                  ),
+                ),
+              ),
+              Text(
+                _formatPosition(duration),
+                style: const TextStyle(color: Colors.white70, fontSize: 12),
+              ),
+            ],
+          ),
+        );
+      },
     );
   }
 
@@ -225,24 +319,42 @@ class _PlayerScreenState extends State<PlayerScreen> {
       padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
       child: Row(
         children: <Widget>[
-          StreamBuilder<Duration>(
-            stream: _bloc.player.stream.position,
-            initialData: _bloc.player.state.position,
+          const Spacer(),
+          IconButton(
+            tooltip: l10n.audioTrack,
+            icon: const Icon(Icons.music_note, color: Colors.white, size: 28),
+            onPressed: () {
+              _cancelHide();
+              setState(() => _picker = _TrackPickerMode.audio);
+            },
+          ),
+          StreamBuilder<bool>(
+            stream: _bloc.player.stream.playing,
+            initialData: _bloc.player.state.playing,
             builder: (context, snapshot) {
-              final Duration position = snapshot.data ?? Duration.zero;
-              return Text(
-                _formatPosition(position),
-                style: const TextStyle(color: Colors.white, fontSize: 12),
+              final bool playing = snapshot.data ?? false;
+              return IconButton(
+                icon: Icon(
+                  playing
+                      ? Icons.pause_circle_filled
+                      : Icons.play_circle_filled,
+                  size: 40,
+                ),
+                color: Colors.white,
+                tooltip: playing ? l10n.pause : l10n.play,
+                onPressed: () {
+                  _scheduleHide();
+                  _bloc.add(const PlayerTogglePlayRequested());
+                },
               );
             },
           ),
-          const Spacer(),
           IconButton(
-            icon: const Icon(Icons.pause_circle_filled, size: 40),
-            color: Colors.white,
+            tooltip: l10n.subtitles,
+            icon: const Icon(Icons.subtitles, color: Colors.white, size: 28),
             onPressed: () {
-              _scheduleHide();
-              _bloc.add(const PlayerTogglePlayRequested());
+              _cancelHide();
+              setState(() => _picker = _TrackPickerMode.subtitles);
             },
           ),
           const Spacer(),
@@ -276,108 +388,139 @@ class _PlayerScreenState extends State<PlayerScreen> {
               );
             },
           ),
+          IconButton(
+            tooltip: _isFullscreen ? l10n.exitFullscreen : l10n.fullscreen,
+            icon: Icon(
+              _isFullscreen
+                  ? Icons.fullscreen_exit
+                  : Icons.fullscreen,
+              color: Colors.white,
+            ),
+            onPressed: _toggleFullscreen,
+          ),
         ],
       ),
     );
   }
 
-  /// Menú con las pistas de audio y subtítulos disponibles.
-  Widget _buildTracksMenu(AppLocalizations l10n) {
-    return StreamBuilder<Tracks>(
-      stream: _bloc.player.stream.tracks,
-      initialData: _bloc.player.state.tracks,
-      builder: (context, snapshot) {
-        final Tracks tracks = snapshot.data ?? const Tracks();
-        final AudioTrack selectedAudio = _bloc.player.state.track.audio;
-        final SubtitleTrack selectedSubtitle =
-            _bloc.player.state.track.subtitle;
+  /// selector en el centro de la pantalla con las pistas disponibles.
+  ///
+  /// Para pistas de audio muestra las pistas de audio activas; para subtítulos
+  /// lista la opción "Off" más las pistas de subtítulos disponibles. El modo
+  /// activo se define en [_picker].
+  Widget _buildTrackPicker(AppLocalizations l10n) {
+    final Tracks tracks = _bloc.player.state.tracks;
+    final AudioTrack selectedAudio = _bloc.player.state.track.audio;
+    final SubtitleTrack selectedSubtitle = _bloc.player.state.track.subtitle;
+    final bool audioMode = _picker == _TrackPickerMode.audio;
 
-        return PopupMenuButton<String>(
-          tooltip: l10n.settings,
-          icon: const Icon(Icons.more_vert, color: Colors.white),
-          color: AppColors.surface,
-          onSelected: (String value) {
-            _scheduleHide();
-            if (value.startsWith('audio:')) {
-              final String id = value.substring('audio:'.length);
-              final AudioTrack? track = _firstOrNull<AudioTrack>(
-                tracks.audio,
-                (AudioTrack t) => t.id == id,
-              );
-              if (track != null) {
-                _bloc.player.setAudioTrack(track);
-              }
-            } else if (value.startsWith('sub:')) {
-              final String id = value.substring('sub:'.length);
-              if (id == 'no') {
-                _bloc.player.setSubtitleTrack(SubtitleTrack.no());
-              } else {
-                final SubtitleTrack? track = _firstOrNull<SubtitleTrack>(
-                  tracks.subtitle,
-                  (SubtitleTrack t) => t.id == id,
-                );
-                if (track != null) {
-                  _bloc.player.setSubtitleTrack(track);
-                }
-              }
-            }
-          },
-          itemBuilder: (context) => <PopupMenuEntry<String>>[
-            PopupMenuItem<String>(
-              enabled: false,
-              child: Text(
-                l10n.audioTrack,
-                style: const TextStyle(fontWeight: FontWeight.bold),
+    return Positioned.fill(
+      child: GestureDetector(
+        behavior: HitTestBehavior.opaque,
+        onTap: () {
+          setState(() => _picker = null);
+          _scheduleHide();
+        },
+        child: Container(
+          color: Colors.black45,
+          alignment: Alignment.center,
+          child: Material(
+            color: AppColors.surface,
+            borderRadius: BorderRadius.circular(16),
+            clipBehavior: Clip.antiAlias,
+            child: ConstrainedBox(
+              constraints: const BoxConstraints(
+                maxWidth: 300,
+                maxHeight: 340,
               ),
-            ),
-            for (final AudioTrack track in tracks.audio)
-              PopupMenuItem<String>(
-                value: 'audio:${track.id}',
-                child: _trackRow(
-                  label: _trackLabel(track.title, track.language),
-                  selected: selectedAudio.id == track.id,
-                ),
-              ),
-            const PopupMenuDivider(),
-            PopupMenuItem<String>(
-              enabled: false,
-              child: Text(
-                l10n.subtitles,
-                style: const TextStyle(fontWeight: FontWeight.bold),
-              ),
-            ),
-            PopupMenuItem<String>(
-              value: 'sub:no',
-              child: _trackRow(
-                label: _trackLabel(null, 'Off'),
-                selected: selectedSubtitle.id == 'no',
-              ),
-            ),
-            for (final SubtitleTrack track in tracks.subtitle)
-              if (track.id != 'no' && track.id != 'auto')
-                PopupMenuItem<String>(
-                  value: 'sub:${track.id}',
-                  child: _trackRow(
-                    label: _trackLabel(track.title, track.language),
-                    selected: selectedSubtitle.id == track.id,
+              child: ListView(
+                shrinkWrap: true,
+                padding: const EdgeInsets.symmetric(vertical: 8),
+                children: <Widget>[
+                  Padding(
+                    padding: const EdgeInsets.fromLTRB(16, 8, 16, 8),
+                    child: Text(
+                      audioMode ? l10n.audioTrack : l10n.subtitles,
+                      style: const TextStyle(
+                        fontWeight: FontWeight.bold,
+                        color: AppColors.onSurface,
+                      ),
+                    ),
                   ),
-                ),
-          ],
-        );
-      },
+                  const Divider(height: 1),
+                  if (audioMode)
+                    for (final AudioTrack track in tracks.audio)
+                      _pickerTile(
+                        label: _trackLabel(track.title, track.language),
+                        selected: selectedAudio.id == track.id,
+                        onTap: () {
+                          setState(() => _picker = null);
+                          _scheduleHide();
+                          final AudioTrack? found = _firstOrNull<AudioTrack>(
+                            tracks.audio,
+                            (AudioTrack t) => t.id == track.id,
+                          );
+                          if (found != null) _bloc.player.setAudioTrack(found);
+                        },
+                      )
+                  else ...<Widget>[
+                    _pickerTile(
+                      label: _trackLabel(null, 'Off'),
+                      selected: selectedSubtitle.id == 'no',
+                      onTap: () {
+                        setState(() => _picker = null);
+                        _scheduleHide();
+                        _bloc.player.setSubtitleTrack(SubtitleTrack.no());
+                      },
+                    ),
+                    for (final SubtitleTrack track in tracks.subtitle)
+                      if (track.id != 'no' && track.id != 'auto')
+                        _pickerTile(
+                          label: _trackLabel(track.title, track.language),
+                          selected: selectedSubtitle.id == track.id,
+                          onTap: () {
+                            setState(() => _picker = null);
+                            _scheduleHide();
+                            final SubtitleTrack? found = _firstOrNull<
+                              SubtitleTrack
+                            >(
+                              tracks.subtitle,
+                              (SubtitleTrack t) => t.id == track.id,
+                            );
+                            if (found != null) {
+                              _bloc.player.setSubtitleTrack(found);
+                            }
+                          },
+                        ),
+                  ],
+                ],
+              ),
+            ),
+          ),
+        ),
+      ),
     );
   }
 
-  Widget _trackRow({required String label, required bool selected}) {
-    return Row(
-      children: <Widget>[
-        if (selected)
-          const Icon(Icons.check, size: 20, color: AppColors.secondary)
-        else
-          const Icon(Icons.north_west, size: 0, color: Colors.transparent),
-        const SizedBox(width: 8),
-        Expanded(child: Text(label, overflow: TextOverflow.ellipsis)),
-      ],
+  Widget _pickerTile({
+    required String label,
+    required bool selected,
+    required VoidCallback onTap,
+  }) {
+    return ListTile(
+      dense: true,
+      leading: Icon(
+        selected ? Icons.check_circle : Icons.circle_outlined,
+        size: 20,
+        color: selected ? AppColors.secondary : AppColors.onSurfaceVariant,
+      ),
+      title: Text(
+        label,
+        maxLines: 1,
+        overflow: TextOverflow.ellipsis,
+        style: TextStyle(color: AppColors.onSurface),
+      ),
+      onTap: onTap,
     );
   }
 
