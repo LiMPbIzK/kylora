@@ -152,6 +152,42 @@ abstract class AppLocalizations {
   /// **'Unexpected error. Try again.'**
   String get loginErrorUnknown;
 
+  /// Label of the source selector for the Xtream Codes API.
+  ///
+  /// In en, this message translates to:
+  /// **'Xtream'**
+  String get loginSourceXtream;
+
+  /// Label of the source selector for M3U playlists with XMLTV EPG.
+  ///
+  /// In en, this message translates to:
+  /// **'M3U/XMLTV'**
+  String get loginSourceM3u;
+
+  /// Label of the display name field for the M3U source.
+  ///
+  /// In en, this message translates to:
+  /// **'Name (optional)'**
+  String get m3uDisplayName;
+
+  /// Label of the M3U playlist URL field.
+  ///
+  /// In en, this message translates to:
+  /// **'M3U playlist URL'**
+  String get m3uPlaylistUrl;
+
+  /// Label of the optional XMLTV EPG URL field.
+  ///
+  /// In en, this message translates to:
+  /// **'XMLTV EPG URL (optional)'**
+  String get m3uXmltvUrl;
+
+  /// Shown when downloading or parsing the M3U playlist fails.
+  ///
+  /// In en, this message translates to:
+  /// **'Could not parse the M3U playlist. Check the URL.'**
+  String get loginErrorM3uParse;
+
   /// Validation message for an empty required field.
   ///
   /// In en, this message translates to:
@@ -169,6 +205,12 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'Sign out'**
   String get signOut;
+
+  /// Button to close the session and return to the login to change account or source.
+  ///
+  /// In en, this message translates to:
+  /// **'Change account'**
+  String get changeAccount;
 
   /// Section label showing the account state.
   ///

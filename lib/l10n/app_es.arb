@@ -36,6 +36,30 @@
   "@loginErrorUnknown": {
     "description": "Se muestra cuando ocurre un error inesperado al iniciar sesión."
   },
+  "loginSourceXtream": "Xtream",
+  "@loginSourceXtream": {
+    "description": "Etiqueta del selector de fuente para la API Xtream Codes."
+  },
+  "loginSourceM3u": "M3U/XMLTV",
+  "@loginSourceM3u": {
+    "description": "Etiqueta del selector de fuente para listas M3U con EPG XMLTV."
+  },
+  "m3uDisplayName": "Nombre (opcional)",
+  "@m3uDisplayName": {
+    "description": "Etiqueta del campo de nombre descriptivo de la fuente M3U."
+  },
+  "m3uPlaylistUrl": "URL de la lista M3U",
+  "@m3uPlaylistUrl": {
+    "description": "Etiqueta del campo de URL de la lista M3U."
+  },
+  "m3uXmltvUrl": "URL del EPG XMLTV (opcional)",
+  "@m3uXmltvUrl": {
+    "description": "Etiqueta del campo opcional de URL de la guía EPG XMLTV."
+  },
+  "loginErrorM3uParse": "No se pudo leer la lista M3U. Revisa la URL.",
+  "@loginErrorM3uParse": {
+    "description": "Se muestra cuando falla la descarga o el parseo de la lista M3U."
+  },
   "validationRequired": "Este campo es obligatorio",
   "@validationRequired": {
     "description": "Mensaje de validación para un campo obligatorio vacío."
@@ -47,6 +71,10 @@
   "signOut": "Cerrar Sesión",
   "@signOut": {
     "description": "Botón para cerrar la sesión actual."
+  },
+  "changeAccount": "Cambiar cuenta",
+  "@changeAccount": {
+    "description": "Botón para cerrar la sesión y volver al login para cambiar de cuenta o fuente."
   },
   "accountStatus": "Estado de la cuenta",
   "@accountStatus": {

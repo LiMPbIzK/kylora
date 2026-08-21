@@ -36,6 +36,30 @@
   "@loginErrorUnknown": {
     "description": "Shown when an unexpected error occurs during sign-in."
   },
+  "loginSourceXtream": "Xtream",
+  "@loginSourceXtream": {
+    "description": "Label of the source selector for the Xtream Codes API."
+  },
+  "loginSourceM3u": "M3U/XMLTV",
+  "@loginSourceM3u": {
+    "description": "Label of the source selector for M3U playlists with XMLTV EPG."
+  },
+  "m3uDisplayName": "Name (optional)",
+  "@m3uDisplayName": {
+    "description": "Label of the display name field for the M3U source."
+  },
+  "m3uPlaylistUrl": "M3U playlist URL",
+  "@m3uPlaylistUrl": {
+    "description": "Label of the M3U playlist URL field."
+  },
+  "m3uXmltvUrl": "XMLTV EPG URL (optional)",
+  "@m3uXmltvUrl": {
+    "description": "Label of the optional XMLTV EPG URL field."
+  },
+  "loginErrorM3uParse": "Could not parse the M3U playlist. Check the URL.",
+  "@loginErrorM3uParse": {
+    "description": "Shown when downloading or parsing the M3U playlist fails."
+  },
   "validationRequired": "This field is required",
   "@validationRequired": {
     "description": "Validation message for an empty required field."
@@ -47,6 +71,10 @@
   "signOut": "Sign out",
   "@signOut": {
     "description": "Button to close the current session."
+  },
+  "changeAccount": "Change account",
+  "@changeAccount": {
+    "description": "Button to close the session and return to the login to change account or source."
   },
   "accountStatus": "Account status",
   "@accountStatus": {

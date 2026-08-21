@@ -5,6 +5,7 @@ import '../entities/epg.dart';
 import '../entities/episode.dart';
 import '../entities/favorite_item.dart';
 import '../entities/history_item.dart';
+import '../entities/iptv_auth_config.dart';
 import '../entities/movie.dart';
 import '../entities/series.dart';
 import '../entities/series_info.dart';
@@ -14,11 +15,10 @@ import '../entities/user_account.dart';
 /// Tanto Xtream como M3U deben implementarlo.
 abstract interface class IptvRepository {
   /// Autentica contra el proveedor y persiste las credenciales.
-  Future<UserAccount> login({
-    required String serverUrl,
-    required String username,
-    required String password,
-  });
+  ///
+  /// [config] contiene los parámetros específicos de cada fuente
+  /// (Xtream: servidor/usuario/contraseña; M3U: URL de playlist/XMLTV).
+  Future<UserAccount> login(IptvAuthConfig config);
 
   /// Restaura la sesión guardada sin requerir credenciales.
   Future<UserAccount?> restoreSession();

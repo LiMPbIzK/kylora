@@ -41,11 +41,26 @@ class HomeShellScreen extends StatelessWidget {
               buildWhen: (previous, current) => current is AuthAuthenticated,
               builder: (context, state) {
                 if (state is! AuthAuthenticated) return const SizedBox.shrink();
-                return IconButton(
-                  tooltip: l10n.signOut,
-                  icon: const Icon(Icons.logout),
-                  onPressed: () =>
-                      context.read<AuthBloc>().add(const AuthLogoutRequested()),
+                return Row(
+                  mainAxisSize: MainAxisSize.min,
+                  children: <Widget>[
+                    IconButton(
+                      tooltip: l10n.changeAccount,
+                      icon: const Icon(Icons.switch_account),
+                      onPressed: () {
+                        context
+                            .read<AuthBloc>()
+                            .add(const AuthLogoutRequested());
+                      },
+                    ),
+                    IconButton(
+                      tooltip: l10n.signOut,
+                      icon: const Icon(Icons.logout),
+                      onPressed: () => context
+                          .read<AuthBloc>()
+                          .add(const AuthLogoutRequested()),
+                    ),
+                  ],
                 );
               },
             ),

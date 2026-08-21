@@ -1,5 +1,6 @@
 import 'package:flutter_bloc/flutter_bloc.dart';
 
+import '../../../data/datasources/remote/m3u_downloader.dart';
 import '../../../data/datasources/remote/xtream_api_client.dart';
 import '../../../domain/entities/user_account.dart';
 import '../../../domain/repositories/iptv_repository.dart';
@@ -36,16 +37,16 @@ class AuthBloc extends Bloc<AuthEvent, AuthState> {
   ) async {
     emit(const AuthChecking());
     try {
-      final UserAccount account = await _repository.login(
-        serverUrl: event.serverUrl,
-        username: event.username,
-        password: event.password,
-      );
+      final UserAccount account = await _repository.login(event.config);
       emit(AuthAuthenticated(account: account));
     } on XtreamAuthException {
       emit(const AuthFailure(message: 'invalidCredentials'));
     } on XtreamNetworkException {
       emit(const AuthFailure(message: 'networkError'));
+    } on M3uNetworkException {
+      emit(const AuthFailure(message: 'networkError'));
+    } on M3uParseException {
+      emit(const AuthFailure(message: 'm3uParseError'));
     } catch (_) {
       emit(const AuthFailure(message: 'unknownError'));
     }

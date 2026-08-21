@@ -11,6 +11,7 @@ import 'package:kylora/domain/entities/epg.dart';
 import 'package:kylora/domain/entities/episode.dart';
 import 'package:kylora/domain/entities/favorite_item.dart';
 import 'package:kylora/domain/entities/history_item.dart';
+import 'package:kylora/domain/entities/iptv_auth_config.dart';
 import 'package:kylora/domain/entities/movie.dart';
 import 'package:kylora/domain/entities/season.dart';
 import 'package:kylora/domain/entities/series.dart';
@@ -37,15 +38,12 @@ class _FakeRepository implements IptvRepository {
   UserAccount? storedAccount;
 
   @override
-  Future<UserAccount> login({
-    required String serverUrl,
-    required String username,
-    required String password,
-  }) async {
+  Future<UserAccount> login(IptvAuthConfig config) async {
+    final XtreamAuthConfig xtream = config as XtreamAuthConfig;
     return UserAccount(
-      serverUrl: serverUrl,
-      username: username,
-      password: password,
+      serverUrl: xtream.serverUrl,
+      username: xtream.username,
+      password: xtream.password,
       status: 'Active',
     );
   }
@@ -383,11 +381,7 @@ class _FailingRepository implements IptvRepository {
   const _FailingRepository();
 
   @override
-  Future<UserAccount> login({
-    required String serverUrl,
-    required String username,
-    required String password,
-  }) async {
+  Future<UserAccount> login(IptvAuthConfig config) async {
     throw const XtreamAuthException('invalid');
   }
 
@@ -475,9 +469,11 @@ void _testAuthBloc() {
     final AuthBloc bloc = AuthBloc(const _FailingRepository());
     bloc.add(
       const AuthLoginRequested(
-        serverUrl: 'http://server:8080',
-        username: 'user',
-        password: 'wrong',
+        XtreamAuthConfig(
+          serverUrl: 'http://server:8080',
+          username: 'user',
+          password: 'wrong',
+        ),
       ),
     );
     await expectLater(
@@ -496,9 +492,11 @@ void _testAuthBloc() {
     );
     bloc.add(
       const AuthLoginRequested(
-        serverUrl: 'http://server:8080',
-        username: 'user',
-        password: 'pass',
+        XtreamAuthConfig(
+          serverUrl: 'http://server:8080',
+          username: 'user',
+          password: 'pass',
+        ),
       ),
     );
     await expectLater(

@@ -7,6 +7,7 @@ import 'package:kylora/domain/entities/epg.dart';
 import 'package:kylora/domain/entities/episode.dart';
 import 'package:kylora/domain/entities/favorite_item.dart';
 import 'package:kylora/domain/entities/history_item.dart';
+import 'package:kylora/domain/entities/iptv_auth_config.dart';
 import 'package:kylora/domain/entities/movie.dart';
 import 'package:kylora/domain/entities/series.dart';
 import 'package:kylora/domain/entities/series_info.dart';
@@ -47,11 +48,7 @@ class _FakeRepo implements IptvRepository {
       ];
 
   @override
-  Future<UserAccount> login({
-    required String serverUrl,
-    required String username,
-    required String password,
-  }) async =>
+  Future<UserAccount> login(IptvAuthConfig config) async =>
       throw UnimplementedError();
 
   @override

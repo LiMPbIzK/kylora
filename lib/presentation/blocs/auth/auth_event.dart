@@ -1,5 +1,7 @@
 import 'package:equatable/equatable.dart';
 
+import '../../../domain/entities/iptv_auth_config.dart';
+
 /// Eventos del flujo de autenticación.
 sealed class AuthEvent extends Equatable {
   const AuthEvent();
@@ -13,20 +15,14 @@ final class AuthStarted extends AuthEvent {
   const AuthStarted();
 }
 
-/// Intenta iniciar sesión con credenciales nuevas.
+/// Intenta iniciar sesión con una configuración de fuente determinada.
 final class AuthLoginRequested extends AuthEvent {
-  const AuthLoginRequested({
-    required this.serverUrl,
-    required this.username,
-    required this.password,
-  });
+  const AuthLoginRequested(this.config);
 
-  final String serverUrl;
-  final String username;
-  final String password;
+  final IptvAuthConfig config;
 
   @override
-  List<Object?> get props => [serverUrl, username, password];
+  List<Object?> get props => [config];
 }
 
 /// Cierra la sesión activa.

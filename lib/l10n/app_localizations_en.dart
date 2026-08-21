@@ -38,6 +38,25 @@ class AppLocalizationsEn extends AppLocalizations {
   String get loginErrorUnknown => 'Unexpected error. Try again.';
 
   @override
+  String get loginSourceXtream => 'Xtream';
+
+  @override
+  String get loginSourceM3u => 'M3U/XMLTV';
+
+  @override
+  String get m3uDisplayName => 'Name (optional)';
+
+  @override
+  String get m3uPlaylistUrl => 'M3U playlist URL';
+
+  @override
+  String get m3uXmltvUrl => 'XMLTV EPG URL (optional)';
+
+  @override
+  String get loginErrorM3uParse =>
+      'Could not parse the M3U playlist. Check the URL.';
+
+  @override
   String get validationRequired => 'This field is required';
 
   @override
@@ -46,6 +65,9 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get signOut => 'Sign out';
+
+  @override
+  String get changeAccount => 'Change account';
 
   @override
   String get accountStatus => 'Account status';

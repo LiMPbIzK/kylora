@@ -7,6 +7,8 @@ import '../../domain/entities/epg.dart';
 import '../../domain/entities/episode.dart';
 import '../../domain/entities/favorite_item.dart';
 import '../../domain/entities/history_item.dart';
+import '../../domain/entities/iptv_auth_config.dart';
+import '../../domain/entities/iptv_source_type.dart';
 import '../../domain/entities/movie.dart';
 import '../../domain/entities/series.dart';
 import '../../domain/entities/series_info.dart';
@@ -38,31 +40,30 @@ class XtreamRepository implements IptvRepository {
   final LiveCacheStore _cache;
 
   @override
-  Future<UserAccount> login({
-    required String serverUrl,
-    required String username,
-    required String password,
-  }) async {
+  Future<UserAccount> login(IptvAuthConfig config) async {
+    final XtreamAuthConfig xtream = config as XtreamAuthConfig;
     final XtreamAuthResponse response = await _apiClient.authenticate(
-      serverUrl: serverUrl,
-      username: username,
-      password: password,
+      serverUrl: xtream.serverUrl,
+      username: xtream.username,
+      password: xtream.password,
     );
     final XtreamUserInfoDto info = response.userInfo;
     final UserAccount account = UserAccount(
-      serverUrl: serverUrl,
-      username: username,
-      password: password,
+      serverUrl: xtream.serverUrl,
+      username: xtream.username,
+      password: xtream.password,
       status: info.status,
+      sourceType: IptvSourceType.xtream,
       expiresAt: info.expiresAt,
       maxConnections: info.maxConnections,
       activeConnections: info.activeConnections,
     );
     await _authStore.write(
       StoredCredentials(
-        serverUrl: serverUrl,
-        username: username,
-        password: password,
+        serverUrl: xtream.serverUrl,
+        username: xtream.username,
+        password: xtream.password,
+        sourceType: IptvSourceType.xtream,
       ),
     );
     return account;
@@ -84,6 +85,7 @@ class XtreamRepository implements IptvRepository {
         username: credentials.username,
         password: credentials.password,
         status: info.status,
+        sourceType: IptvSourceType.xtream,
         expiresAt: info.expiresAt,
         maxConnections: info.maxConnections,
         activeConnections: info.activeConnections,
