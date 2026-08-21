@@ -143,11 +143,11 @@ Construida sobre `flutter_localizations` + `intl` con archivos ARB generados y d
 - [x] **M2 — Catálogo en directo:** esquema Drift + indexado, categorías, lista de canales con logos
 - [x] **M3 — Reproductor:** integración de media_kit, OSD de controles, pistas de audio/subtítulos, reintentos
 - [x] **M4 — VOD y Series:** rejillas, vistas de detalle, episodios de series
-- [ ] **M5 — EPG:** ahora/siguiente en la lista de canales, vista de programación completa, XMLTV + short EPG de Xtream
-- [ ] **M6 — Favoritos, historial y búsqueda:** favoritos persistentes, historial de reproducción, búsqueda instantánea
-- [ ] **M7 — Fuente M3U/XMLTV:** selector de fuente, parseo en isolate en segundo plano, contrato unificado
+- [x] **M5 — EPG:** ahora/siguiente en la lista de canales, vista de programación completa, XMLTV + short EPG de Xtream
+- [x] **M6 — Favoritos, historial y búsqueda:** favoritos persistentes, historial de reproducción, búsqueda instantánea
+- [x] **M7 — Fuente M3U/XMLTV:** selector de fuente (Xtream/M3U), parseo de M3U y XMLTV en isolates, repositorio M3U con contrato unificado, persistencia multi-fuente
 - [ ] **M8 — Android TV / Fire TV:** gestión de foco D-Pad, banner leanback, navegación con mando
-- [ ] **M9 — Ajustes y release:** selector de idioma, gestión de caché, idiomas restantes, v1.0.0
+- [ ] **M9 — Ajustes y release:** pantalla de Ajustes (datos de la cuenta, actualización manual del catálogo, selector de idioma, selector de temas dark/light, cambio de cuenta, bloqueo por PIN planificado), gestión de caché, idiomas restantes, v1.0.0
 - [ ] **M10 — Portabilidad Linux/macOS (post-v1.0.0):** builds de escritorio para Linux (.deb/.AppImage) y macOS (.dmg), notarización y CI por SO — sin cambios de lógica (v1.1)
 
 ---
