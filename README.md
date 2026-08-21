@@ -19,7 +19,7 @@
 * **Soporte multi-fuente:** Compatibilidad directa con la API Xtream Codes y listas estáticas M3U/M3U8 con EPG XMLTV.
 * **100% local y privado:** Sin backend propio, telemetría ni bases de datos externas. Tus credenciales y listas permanecen estrictamente en tu dispositivo.
 * **UI nativa multiplataforma:** Interfaz adaptada con controles táctiles responsivos para móvil/tablet y gestión completa del foco D-Pad para mandos de TV y navegación con teclado.
-* **Motor acelerado por hardware:** Impulsado por `media_kit` (libmpv) para demuxing nativo de flujos MPEG-TS, HLS y MKV, con múltiples pistas de audio y selección de subtítulos embebidos.
+* **Motor acelerado por hardware:** Impulsado por `media_kit` (libmpv) para demuxing nativo de flujos MPEG-TS, HLS y MKV, con múltiples pistas de audio y selección de subtítulos embebidos. El OSD del reproductor incluye barra de progreso con búsqueda (seek), selectores centrados de audio/subtítulos, control de volumen y pantalla completa nativa.
 * **Indexación local inteligente:** El análisis pesado de listas se ejecuta en isolates en segundo plano y se indexa con Drift (SQLite) para búsqueda y categorización instantáneas.
 * **Multidioma (i18n):** Soporte nativo de inglés, español, francés, alemán, italiano y portugués.
 
@@ -141,7 +141,7 @@ Construida sobre `flutter_localizations` + `intl` con archivos ARB generados y d
 - [x] **M0 — Fundación:** andamiaje del proyecto, dependencias, estructura de carpetas, i18n (es/en), tema, router
 - [x] **M1 — Suscripción Xtream:** login, almacenamiento seguro, persistencia de sesión, estado de la cuenta
 - [x] **M2 — Catálogo en directo:** esquema Drift + indexado, categorías, lista de canales con logos
-- [x] **M3 — Reproductor:** integración de media_kit, OSD de controles, pistas de audio/subtítulos, reintentos
+- [x] **M3 — Reproductor:** integración de media_kit, OSD con barra de progreso (seek), selectores de pistas de audio/subtítulos, volumen y pantalla completa nativa; pistas y reintentos
 - [x] **M4 — VOD y Series:** rejillas, vistas de detalle, episodios de series
 - [x] **M5 — EPG:** ahora/siguiente en la lista de canales, vista de programación completa, XMLTV + short EPG de Xtream
 - [x] **M6 — Favoritos, historial y búsqueda:** favoritos persistentes, historial de reproducción, búsqueda instantánea
