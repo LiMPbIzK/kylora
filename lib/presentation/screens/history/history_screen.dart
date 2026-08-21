@@ -9,6 +9,7 @@ import '../../../l10n/app_localizations.dart';
 import '../../blocs/history/history_bloc.dart';
 import '../../blocs/history/history_event.dart';
 import '../../blocs/history/history_state.dart';
+import '../../shared_widgets/tv_focusable.dart';
 
 /// Pantalla de historial de reproducción.
 class HistoryScreen extends StatefulWidget {
@@ -57,7 +58,7 @@ class _HistoryList extends StatelessWidget {
       padding: const EdgeInsets.symmetric(vertical: 8),
       itemCount: items.length,
       itemBuilder: (context, index) {
-        return _HistoryTile(item: items[index]);
+        return _HistoryTile(item: items[index], autofocus: index == 0);
       },
     );
   }
@@ -65,9 +66,10 @@ class _HistoryList extends StatelessWidget {
 
 /// Fila de una entrada del historial.
 class _HistoryTile extends StatelessWidget {
-  const _HistoryTile({required this.item});
+  const _HistoryTile({required this.item, this.autofocus = false});
 
   final HistoryItem item;
+  final bool autofocus;
 
   @override
   Widget build(BuildContext context) {
@@ -80,10 +82,14 @@ class _HistoryTile extends StatelessWidget {
 
     final String timeAgo = _timeAgo(context, item.watchedAt);
 
-    return ListTile(
-      leading: _Logo(logo: item.logo, icon: icon),
-      title: Text(item.name, maxLines: 1, overflow: TextOverflow.ellipsis),
-      subtitle: Text(timeAgo),
+    return TvFocusable(
+      autofocus: autofocus,
+      borderRadius: BorderRadius.circular(8),
+      child: ListTile(
+        leading: _Logo(logo: item.logo, icon: icon),
+        title: Text(item.name, maxLines: 1, overflow: TextOverflow.ellipsis),
+        subtitle: Text(timeAgo),
+      ),
     );
   }
 

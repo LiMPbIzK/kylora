@@ -13,6 +13,7 @@ import '../../blocs/series/series_bloc.dart';
 import '../../blocs/series/series_event.dart';
 import '../../blocs/series/series_state.dart';
 import '../../shared_widgets/media_poster.dart';
+import '../../shared_widgets/tv_focusable.dart';
 import '../player/playback_scope.dart';
 
 /// Detalle de una serie con sus temporadas y episodios reproducibles.
@@ -118,6 +119,7 @@ class _DetailContent extends StatelessWidget {
   Widget build(BuildContext context) {
     final AppLocalizations l10n = AppLocalizations.of(context)!;
     final List<Season> seasons = info.seasons;
+    final List<Episode> episodes = _seasonEpisodes(seasons, selectedSeason);
 
     return ListView(
       padding: const EdgeInsets.all(16),
@@ -187,9 +189,12 @@ class _DetailContent extends StatelessWidget {
             ),
           ),
           const Divider(height: 24),
-          for (final Episode episode
-              in _seasonEpisodes(seasons, selectedSeason))
-            _EpisodeTile(series: series, episode: episode),
+          for (int index = 0; index < episodes.length; index++)
+            _EpisodeTile(
+              series: series,
+              episode: episodes[index],
+              autofocus: index == 0,
+            ),
         ],
       ],
     );
@@ -211,38 +216,53 @@ class _DetailContent extends StatelessWidget {
 
 /// Fila de episodio con número, título y reproducción.
 class _EpisodeTile extends StatelessWidget {
-  const _EpisodeTile({required this.series, required this.episode});
+  const _EpisodeTile({
+    required this.series,
+    required this.episode,
+    this.autofocus = false,
+  });
 
   final Series series;
   final Episode episode;
+  final bool autofocus;
 
   @override
   Widget build(BuildContext context) {
-    return ListTile(
-      contentPadding: EdgeInsets.zero,
-      leading: _EpisodeNumber(number: episode.episodeNumber),
-      title: Text(
-        episode.name.isEmpty
-            ? '${series.name} E${episode.episodeNumber}'
-            : episode.name,
-        maxLines: 2,
-        overflow: TextOverflow.ellipsis,
+    return TvFocusable(
+      autofocus: autofocus,
+      borderRadius: BorderRadius.circular(8),
+      onPressed: () => _play(context),
+      child: ListTile(
+        contentPadding: EdgeInsets.zero,
+        leading: _EpisodeNumber(number: episode.episodeNumber),
+        title: Text(
+          episode.name.isEmpty
+              ? '${series.name} E${episode.episodeNumber}'
+              : episode.name,
+          maxLines: 2,
+          overflow: TextOverflow.ellipsis,
+        ),
+        trailing: const Icon(
+          Icons.play_circle_outline,
+          color: AppColors.primary,
+        ),
+        onTap: () => _play(context),
       ),
-      trailing: const Icon(Icons.play_circle_outline, color: AppColors.primary),
-      onTap: () {
-        final IptvRepository repository = context.read<IptvRepository>();
-        final String episodeTitle = episode.name.isEmpty
-            ? 'E${episode.episodeNumber}'
-            : episode.name;
-        PlaybackScope.of(context).play(
-          PlaybackRequest(
-            title: '${series.name} — $episodeTitle',
-            urlBuilder: () => repository.buildEpisodeStreamUrl(episode),
-            contentType: 'series',
-            contentId: episode.id,
-          ),
-        );
-      },
+    );
+  }
+
+  void _play(BuildContext context) {
+    final IptvRepository repository = context.read<IptvRepository>();
+    final String episodeTitle = episode.name.isEmpty
+        ? 'E${episode.episodeNumber}'
+        : episode.name;
+    PlaybackScope.of(context).play(
+      PlaybackRequest(
+        title: '${series.name} — $episodeTitle',
+        urlBuilder: () => repository.buildEpisodeStreamUrl(episode),
+        contentType: 'series',
+        contentId: episode.id,
+      ),
     );
   }
 }

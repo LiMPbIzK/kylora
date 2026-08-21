@@ -11,6 +11,7 @@ import '../../blocs/series/series_bloc.dart';
 import '../../blocs/series/series_event.dart';
 import '../../blocs/series/series_state.dart';
 import '../../shared_widgets/media_poster.dart';
+import '../../shared_widgets/tv_focusable.dart';
 
 /// Catálogo de series con rejilla de portadas y categorías.
 class SeriesScreen extends StatefulWidget {
@@ -147,7 +148,10 @@ class _SeriesContent extends StatelessWidget {
                       ),
                   itemCount: state.seriesList.length,
                   itemBuilder: (context, index) {
-                    return _SeriesCard(series: state.seriesList[index]);
+                    return _SeriesCard(
+                      series: state.seriesList[index],
+                      autofocus: index == 0,
+                    );
                   },
                 ),
         ),
@@ -158,29 +162,35 @@ class _SeriesContent extends StatelessWidget {
 
 /// Tarjeta de serie con portada y título.
 class _SeriesCard extends StatelessWidget {
-  const _SeriesCard({required this.series});
+  const _SeriesCard({required this.series, this.autofocus = false});
 
   final Series series;
+  final bool autofocus;
 
   @override
   Widget build(BuildContext context) {
-    return InkWell(
+    return TvFocusable(
+      autofocus: autofocus,
       borderRadius: BorderRadius.circular(8),
-      onTap: () => context.push(Routes.seriesDetail, extra: series),
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: <Widget>[
-          Expanded(
-            child: MediaPoster(url: series.cover, fallbackIcon: Icons.theaters),
-          ),
-          const SizedBox(height: 6),
-          Text(
-            series.name,
-            maxLines: 2,
-            overflow: TextOverflow.ellipsis,
-            style: Theme.of(context).textTheme.bodySmall,
-          ),
-        ],
+      onPressed: () => context.push(Routes.seriesDetail, extra: series),
+      child: InkWell(
+        borderRadius: BorderRadius.circular(8),
+        onTap: () => context.push(Routes.seriesDetail, extra: series),
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: <Widget>[
+            Expanded(
+              child: MediaPoster(url: series.cover, fallbackIcon: Icons.theaters),
+            ),
+            const SizedBox(height: 6),
+            Text(
+              series.name,
+              maxLines: 2,
+              overflow: TextOverflow.ellipsis,
+              style: Theme.of(context).textTheme.bodySmall,
+            ),
+          ],
+        ),
       ),
     );
   }

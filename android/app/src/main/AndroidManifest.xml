@@ -17,7 +17,7 @@
         android:label="Kylora"
         android:name="${applicationName}"
         android:icon="@mipmap/ic_launcher"
-        android:banner="@mipmap/ic_launcher"
+        android:banner="@drawable/banner"
         android:networkSecurityConfig="@xml/network_security_config">
         <activity
             android:name=".MainActivity"

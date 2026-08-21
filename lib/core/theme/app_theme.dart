@@ -40,7 +40,10 @@ abstract final class AppTheme {
         margin: EdgeInsets.zero,
       ),
       dividerTheme: const DividerThemeData(color: AppColors.surfaceVariant),
-      focusColor: AppColors.focusGlow,
+      focusColor: AppColors.focusGlow.withValues(alpha: 0.35),
+      hoverColor: AppColors.focusGlow.withValues(alpha: 0.15),
+      splashColor: AppColors.primary.withValues(alpha: 0.25),
+      highlightColor: AppColors.focusGlow.withValues(alpha: 0.12),
     );
   }
 }

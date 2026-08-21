@@ -141,47 +141,54 @@ class _PlayerScreenState extends State<PlayerScreen> {
 
   @override
   Widget build(BuildContext context) {
-    return Scaffold(
-      backgroundColor: Colors.black,
-      body: MouseRegion(
-        onHover: _onMouseHover,
-        onExit: (_) => _scheduleHide(),
-        child: GestureDetector(
-          behavior: HitTestBehavior.opaque,
-          onTap: _toggleOsd,
-          child: Stack(
-            fit: StackFit.expand,
-            children: <Widget>[
-              Video(
-                controller: _videoController,
-                // Desactiva los controles nativos de media_kit (barra de
-                // progreso y botones superpuestos), que interferían con el OSD
-                // propio y capturan los gestos del menú de ajustes.
-                controls: NoVideoControls,
-              ),
-              BlocBuilder<PlayerBloc, PlayerState>(
-                bloc: _bloc,
-                builder: (context, state) {
-                  if (state is PlayerLoading) {
-                    return const Center(
-                      child: CircularProgressIndicator(
-                        color: AppColors.primary,
-                      ),
-                    );
-                  }
-                  if (state is PlayerError && state.retriesLeft == 0) {
-                    return _ErrorOverlay(
-                      message: AppLocalizations.of(context)!.streamError,
-                      onRetry: () => _bloc.add(const PlayerRetryRequested()),
-                    );
-                  }
-                  return const SizedBox.shrink();
-                },
-              ),
-              if (_osdVisible) _buildOsd(),
-              if (_picker != null)
-                _buildTrackPicker(AppLocalizations.of(context)!),
-            ],
+    return PopScope(
+      canPop: !_bloc.player.state.playing,
+      onPopInvokedWithResult: (bool didPop, Object? result) {
+        if (!didPop) _closePlayer();
+      },
+      child: Scaffold(
+        backgroundColor: Colors.black,
+        body: MouseRegion(
+          onHover: _onMouseHover,
+          onExit: (_) => _scheduleHide(),
+          child: GestureDetector(
+            behavior: HitTestBehavior.opaque,
+            onTap: _toggleOsd,
+            child: Stack(
+              fit: StackFit.expand,
+              children: <Widget>[
+                Video(
+                  controller: _videoController,
+                  // Desactiva los controles nativos de media_kit (barra de
+                  // progreso y botones superpuestos), que interferían con el
+                  // OSD propio y capturan los gestos del menú de ajustes.
+                  controls: NoVideoControls,
+                ),
+                BlocBuilder<PlayerBloc, PlayerState>(
+                  bloc: _bloc,
+                  builder: (context, state) {
+                    if (state is PlayerLoading) {
+                      return const Center(
+                        child: CircularProgressIndicator(
+                          color: AppColors.primary,
+                        ),
+                      );
+                    }
+                    if (state is PlayerError && state.retriesLeft == 0) {
+                      return _ErrorOverlay(
+                        message: AppLocalizations.of(context)!.streamError,
+                        onRetry: () =>
+                            _bloc.add(const PlayerRetryRequested()),
+                      );
+                    }
+                    return const SizedBox.shrink();
+                  },
+                ),
+                if (_osdVisible) _buildOsd(),
+                if (_picker != null)
+                  _buildTrackPicker(AppLocalizations.of(context)!),
+              ],
+            ),
           ),
         ),
       ),

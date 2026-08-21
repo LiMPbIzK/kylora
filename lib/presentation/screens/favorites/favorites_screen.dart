@@ -11,6 +11,7 @@ import '../../../l10n/app_localizations.dart';
 import '../../blocs/favorites/favorites_bloc.dart';
 import '../../blocs/favorites/favorites_event.dart';
 import '../../blocs/favorites/favorites_state.dart';
+import '../../shared_widgets/tv_focusable.dart';
 import '../player/playback_scope.dart';
 
 /// Pantalla de favoritos con lista de contenido guardado.
@@ -60,7 +61,7 @@ class _FavoritesList extends StatelessWidget {
       padding: const EdgeInsets.symmetric(vertical: 8),
       itemCount: items.length,
       itemBuilder: (context, index) {
-        return _FavoriteTile(item: items[index]);
+        return _FavoriteTile(item: items[index], autofocus: index == 0);
       },
     );
   }
@@ -68,9 +69,10 @@ class _FavoritesList extends StatelessWidget {
 
 /// Fila de un elemento favorito.
 class _FavoriteTile extends StatelessWidget {
-  const _FavoriteTile({required this.item});
+  const _FavoriteTile({required this.item, this.autofocus = false});
 
   final FavoriteItem item;
+  final bool autofocus;
 
   @override
   Widget build(BuildContext context) {
@@ -81,43 +83,47 @@ class _FavoriteTile extends StatelessWidget {
       _ => Icons.tv,
     };
 
-    return ListTile(
-      leading: _Logo(logo: item.logo, icon: icon),
-      title: Text(item.name, maxLines: 1, overflow: TextOverflow.ellipsis),
-      subtitle: Text(_typeLabel(context, item.contentType.name)),
-      trailing: IconButton(
-        icon: const Icon(Icons.favorite, color: AppColors.primary),
-        onPressed: () {
-          context.read<FavoritesBloc>().add(
-            FavoritesToggled(
-              item.contentId,
-              item.contentType.name,
-              item.name,
-              item.logo,
-            ),
-          );
+    return TvFocusable(
+      autofocus: autofocus,
+      borderRadius: BorderRadius.circular(8),
+      child: ListTile(
+        leading: _Logo(logo: item.logo, icon: icon),
+        title: Text(item.name, maxLines: 1, overflow: TextOverflow.ellipsis),
+        subtitle: Text(_typeLabel(context, item.contentType.name)),
+        trailing: IconButton(
+          icon: const Icon(Icons.favorite, color: AppColors.primary),
+          onPressed: () {
+            context.read<FavoritesBloc>().add(
+              FavoritesToggled(
+                item.contentId,
+                item.contentType.name,
+                item.name,
+                item.logo,
+              ),
+            );
+          },
+        ),
+        onTap: () {
+          if (item.contentType.name == 'live') {
+            final IptvRepository repository = context.read<IptvRepository>();
+            PlaybackScope.of(context).play(
+              PlaybackRequest(
+                title: item.name,
+                urlBuilder: () => repository.buildStreamUrl(
+                  Channel(
+                    id: item.contentId,
+                    name: item.name,
+                    categoryId: 0,
+                    logo: item.logo,
+                  ),
+                ),
+                contentType: item.contentType.name,
+                contentId: item.contentId,
+              ),
+            );
+          }
         },
       ),
-      onTap: () {
-        if (item.contentType.name == 'live') {
-          final IptvRepository repository = context.read<IptvRepository>();
-          PlaybackScope.of(context).play(
-            PlaybackRequest(
-              title: item.name,
-              urlBuilder: () => repository.buildStreamUrl(
-                Channel(
-                  id: item.contentId,
-                  name: item.name,
-                  categoryId: 0,
-                  logo: item.logo,
-                ),
-              ),
-              contentType: item.contentType.name,
-              contentId: item.contentId,
-            ),
-          );
-        }
-      },
     );
   }
 

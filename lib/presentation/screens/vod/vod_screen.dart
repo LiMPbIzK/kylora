@@ -11,6 +11,7 @@ import '../../blocs/vod/vod_bloc.dart';
 import '../../blocs/vod/vod_event.dart';
 import '../../blocs/vod/vod_state.dart';
 import '../../shared_widgets/media_poster.dart';
+import '../../shared_widgets/tv_focusable.dart';
 
 /// Catálogo de películas (VOD) con rejilla de pósters y categorías.
 class VodScreen extends StatefulWidget {
@@ -141,7 +142,10 @@ class _VodContent extends StatelessWidget {
                       ),
                   itemCount: state.movies.length,
                   itemBuilder: (context, index) {
-                    return _MovieCard(movie: state.movies[index]);
+                    return _MovieCard(
+                      movie: state.movies[index],
+                      autofocus: index == 0,
+                    );
                   },
                 ),
         ),
@@ -152,29 +156,35 @@ class _VodContent extends StatelessWidget {
 
 /// Tarjeta de película con póster y título.
 class _MovieCard extends StatelessWidget {
-  const _MovieCard({required this.movie});
+  const _MovieCard({required this.movie, this.autofocus = false});
 
   final Movie movie;
+  final bool autofocus;
 
   @override
   Widget build(BuildContext context) {
-    return InkWell(
+    return TvFocusable(
+      autofocus: autofocus,
       borderRadius: BorderRadius.circular(8),
-      onTap: () => context.push(Routes.movieDetail, extra: movie),
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: <Widget>[
-          Expanded(
-            child: MediaPoster(url: movie.streamIcon, fallbackIcon: Icons.movie),
-          ),
-          const SizedBox(height: 6),
-          Text(
-            movie.name,
-            maxLines: 2,
-            overflow: TextOverflow.ellipsis,
-            style: Theme.of(context).textTheme.bodySmall,
-          ),
-        ],
+      onPressed: () => context.push(Routes.movieDetail, extra: movie),
+      child: InkWell(
+        borderRadius: BorderRadius.circular(8),
+        onTap: () => context.push(Routes.movieDetail, extra: movie),
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: <Widget>[
+            Expanded(
+              child: MediaPoster(url: movie.streamIcon, fallbackIcon: Icons.movie),
+            ),
+            const SizedBox(height: 6),
+            Text(
+              movie.name,
+              maxLines: 2,
+              overflow: TextOverflow.ellipsis,
+              style: Theme.of(context).textTheme.bodySmall,
+            ),
+          ],
+        ),
       ),
     );
   }

@@ -17,6 +17,7 @@ import '../../blocs/epg/epg_state.dart';
 import '../../blocs/live/live_bloc.dart';
 import '../../blocs/live/live_event.dart';
 import '../../blocs/live/live_state.dart';
+import '../../shared_widgets/tv_focusable.dart';
 import '../player/playback_scope.dart';
 
 /// Catálogo de canales en directo con categorías y logos.
@@ -135,7 +136,10 @@ class _LiveContent extends StatelessWidget {
               : ListView.builder(
                   itemCount: state.channels.length,
                   itemBuilder: (context, index) {
-                    return _ChannelTile(channel: state.channels[index]);
+                    return _ChannelTile(
+                      channel: state.channels[index],
+                      autofocus: index == 0,
+                    );
                   },
                 ),
         ),
@@ -177,9 +181,10 @@ class _CategoryChip extends StatelessWidget {
 
 /// Fila de canal con logo, programa ahora/siguiente y acceso a la guía.
 class _ChannelTile extends StatefulWidget {
-  const _ChannelTile({required this.channel});
+  const _ChannelTile({required this.channel, this.autofocus = false});
 
   final Channel channel;
+  final bool autofocus;
 
   @override
   State<_ChannelTile> createState() => _ChannelTileState();
@@ -202,44 +207,51 @@ class _ChannelTileState extends State<_ChannelTile> {
     final String? number =
         widget.channel.number != null ? '${widget.channel.number}' : null;
 
-    return ListTile(
-      leading: _ChannelLogo(logo: widget.channel.logo),
-      title: Text(
-        widget.channel.name,
-        maxLines: 1,
-        overflow: TextOverflow.ellipsis,
-      ),
-      subtitle: Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: <Widget>[
-          if (number != null)
-            Text('CH $number', style: const TextStyle(fontSize: 12)),
-          _EpgLine(streamId: widget.channel.id),
-        ],
-      ),
-      isThreeLine: true,
-      trailing: IconButton(
-        tooltip: context.l10n.epgGuide,
-        icon: const Icon(
-          Icons.calendar_view_day,
-          color: AppColors.primary,
+    return TvFocusable(
+      autofocus: widget.autofocus,
+      borderRadius: BorderRadius.circular(8),
+      onPressed: _play,
+      child: ListTile(
+        leading: _ChannelLogo(logo: widget.channel.logo),
+        title: Text(
+          widget.channel.name,
+          maxLines: 1,
+          overflow: TextOverflow.ellipsis,
         ),
-        onPressed: () => context.push(
-          Routes.programGuide,
-          extra: widget.channel,
+        subtitle: Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: <Widget>[
+            if (number != null)
+              Text('CH $number', style: const TextStyle(fontSize: 12)),
+            _EpgLine(streamId: widget.channel.id),
+          ],
         ),
-      ),
-      onTap: () {
-        final IptvRepository repository = context.read<IptvRepository>();
-        PlaybackScope.of(context).play(
-          PlaybackRequest(
-            title: widget.channel.name,
-            urlBuilder: () => repository.buildStreamUrl(widget.channel),
-            contentType: 'live',
-            contentId: widget.channel.id,
+        isThreeLine: true,
+        trailing: IconButton(
+          tooltip: context.l10n.epgGuide,
+          icon: const Icon(
+            Icons.calendar_view_day,
+            color: AppColors.primary,
           ),
-        );
-      },
+          onPressed: () => context.push(
+            Routes.programGuide,
+            extra: widget.channel,
+          ),
+        ),
+        onTap: _play,
+      ),
+    );
+  }
+
+  void _play() {
+    final IptvRepository repository = context.read<IptvRepository>();
+    PlaybackScope.of(context).play(
+      PlaybackRequest(
+        title: widget.channel.name,
+        urlBuilder: () => repository.buildStreamUrl(widget.channel),
+        contentType: 'live',
+        contentId: widget.channel.id,
+      ),
     );
   }
 }
