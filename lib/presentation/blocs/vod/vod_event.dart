@@ -32,3 +32,8 @@ final class VodSearchChanged extends VodEvent {
   @override
   List<Object?> get props => <Object?>[query];
 }
+
+/// Fuerza la recarga del catálogo de películas desde el proveedor.
+final class VodRefreshRequested extends VodEvent {
+  const VodRefreshRequested();
+}

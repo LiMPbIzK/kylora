@@ -19,6 +19,8 @@ import 'presentation/blocs/favorites/favorites_bloc.dart';
 import 'presentation/blocs/history/history_bloc.dart';
 import 'presentation/blocs/live/live_bloc.dart';
 import 'presentation/blocs/series/series_bloc.dart';
+import 'presentation/blocs/settings/settings_bloc.dart';
+import 'presentation/blocs/settings/settings_state.dart';
 import 'presentation/blocs/vod/vod_bloc.dart';
 import 'presentation/screens/auth/login_screen.dart';
 import 'presentation/screens/dashboard/home_shell_screen.dart';
@@ -28,6 +30,7 @@ import 'presentation/screens/live/program_guide_screen.dart';
 import 'presentation/screens/player/playback_overlay.dart';
 import 'presentation/screens/player/playback_scope.dart';
 import 'presentation/screens/series/series_detail_screen.dart';
+import 'presentation/screens/settings/settings_screen.dart';
 import 'presentation/screens/splash/splash_screen.dart';
 import 'presentation/screens/vod/movie_detail_screen.dart';
 
@@ -94,6 +97,10 @@ abstract final class AppRouter {
           path: Routes.history,
           builder: (context, state) => const HistoryScreen(),
         ),
+        GoRoute(
+          path: Routes.settings,
+          builder: (context, state) => const SettingsScreen(),
+        ),
       ],
     );
   }
@@ -109,6 +116,7 @@ abstract final class Routes {
   static const String programGuide = '/program-guide';
   static const String favorites = '/favorites';
   static const String history = '/history';
+  static const String settings = '/settings';
 }
 
 /// Adapta el stream del bloc a un [Listenable] para `go_router`.
@@ -137,6 +145,7 @@ class KyloraApp extends StatelessWidget {
     required this.epgBloc,
     required this.favoritesBloc,
     required this.historyBloc,
+    required this.settingsBloc,
     required this.repository,
     required this.playbackController,
   });
@@ -148,6 +157,7 @@ class KyloraApp extends StatelessWidget {
   final EpgBloc epgBloc;
   final FavoritesBloc favoritesBloc;
   final HistoryBloc historyBloc;
+  final SettingsBloc settingsBloc;
   final IptvRepository repository;
   final PlaybackController playbackController;
 
@@ -162,32 +172,41 @@ class KyloraApp extends StatelessWidget {
         BlocProvider<EpgBloc>(create: (_) => epgBloc),
         BlocProvider<FavoritesBloc>(create: (_) => favoritesBloc),
         BlocProvider<HistoryBloc>(create: (_) => historyBloc),
+        BlocProvider<SettingsBloc>(create: (_) => settingsBloc),
       ],
       child: RepositoryProvider<IptvRepository>.value(
         value: repository,
         child: PlaybackScope(
           controller: playbackController,
-          child: MaterialApp.router(
-            title: 'Kylora',
-            debugShowCheckedModeBanner: false,
-            theme: AppTheme.dark,
-            routerConfig: AppRouter.router(authBloc),
-            localizationsDelegates: const <LocalizationsDelegate<Object>>[
-              AppLocalizations.delegate,
-              GlobalMaterialLocalizations.delegate,
-              GlobalWidgetsLocalizations.delegate,
-              GlobalCupertinoLocalizations.delegate,
-            ],
-            supportedLocales: AppLocalizations.supportedLocales,
-            localeResolutionCallback:
-                (Locale? locale, Iterable<Locale> supportedLocales) {
-                  // Detección automática del sistema; el usuario podrá cambiarlo en M9.
-                  return null;
-                },
-            builder: (context, child) => PlaybackOverlay(
-              controller: playbackController,
-              child: child ?? const SizedBox.shrink(),
-            ),
+          child: BlocBuilder<SettingsBloc, SettingsState>(
+            buildWhen: (previous, current) => previous != current,
+            builder: (context, settings) {
+              final Locale? locale = settings is SettingsLoaded
+                  ? settings.locale
+                  : null;
+              final ThemeData theme = settings is SettingsLoaded
+                  ? AppThemes.byId(settings.themeId)
+                  : AppTheme.dark;
+              return MaterialApp.router(
+                title: 'Kylora',
+                debugShowCheckedModeBanner: false,
+                theme: theme,
+                routerConfig: AppRouter.router(authBloc),
+                localizationsDelegates: const <
+                    LocalizationsDelegate<Object>>[
+                  AppLocalizations.delegate,
+                  GlobalMaterialLocalizations.delegate,
+                  GlobalWidgetsLocalizations.delegate,
+                  GlobalCupertinoLocalizations.delegate,
+                ],
+                supportedLocales: AppLocalizations.supportedLocales,
+                locale: locale,
+                builder: (context, child) => PlaybackOverlay(
+                  controller: playbackController,
+                  child: child ?? const SizedBox.shrink(),
+                ),
+              );
+            },
           ),
         ),
       ),

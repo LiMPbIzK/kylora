@@ -1,0 +1,423 @@
+{
+  "@@locale": "pt",
+  "appTitle": "Kylora",
+  "@appTitle": {
+    "description": "Título do aplicativo mostrado na janela e no launcher."
+  },
+  "loginTitle": "Conectar ao IPTV",
+  "@loginTitle": {
+    "description": "Título da tela de login."
+  },
+  "serverUrl": "URL do servidor",
+  "@serverUrl": {
+    "description": "Rótulo do campo URL do servidor Xtream."
+  },
+  "username": "Usuário",
+  "@username": {
+    "description": "Rótulo do campo de usuário."
+  },
+  "password": "Senha",
+  "@password": {
+    "description": "Rótulo do campo de senha."
+  },
+  "loginButton": "Entrar",
+  "@loginButton": {
+    "description": "Botão para autenticar com o provedor Xtream."
+  },
+  "loginErrorInvalidCredentials": "URL ou credenciais inválidas",
+  "@loginErrorInvalidCredentials": {
+    "description": "Exibido quando o servidor Xtream rejeita a URL ou as credenciais."
+  },
+  "loginErrorNetwork": "Não foi possível conectar ao servidor. Verifique a URL e sua conexão.",
+  "@loginErrorNetwork": {
+    "description": "Exibido quando o servidor está inacessível."
+  },
+  "loginErrorUnknown": "Erro inesperado. Tente novamente.",
+  "@loginErrorUnknown": {
+    "description": "Exibido quando ocorre um erro inesperado ao fazer login."
+  },
+  "loginSourceXtream": "Xtream",
+  "@loginSourceXtream": {
+    "description": "Rótulo do seletor de origem para a API Xtream Codes."
+  },
+  "loginSourceM3u": "M3U/XMLTV",
+  "@loginSourceM3u": {
+    "description": "Rótulo do seletor de origem para listas M3U com EPG XMLTV."
+  },
+  "m3uDisplayName": "Nome (opcional)",
+  "@m3uDisplayName": {
+    "description": "Rótulo do campo de nome descritivo da fonte M3U."
+  },
+  "m3uPlaylistUrl": "URL da lista M3U",
+  "@m3uPlaylistUrl": {
+    "description": "Rótulo do campo URL da lista M3U."
+  },
+  "m3uXmltvUrl": "URL do EPG XMLTV (opcional)",
+  "@m3uXmltvUrl": {
+    "description": "Rótulo do campo opcional URL do guia EPG XMLTV."
+  },
+  "loginErrorM3uParse": "Não foi possível ler a lista M3U. Verifique a URL.",
+  "@loginErrorM3uParse": {
+    "description": "Exibido quando o download ou a análise da lista M3U falha."
+  },
+  "validationRequired": "Este campo é obrigatório",
+  "@validationRequired": {
+    "description": "Mensagem de validação para um campo obrigatório vazio."
+  },
+  "validationInvalidUrl": "Digite uma URL válida (ex. http://servidor:8080)",
+  "@validationInvalidUrl": {
+    "description": "Mensagem de validação para uma URL de servidor malformada."
+  },
+  "signOut": "Sair",
+  "@signOut": {
+    "description": "Botão para encerrar a sessão atual."
+  },
+  "changeAccount": "Trocar de conta",
+  "@changeAccount": {
+    "description": "Botão para encerrar a sessão e voltar ao login para trocar de conta ou fonte."
+  },
+  "fullscreen": "Tela cheia",
+  "@fullscreen": {
+    "description": "Dica do botão de tela cheia no reprodutor."
+  },
+  "exitFullscreen": "Sair da tela cheia",
+  "@exitFullscreen": {
+    "description": "Dica do botão para sair da tela cheia no reprodutor."
+  },
+  "accountStatus": "Status da conta",
+  "@accountStatus": {
+    "description": "Rótulo da seção que mostra o status da conta."
+  },
+  "accountActive": "Ativa",
+  "@accountActive": {
+    "description": "Texto de status quando a conta está ativa."
+  },
+  "accountExpired": "Expirada",
+  "@accountExpired": {
+    "description": "Texto de status quando a conta expirou."
+  },
+  "accountExpiresOn": "Expira em {date}",
+  "@accountExpiresOn": {
+    "description": "Data de expiração da conta. {date} é uma data formatada.",
+    "placeholders": {
+      "date": {
+        "type": "String"
+      }
+    }
+  },
+  "accountConnections": "Conexões: {active}/{max}",
+  "@accountConnections": {
+    "description": "Conexões ativas e máximas. {active} e {max} são números.",
+    "placeholders": {
+      "active": {
+        "type": "String"
+      },
+      "max": {
+        "type": "String"
+      }
+    }
+  },
+  "liveTv": "TV ao Vivo",
+  "@liveTv": {
+    "description": "Seção do painel para canais ao vivo."
+  },
+  "allCategories": "Todas",
+  "@allCategories": {
+    "description": "Rótulo do chip para mostrar todos os canais sem filtrar."
+  },
+  "addedToFavorites": "Adicionado aos favoritos",
+  "@addedToFavorites": {
+    "description": "Mensagem ao adicionar um canal aos favoritos com toque longo."
+  },
+  "removedFromFavorites": "Removido dos favoritos",
+  "@removedFromFavorites": {
+    "description": "Mensagem ao remover um canal dos favoritos com toque longo."
+  },
+  "noChannels": "Nenhum canal nesta categoria",
+  "@noChannels": {
+    "description": "Exibido quando a categoria selecionada não tem canais."
+  },
+  "liveLoadError": "Não foi possível carregar o catálogo ao vivo. Verifique sua conexão e tente novamente.",
+  "@liveLoadError": {
+    "description": "Mensagem de erro quando falha o carregamento do catálogo ao vivo."
+  },
+  "retry": "Tentar novamente",
+  "@retry": {
+    "description": "Botão para tentar novamente uma operação com falha."
+  },
+  "movies": "Filmes",
+  "@movies": {
+    "description": "Seção do painel para filmes VOD."
+  },
+  "series": "Séries",
+  "@series": {
+    "description": "Seção do painel para séries."
+  },
+  "favorites": "Favoritos",
+  "@favorites": {
+    "description": "Seção do painel para conteúdo favorito."
+  },
+  "settings": "Ajustes",
+  "@settings": {
+    "description": "Seção do painel para ajustes do aplicativo."
+  },
+  "settingsSectionAccount": "Conta",
+  "@settingsSectionAccount": {
+    "description": "Cabeçalho da seção de conta nos ajustes."
+  },
+  "settingsSectionCatalog": "Catálogo",
+  "@settingsSectionCatalog": {
+    "description": "Cabeçalho da seção de catálogo nos ajustes."
+  },
+  "settingsSectionAppearance": "Aparência",
+  "@settingsSectionAppearance": {
+    "description": "Cabeçalho da seção de aparência nos ajustes."
+  },
+  "settingsSectionSecurity": "Segurança",
+  "@settingsSectionSecurity": {
+    "description": "Cabeçalho da seção de segurança nos ajustes."
+  },
+  "accountSource": "Origem",
+  "@accountSource": {
+    "description": "Rótulo da origem da sessão (Xtream ou M3U)."
+  },
+  "accountExpiration": "Expiração",
+  "@accountExpiration": {
+    "description": "Rótulo da data de expiração da conta."
+  },
+  "accountConnectionsLabel": "Conexões",
+  "@accountConnectionsLabel": {
+    "description": "Rótulo do número de conexões ativas da conta."
+  },
+  "accountXmltvPresent": "Configurada",
+  "@accountXmltvPresent": {
+    "description": "Indica que a fonte M3U tem um guia EPG XMLTV configurado."
+  },
+  "accountXmltvMissing": "Não configurada",
+  "@accountXmltvMissing": {
+    "description": "Indica que a fonte M3U não tem guia EPG XMLTV."
+  },
+  "refreshCatalog": "Atualizar catálogo",
+  "@refreshCatalog": {
+    "description": "Botão que força a recarga do catálogo do provedor."
+  },
+  "refreshCatalogDescription": "Recarrega canais, filmes e séries do provedor.",
+  "@refreshCatalogDescription": {
+    "description": "Descrição do botão de atualização do catálogo."
+  },
+  "refreshCatalogSuccess": "Catálogo atualizado com sucesso",
+  "@refreshCatalogSuccess": {
+    "description": "Mensagem exibida quando o catálogo é atualizado com sucesso."
+  },
+  "refreshCatalogFailure": "Não foi possível atualizar o catálogo. Verifique sua conexão.",
+  "@refreshCatalogFailure": {
+    "description": "Mensagem exibida quando a atualização do catálogo falha."
+  },
+  "clearCache": "Limpar cache",
+  "@clearCache": {
+    "description": "Botão que limpa o cache local do catálogo."
+  },
+  "clearCacheConfirm": "O cache local (canais salvos) será excluído. Eles serão baixados novamente na próxima vez.",
+  "@clearCacheConfirm": {
+    "description": "Confirmação antes de limpar o cache local."
+  },
+  "clearCacheSuccess": "Cache limpo",
+  "@clearCacheSuccess": {
+    "description": "Mensagem exibida quando o cache é limpo com sucesso."
+  },
+  "localeSystem": "Idioma do sistema",
+  "@localeSystem": {
+    "description": "Opção para seguir o idioma do sistema."
+  },
+  "languageSpanish": "Espanhol",
+  "@languageSpanish": {
+    "description": "Opção de idioma espanhol."
+  },
+  "languageEnglish": "Inglês",
+  "@languageEnglish": {
+    "description": "Opção de idioma inglês."
+  },
+  "languageFrench": "Francês",
+  "@languageFrench": {
+    "description": "Opção de idioma francês."
+  },
+  "languageGerman": "Alemão",
+  "@languageGerman": {
+    "description": "Opção de idioma alemão."
+  },
+  "languageItalian": "Italiano",
+  "@languageItalian": {
+    "description": "Opção de idioma italiano."
+  },
+  "languagePortuguese": "Português",
+  "@languagePortuguese": {
+    "description": "Opção de idioma português."
+  },
+  "themeDark": "Escuro",
+  "@themeDark": {
+    "description": "Opção de tema escuro."
+  },
+  "themeLight": "Claro",
+  "@themeLight": {
+    "description": "Opção de tema claro."
+  },
+  "pinCode": "Código PIN",
+  "@pinCode": {
+    "description": "Opção de bloqueio do aplicativo com PIN."
+  },
+  "comingSoon": "Em breve",
+  "@comingSoon": {
+    "description": "Indicador de uma funcionalidade ainda não disponível."
+  },
+  "epgNoProgram": "Sem informações de programação",
+  "@epgNoProgram": {
+    "description": "Exibido quando não há informações EPG disponíveis para um canal."
+  },
+  "epgLoadError": "Não foi possível carregar o guia de programação",
+  "@epgLoadError": {
+    "description": "Exibido quando o carregamento do EPG de um canal falha."
+  },
+  "epgGuide": "Guia de programação",
+  "@epgGuide": {
+    "description": "Dica do botão que abre o guia EPG completo de um canal."
+  },
+  "nowEpg": "Agora",
+  "@nowEpg": {
+    "description": "Rótulo do programa em exibição na lista de canais."
+  },
+  "nextEpg": "Próximo",
+  "@nextEpg": {
+    "description": "Rótulo do próximo programa na lista de canais."
+  },
+  "close": "Fechar",
+  "@close": {
+    "description": "Botão para fechar um painel ou diálogo."
+  },
+  "searchPlaceholder": "Buscar canais, filmes...",
+  "@searchPlaceholder": {
+    "description": "Texto de espaço reservado do campo de busca."
+  },
+  "audioTrack": "Faixa de áudio",
+  "@audioTrack": {
+    "description": "Opção do reprodutor para selecionar a faixa de áudio."
+  },
+  "subtitles": "Legendas",
+  "@subtitles": {
+    "description": "Opção do reprodutor para selecionar legendas."
+  },
+  "streamError": "Erro de reprodução. Tentando novamente...",
+  "@streamError": {
+    "description": "Exibido quando a reprodução falha e uma nova tentativa é feita."
+  },
+  "nowPlaying": "Reproduzindo",
+  "@nowPlaying": {
+    "description": "Rótulo do reprodutor que indica o canal em reprodução."
+  },
+  "play": "Reproduzir",
+  "@play": {
+    "description": "Botão do reprodutor para retomar a reprodução."
+  },
+  "pause": "Pausar",
+  "@pause": {
+    "description": "Botão do reprodutor para pausar a reprodução."
+  },
+  "vodLoadError": "Não foi possível carregar o catálogo de filmes. Verifique sua conexão e tente novamente.",
+  "@vodLoadError": {
+    "description": "Mensagem de erro quando falha o carregamento dos filmes VOD."
+  },
+  "noMovies": "Nenhum filme nesta categoria",
+  "@noMovies": {
+    "description": "Exibido quando a categoria selecionada não tem filmes."
+  },
+  "searchNoResults": "Nenhum resultado para sua busca",
+  "@searchNoResults": {
+    "description": "Exibido quando uma busca não retorna resultados."
+  },
+  "rating": "Avaliação",
+  "@rating": {
+    "description": "Rótulo para a classificação de conteúdo."
+  },
+  "seriesLoadError": "Não foi possível carregar o catálogo de séries. Verifique sua conexão e tente novamente.",
+  "@seriesLoadError": {
+    "description": "Mensagem de erro quando falha o carregamento das séries."
+  },
+  "noSeries": "Nenhuma série nesta categoria",
+  "@noSeries": {
+    "description": "Exibido quando a categoria selecionada não tem séries."
+  },
+  "seriesDetailLoadError": "Não foi possível carregar os episódios da série. Verifique sua conexão e tente novamente.",
+  "@seriesDetailLoadError": {
+    "description": "Mensagem de erro quando falha o carregamento do detalhe de uma série."
+  },
+  "season": "Temporada",
+  "@season": {
+    "description": "Rótulo para o número da temporada de uma série."
+  },
+  "language": "Idioma",
+  "@language": {
+    "description": "Rótulo do seletor de idioma."
+  },
+  "history": "Histórico",
+  "@history": {
+    "description": "Seção do painel para o histórico de reprodução."
+  },
+  "noFavorites": "Você ainda não tem favoritos",
+  "@noFavorites": {
+    "description": "Exibido quando a lista de favoritos está vazia."
+  },
+  "favoritesLoadError": "Não foi possível carregar os favoritos",
+  "@favoritesLoadError": {
+    "description": "Mensagem de erro quando falha o carregamento dos favoritos."
+  },
+  "noHistory": "Nenhum histórico de reprodução",
+  "clearHistory": "Limpar histórico",
+  "@clearHistory": {
+    "description": "Botão para limpar todo o histórico de reprodução."
+  },
+  "clearHistoryConfirm": "Tem certeza de que deseja apagar todo o histórico? Esta ação não pode ser desfeita.",
+  "@clearHistoryConfirm": {
+    "description": "Mensagem de confirmação antes de limpar o histórico."
+  },
+  "cancel": "Cancelar",
+  "@cancel": {
+    "description": "Botão para cancelar uma ação de confirmação."
+  },
+  "@noHistory": {
+    "description": "Exibido quando o histórico está vazio."
+  },
+  "historyLoadError": "Não foi possível carregar o histórico",
+  "@historyLoadError": {
+    "description": "Mensagem de erro quando falha o carregamento do histórico."
+  },
+  "justNow": "Agora mesmo",
+  "@justNow": {
+    "description": "Texto para conteúdo reproduzido há menos de um minuto."
+  },
+  "minutesAgo": "Há {minutes} min",
+  "@minutesAgo": {
+    "description": "Texto para conteúdo reproduzido há minutos.",
+    "placeholders": {
+      "minutes": {
+        "type": "int"
+      }
+    }
+  },
+  "hoursAgo": "Há {hours} h",
+  "@hoursAgo": {
+    "description": "Texto para conteúdo reproduzido há horas.",
+    "placeholders": {
+      "hours": {
+        "type": "int"
+      }
+    }
+  },
+  "daysAgo": "Há {days} dias",
+  "@daysAgo": {
+    "description": "Texto para conteúdo reproduzido há dias.",
+    "placeholders": {
+      "days": {
+        "type": "int"
+      }
+    }
+  }
+}

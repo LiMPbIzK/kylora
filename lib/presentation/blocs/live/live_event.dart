@@ -32,3 +32,8 @@ final class LiveSearchChanged extends LiveEvent {
   @override
   List<Object?> get props => <Object?>[query];
 }
+
+/// Fuerza la recarga del catálogo desde el proveedor.
+final class LiveRefreshRequested extends LiveEvent {
+  const LiveRefreshRequested();
+}

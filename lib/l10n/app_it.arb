@@ -1,0 +1,423 @@
+{
+  "@@locale": "it",
+  "appTitle": "Kylora",
+  "@appTitle": {
+    "description": "Titolo dell'applicazione mostrato nella finestra e nel launcher."
+  },
+  "loginTitle": "Connettiti all'IPTV",
+  "@loginTitle": {
+    "description": "Titolo della schermata di accesso."
+  },
+  "serverUrl": "URL del server",
+  "@serverUrl": {
+    "description": "Etichetta del campo URL del server Xtream."
+  },
+  "username": "Nome utente",
+  "@username": {
+    "description": "Etichetta del campo nome utente."
+  },
+  "password": "Password",
+  "@password": {
+    "description": "Etichetta del campo password."
+  },
+  "loginButton": "Accedi",
+  "@loginButton": {
+    "description": "Pulsante per autenticarsi con il provider Xtream."
+  },
+  "loginErrorInvalidCredentials": "URL o credenziali non valide",
+  "@loginErrorInvalidCredentials": {
+    "description": "Mostrato quando il server Xtream rifiuta l'URL o le credenziali."
+  },
+  "loginErrorNetwork": "Impossibile connettersi al server. Controlla l'URL e la connessione.",
+  "@loginErrorNetwork": {
+    "description": "Mostrato quando il server non è raggiungibile."
+  },
+  "loginErrorUnknown": "Errore imprevisto. Riprova.",
+  "@loginErrorUnknown": {
+    "description": "Mostrato quando si verifica un errore imprevisto durante l'accesso."
+  },
+  "loginSourceXtream": "Xtream",
+  "@loginSourceXtream": {
+    "description": "Etichetta del selettore di origine per l'API Xtream Codes."
+  },
+  "loginSourceM3u": "M3U/XMLTV",
+  "@loginSourceM3u": {
+    "description": "Etichetta del selettore di origine per le liste M3U con EPG XMLTV."
+  },
+  "m3uDisplayName": "Nome (opzionale)",
+  "@m3uDisplayName": {
+    "description": "Etichetta del campo nome descrittivo della sorgente M3U."
+  },
+  "m3uPlaylistUrl": "URL della lista M3U",
+  "@m3uPlaylistUrl": {
+    "description": "Etichetta del campo URL della lista M3U."
+  },
+  "m3uXmltvUrl": "URL EPG XMLTV (opzionale)",
+  "@m3uXmltvUrl": {
+    "description": "Etichetta del campo opzionale URL della guida EPG XMLTV."
+  },
+  "loginErrorM3uParse": "Impossibile leggere la lista M3U. Controlla l'URL.",
+  "@loginErrorM3uParse": {
+    "description": "Mostrato quando il download o l'analisi della lista M3U fallisce."
+  },
+  "validationRequired": "Questo campo è obbligatorio",
+  "@validationRequired": {
+    "description": "Messaggio di validazione per un campo obbligatorio vuoto."
+  },
+  "validationInvalidUrl": "Inserisci un URL valido (es. http://server:8080)",
+  "@validationInvalidUrl": {
+    "description": "Messaggio di validazione per un URL del server malformato."
+  },
+  "signOut": "Disconnetti",
+  "@signOut": {
+    "description": "Pulsante per chiudere la sessione corrente."
+  },
+  "changeAccount": "Cambia account",
+  "@changeAccount": {
+    "description": "Pulsante per chiudere la sessione e tornare all'accesso per cambiare account o sorgente."
+  },
+  "fullscreen": "Schermo intero",
+  "@fullscreen": {
+    "description": "Suggerimento del pulsante schermo intero nel player."
+  },
+  "exitFullscreen": "Esci da schermo intero",
+  "@exitFullscreen": {
+    "description": "Suggerimento del pulsante per uscire da schermo intero nel player."
+  },
+  "accountStatus": "Stato dell'account",
+  "@accountStatus": {
+    "description": "Etichetta della sezione che mostra lo stato dell'account."
+  },
+  "accountActive": "Attivo",
+  "@accountActive": {
+    "description": "Testo di stato quando l'account è attivo."
+  },
+  "accountExpired": "Scaduto",
+  "@accountExpired": {
+    "description": "Testo di stato quando l'account è scaduto."
+  },
+  "accountExpiresOn": "Scade il {date}",
+  "@accountExpiresOn": {
+    "description": "Data di scadenza dell'account. {date} è una data formattata.",
+    "placeholders": {
+      "date": {
+        "type": "String"
+      }
+    }
+  },
+  "accountConnections": "Connessioni: {active}/{max}",
+  "@accountConnections": {
+    "description": "Connessioni attive e massime. {active} e {max} sono numeri.",
+    "placeholders": {
+      "active": {
+        "type": "String"
+      },
+      "max": {
+        "type": "String"
+      }
+    }
+  },
+  "liveTv": "TV in Diretta",
+  "@liveTv": {
+    "description": "Sezione del pannello per i canali in diretta."
+  },
+  "allCategories": "Tutte",
+  "@allCategories": {
+    "description": "Etichetta del chip per mostrare tutti i canali senza filtro."
+  },
+  "addedToFavorites": "Aggiunto ai preferiti",
+  "@addedToFavorites": {
+    "description": "Messaggio quando un canale viene aggiunto ai preferiti con pressione prolungata."
+  },
+  "removedFromFavorites": "Rimosso dai preferiti",
+  "@removedFromFavorites": {
+    "description": "Messaggio quando un canale viene rimosso dai preferiti con pressione prolungata."
+  },
+  "noChannels": "Nessun canale in questa categoria",
+  "@noChannels": {
+    "description": "Mostrato quando la categoria selezionata non ha canali."
+  },
+  "liveLoadError": "Impossibile caricare il catalogo in diretta. Controlla la connessione e riprova.",
+  "@liveLoadError": {
+    "description": "Messaggio di errore quando fallisce il caricamento del catalogo in diretta."
+  },
+  "retry": "Riprova",
+  "@retry": {
+    "description": "Pulsante per riprovare un'operazione fallita."
+  },
+  "movies": "Film",
+  "@movies": {
+    "description": "Sezione del pannello per i film VOD."
+  },
+  "series": "Serie",
+  "@series": {
+    "description": "Sezione del pannello per le serie."
+  },
+  "favorites": "Preferiti",
+  "@favorites": {
+    "description": "Sezione del pannello per i contenuti preferiti."
+  },
+  "settings": "Impostazioni",
+  "@settings": {
+    "description": "Sezione del pannello per le impostazioni dell'applicazione."
+  },
+  "settingsSectionAccount": "Account",
+  "@settingsSectionAccount": {
+    "description": "Intestazione della sezione account nelle impostazioni."
+  },
+  "settingsSectionCatalog": "Catalogo",
+  "@settingsSectionCatalog": {
+    "description": "Intestazione della sezione catalogo nelle impostazioni."
+  },
+  "settingsSectionAppearance": "Aspetto",
+  "@settingsSectionAppearance": {
+    "description": "Intestazione della sezione aspetto nelle impostazioni."
+  },
+  "settingsSectionSecurity": "Sicurezza",
+  "@settingsSectionSecurity": {
+    "description": "Intestazione della sezione sicurezza nelle impostazioni."
+  },
+  "accountSource": "Origine",
+  "@accountSource": {
+    "description": "Etichetta dell'origine della sessione (Xtream o M3U)."
+  },
+  "accountExpiration": "Scadenza",
+  "@accountExpiration": {
+    "description": "Etichetta della data di scadenza dell'account."
+  },
+  "accountConnectionsLabel": "Connessioni",
+  "@accountConnectionsLabel": {
+    "description": "Etichetta del numero di connessioni attive dell'account."
+  },
+  "accountXmltvPresent": "Configurata",
+  "@accountXmltvPresent": {
+    "description": "Indica che la sorgente M3U ha una guida EPG XMLTV configurata."
+  },
+  "accountXmltvMissing": "Non configurata",
+  "@accountXmltvMissing": {
+    "description": "Indica che la sorgente M3U non ha una guida EPG XMLTV."
+  },
+  "refreshCatalog": "Aggiorna catalogo",
+  "@refreshCatalog": {
+    "description": "Pulsante che forza il ricaricamento del catalogo dal provider."
+  },
+  "refreshCatalogDescription": "Ricarica canali, film e serie dal provider.",
+  "@refreshCatalogDescription": {
+    "description": "Descrizione del pulsante di aggiornamento del catalogo."
+  },
+  "refreshCatalogSuccess": "Catalogo aggiornato correttamente",
+  "@refreshCatalogSuccess": {
+    "description": "Messaggio mostrato quando il catalogo viene aggiornato con successo."
+  },
+  "refreshCatalogFailure": "Impossibile aggiornare il catalogo. Controlla la connessione.",
+  "@refreshCatalogFailure": {
+    "description": "Messaggio mostrato quando l'aggiornamento del catalogo fallisce."
+  },
+  "clearCache": "Svuota cache",
+  "@clearCache": {
+    "description": "Pulsante che svuota la cache locale del catalogo."
+  },
+  "clearCacheConfirm": "La cache locale (canali salvati) verrà eliminata. Verranno scaricati di nuovo la prossima volta.",
+  "@clearCacheConfirm": {
+    "description": "Conferma prima di svuotare la cache locale."
+  },
+  "clearCacheSuccess": "Cache svuotata",
+  "@clearCacheSuccess": {
+    "description": "Messaggio mostrato quando la cache viene svuotata correttamente."
+  },
+  "localeSystem": "Lingua di sistema",
+  "@localeSystem": {
+    "description": "Opzione per seguire la lingua di sistema."
+  },
+  "languageSpanish": "Spagnolo",
+  "@languageSpanish": {
+    "description": "Opzione lingua spagnola."
+  },
+  "languageEnglish": "Inglese",
+  "@languageEnglish": {
+    "description": "Opzione lingua inglese."
+  },
+  "languageFrench": "Francese",
+  "@languageFrench": {
+    "description": "Opzione lingua francese."
+  },
+  "languageGerman": "Tedesco",
+  "@languageGerman": {
+    "description": "Opzione lingua tedesca."
+  },
+  "languageItalian": "Italiano",
+  "@languageItalian": {
+    "description": "Opzione lingua italiana."
+  },
+  "languagePortuguese": "Portoghese",
+  "@languagePortuguese": {
+    "description": "Opzione lingua portoghese."
+  },
+  "themeDark": "Scuro",
+  "@themeDark": {
+    "description": "Opzione tema scuro."
+  },
+  "themeLight": "Chiaro",
+  "@themeLight": {
+    "description": "Opzione tema chiaro."
+  },
+  "pinCode": "Codice PIN",
+  "@pinCode": {
+    "description": "Opzione di blocco dell'applicazione con PIN."
+  },
+  "comingSoon": "Presto disponibile",
+  "@comingSoon": {
+    "description": "Indicatore di una funzionalità non ancora disponibile."
+  },
+  "epgNoProgram": "Nessuna informazione sulla programmazione",
+  "@epgNoProgram": {
+    "description": "Mostrato quando non ci sono informazioni EPG per un canale."
+  },
+  "epgLoadError": "Impossibile caricare la guida alla programmazione",
+  "@epgLoadError": {
+    "description": "Mostrato quando il caricamento dell'EPG di un canale fallisce."
+  },
+  "epgGuide": "Guida alla programmazione",
+  "@epgGuide": {
+    "description": "Suggerimento del pulsante che apre la guida EPG completa di un canale."
+  },
+  "nowEpg": "Ora",
+  "@nowEpg": {
+    "description": "Etichetta del programma in onda nell'elenco dei canali."
+  },
+  "nextEpg": "Prossimo",
+  "@nextEpg": {
+    "description": "Etichetta del programma successivo nell'elenco dei canali."
+  },
+  "close": "Chiudi",
+  "@close": {
+    "description": "Pulsante per chiudere un pannello o una finestra di dialogo."
+  },
+  "searchPlaceholder": "Cerca canali, film...",
+  "@searchPlaceholder": {
+    "description": "Testo segnaposto del campo di ricerca."
+  },
+  "audioTrack": "Traccia audio",
+  "@audioTrack": {
+    "description": "Opzione del player per selezionare la traccia audio."
+  },
+  "subtitles": "Sottotitoli",
+  "@subtitles": {
+    "description": "Opzione del player per selezionare i sottotitoli."
+  },
+  "streamError": "Errore di riproduzione. Nuovo tentativo...",
+  "@streamError": {
+    "description": "Mostrato quando la riproduzione fallisce e viene tentato un nuovo tentativo."
+  },
+  "nowPlaying": "In riproduzione",
+  "@nowPlaying": {
+    "description": "Etichetta del player che indica il canale in riproduzione."
+  },
+  "play": "Riproduci",
+  "@play": {
+    "description": "Pulsante del player per riprendere la riproduzione."
+  },
+  "pause": "Pausa",
+  "@pause": {
+    "description": "Pulsante del player per mettere in pausa la riproduzione."
+  },
+  "vodLoadError": "Impossibile caricare il catalogo dei film. Controlla la connessione e riprova.",
+  "@vodLoadError": {
+    "description": "Messaggio di errore quando fallisce il caricamento dei film VOD."
+  },
+  "noMovies": "Nessun film in questa categoria",
+  "@noMovies": {
+    "description": "Mostrato quando la categoria selezionata non ha film."
+  },
+  "searchNoResults": "Nessun risultato per la tua ricerca",
+  "@searchNoResults": {
+    "description": "Mostrato quando una ricerca non restituisce risultati."
+  },
+  "rating": "Valutazione",
+  "@rating": {
+    "description": "Etichetta per la valutazione dei contenuti."
+  },
+  "seriesLoadError": "Impossibile caricare il catalogo delle serie. Controlla la connessione e riprova.",
+  "@seriesLoadError": {
+    "description": "Messaggio di errore quando fallisce il caricamento delle serie."
+  },
+  "noSeries": "Nessuna serie in questa categoria",
+  "@noSeries": {
+    "description": "Mostrato quando la categoria selezionata non ha serie."
+  },
+  "seriesDetailLoadError": "Impossibile caricare gli episodi della serie. Controlla la connessione e riprova.",
+  "@seriesDetailLoadError": {
+    "description": "Messaggio di errore quando fallisce il caricamento del dettaglio di una serie."
+  },
+  "season": "Stagione",
+  "@season": {
+    "description": "Etichetta per il numero di stagione di una serie."
+  },
+  "language": "Lingua",
+  "@language": {
+    "description": "Etichetta del selettore lingua."
+  },
+  "history": "Cronologia",
+  "@history": {
+    "description": "Sezione del pannello per la cronologia di riproduzione."
+  },
+  "noFavorites": "Non hai ancora preferiti",
+  "@noFavorites": {
+    "description": "Mostrato quando l'elenco dei preferiti è vuoto."
+  },
+  "favoritesLoadError": "Impossibile caricare i preferiti",
+  "@favoritesLoadError": {
+    "description": "Messaggio di errore quando fallisce il caricamento dei preferiti."
+  },
+  "noHistory": "Nessuna cronologia di riproduzione",
+  "clearHistory": "Svuota cronologia",
+  "@clearHistory": {
+    "description": "Pulsante per svuotare completamente la cronologia di riproduzione."
+  },
+  "clearHistoryConfirm": "Vuoi davvero eliminare tutta la cronologia? Questa azione non può essere annullata.",
+  "@clearHistoryConfirm": {
+    "description": "Messaggio di conferma prima di svuotare la cronologia."
+  },
+  "cancel": "Annulla",
+  "@cancel": {
+    "description": "Pulsante per annullare un'azione di conferma."
+  },
+  "@noHistory": {
+    "description": "Mostrato quando la cronologia è vuota."
+  },
+  "historyLoadError": "Impossibile caricare la cronologia",
+  "@historyLoadError": {
+    "description": "Messaggio di errore quando fallisce il caricamento della cronologia."
+  },
+  "justNow": "Adesso",
+  "@justNow": {
+    "description": "Testo per contenuti riprodotti meno di un minuto fa."
+  },
+  "minutesAgo": "{minutes} min fa",
+  "@minutesAgo": {
+    "description": "Testo per contenuti riprodotti minuti fa.",
+    "placeholders": {
+      "minutes": {
+        "type": "int"
+      }
+    }
+  },
+  "hoursAgo": "{hours} h fa",
+  "@hoursAgo": {
+    "description": "Testo per contenuti riprodotti ore fa.",
+    "placeholders": {
+      "hours": {
+        "type": "int"
+      }
+    }
+  },
+  "daysAgo": "{days} giorni fa",
+  "@daysAgo": {
+    "description": "Testo per contenuti riprodotti giorni fa.",
+    "placeholders": {
+      "days": {
+        "type": "int"
+      }
+    }
+  }
+}

@@ -3,6 +3,7 @@ import 'package:flutter_test/flutter_test.dart';
 
 import 'package:kylora/app.dart';
 import 'package:kylora/core/media/playback_controller.dart';
+import 'package:kylora/data/datasources/local/settings_store.dart';
 import 'package:kylora/data/datasources/remote/xtream_api_client.dart';
 import 'package:kylora/domain/entities/category.dart';
 import 'package:kylora/domain/entities/channel.dart';
@@ -26,11 +27,14 @@ import 'package:kylora/presentation/blocs/favorites/favorites_bloc.dart';
 import 'package:kylora/presentation/blocs/history/history_bloc.dart';
 import 'package:kylora/presentation/blocs/live/live_bloc.dart';
 import 'package:kylora/presentation/blocs/series/series_bloc.dart';
+import 'package:kylora/presentation/blocs/settings/settings_bloc.dart';
+import 'package:kylora/presentation/blocs/settings/settings_event.dart';
 import 'package:kylora/presentation/blocs/vod/vod_bloc.dart';
 import 'package:kylora/presentation/screens/auth/login_screen.dart';
 import 'package:kylora/presentation/screens/dashboard/home_shell_screen.dart';
 import 'package:kylora/presentation/screens/live/live_screen.dart';
 import 'package:kylora/presentation/screens/series/series_screen.dart';
+import 'package:kylora/presentation/screens/settings/settings_screen.dart';
 import 'package:kylora/presentation/screens/vod/vod_screen.dart';
 
 /// Repositorio falso con cuenta de prueba.
@@ -190,6 +194,12 @@ class _FakeRepository implements IptvRepository {
 
   @override
   Future<void> clearHistory() async {}
+
+  @override
+  Future<void> refreshCatalog() async {}
+
+  @override
+  Future<void> clearCatalogCache() async {}
 }
 
 void main() {
@@ -201,6 +211,8 @@ void main() {
     final _FakeRepository repository = _FakeRepository()
       ..storedAccount = stored;
     final AuthBloc bloc = AuthBloc(repository)..add(const AuthStarted());
+    final SettingsBloc settingsBloc = SettingsBloc(_FakeSettingsStore())
+      ..add(const SettingsStarted());
     await tester.pumpWidget(
       KyloraApp(
         authBloc: bloc,
@@ -210,6 +222,7 @@ void main() {
         epgBloc: EpgBloc(repository),
         favoritesBloc: FavoritesBloc(repository),
         historyBloc: HistoryBloc(repository),
+        settingsBloc: settingsBloc,
         repository: repository,
         playbackController: PlaybackController(),
       ),
@@ -298,6 +311,10 @@ void main() {
       ),
     );
     expect(find.byType(HomeShellScreen), findsOneWidget);
+
+    await tester.tap(find.byIcon(Icons.settings_outlined));
+    await tester.pumpAndSettle();
+    expect(find.byType(SettingsScreen), findsOneWidget);
 
     await tester.tap(find.byIcon(Icons.logout));
     await tester.pumpAndSettle();
@@ -468,6 +485,12 @@ class _FailingRepository implements IptvRepository {
 
   @override
   Future<void> clearHistory() async => throw UnimplementedError();
+
+  @override
+  Future<void> refreshCatalog() async => throw UnimplementedError();
+
+  @override
+  Future<void> clearCatalogCache() async => throw UnimplementedError();
 }
 
 void _testAuthBloc() {
@@ -516,4 +539,21 @@ void _testAuthBloc() {
     );
     await bloc.close();
   });
+}
+
+/// Almacén de preferencias falso con una tabla en memoria.
+class _FakeSettingsStore implements AppSettingsStorage {
+  final Map<String, String> _values = <String, String>{};
+
+  @override
+  Future<String?> read(String key) async => _values[key];
+
+  @override
+  Future<void> write(String key, String? value) async {
+    if (value == null) {
+      _values.remove(key);
+    } else {
+      _values[key] = value;
+    }
+  }
 }

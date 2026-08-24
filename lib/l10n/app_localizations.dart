@@ -5,8 +5,12 @@ import 'package:flutter/widgets.dart';
 import 'package:flutter_localizations/flutter_localizations.dart';
 import 'package:intl/intl.dart' as intl;
 
+import 'app_localizations_de.dart';
 import 'app_localizations_en.dart';
 import 'app_localizations_es.dart';
+import 'app_localizations_fr.dart';
+import 'app_localizations_it.dart';
+import 'app_localizations_pt.dart';
 
 // ignore_for_file: type=lint
 
@@ -94,8 +98,12 @@ abstract class AppLocalizations {
 
   /// A list of this localizations delegate's supported locales.
   static const List<Locale> supportedLocales = <Locale>[
+    Locale('de'),
     Locale('en'),
     Locale('es'),
+    Locale('fr'),
+    Locale('it'),
+    Locale('pt'),
   ];
 
   /// Title of the application shown in the window and launcher.
@@ -320,6 +328,168 @@ abstract class AppLocalizations {
   /// **'Settings'**
   String get settings;
 
+  /// Header of the account section in settings.
+  ///
+  /// In en, this message translates to:
+  /// **'Account'**
+  String get settingsSectionAccount;
+
+  /// Header of the catalog section in settings.
+  ///
+  /// In en, this message translates to:
+  /// **'Catalog'**
+  String get settingsSectionCatalog;
+
+  /// Header of the appearance section in settings.
+  ///
+  /// In en, this message translates to:
+  /// **'Appearance'**
+  String get settingsSectionAppearance;
+
+  /// Header of the security section in settings.
+  ///
+  /// In en, this message translates to:
+  /// **'Security'**
+  String get settingsSectionSecurity;
+
+  /// Label of the session source (Xtream or M3U).
+  ///
+  /// In en, this message translates to:
+  /// **'Source'**
+  String get accountSource;
+
+  /// Label of the account expiration date.
+  ///
+  /// In en, this message translates to:
+  /// **'Expiration'**
+  String get accountExpiration;
+
+  /// Label of the account active connections count.
+  ///
+  /// In en, this message translates to:
+  /// **'Connections'**
+  String get accountConnectionsLabel;
+
+  /// Indicates the M3U source has an XMLTV EPG configured.
+  ///
+  /// In en, this message translates to:
+  /// **'Configured'**
+  String get accountXmltvPresent;
+
+  /// Indicates the M3U source has no XMLTV EPG.
+  ///
+  /// In en, this message translates to:
+  /// **'Not configured'**
+  String get accountXmltvMissing;
+
+  /// Button that forces the catalog reload from the provider.
+  ///
+  /// In en, this message translates to:
+  /// **'Refresh catalog'**
+  String get refreshCatalog;
+
+  /// Description of the catalog refresh button.
+  ///
+  /// In en, this message translates to:
+  /// **'Reloads channels, movies and series from the provider.'**
+  String get refreshCatalogDescription;
+
+  /// Message shown when the catalog is updated successfully.
+  ///
+  /// In en, this message translates to:
+  /// **'Catalog updated successfully'**
+  String get refreshCatalogSuccess;
+
+  /// Message shown when the catalog update fails.
+  ///
+  /// In en, this message translates to:
+  /// **'Could not update the catalog. Check your connection.'**
+  String get refreshCatalogFailure;
+
+  /// Button that clears the local catalog cache.
+  ///
+  /// In en, this message translates to:
+  /// **'Clear cache'**
+  String get clearCache;
+
+  /// Confirmation before clearing the local cache.
+  ///
+  /// In en, this message translates to:
+  /// **'The local cache (saved channels) will be deleted. They will be downloaded again next time.'**
+  String get clearCacheConfirm;
+
+  /// Message shown when the cache is cleared successfully.
+  ///
+  /// In en, this message translates to:
+  /// **'Cache cleared'**
+  String get clearCacheSuccess;
+
+  /// Option to follow the system language.
+  ///
+  /// In en, this message translates to:
+  /// **'System language'**
+  String get localeSystem;
+
+  /// Spanish language option.
+  ///
+  /// In en, this message translates to:
+  /// **'Spanish'**
+  String get languageSpanish;
+
+  /// English language option.
+  ///
+  /// In en, this message translates to:
+  /// **'English'**
+  String get languageEnglish;
+
+  /// French language option.
+  ///
+  /// In en, this message translates to:
+  /// **'French'**
+  String get languageFrench;
+
+  /// German language option.
+  ///
+  /// In en, this message translates to:
+  /// **'German'**
+  String get languageGerman;
+
+  /// Italian language option.
+  ///
+  /// In en, this message translates to:
+  /// **'Italian'**
+  String get languageItalian;
+
+  /// Portuguese language option.
+  ///
+  /// In en, this message translates to:
+  /// **'Portuguese'**
+  String get languagePortuguese;
+
+  /// Dark theme option.
+  ///
+  /// In en, this message translates to:
+  /// **'Dark'**
+  String get themeDark;
+
+  /// Light theme option.
+  ///
+  /// In en, this message translates to:
+  /// **'Light'**
+  String get themeLight;
+
+  /// App lock with PIN option.
+  ///
+  /// In en, this message translates to:
+  /// **'PIN code'**
+  String get pinCode;
+
+  /// Indicator of a feature not yet available.
+  ///
+  /// In en, this message translates to:
+  /// **'Coming soon'**
+  String get comingSoon;
+
   /// Shown when no EPG information is available for a channel.
   ///
   /// In en, this message translates to:
@@ -535,8 +705,14 @@ class _AppLocalizationsDelegate
   }
 
   @override
-  bool isSupported(Locale locale) =>
-      <String>['en', 'es'].contains(locale.languageCode);
+  bool isSupported(Locale locale) => <String>[
+    'de',
+    'en',
+    'es',
+    'fr',
+    'it',
+    'pt',
+  ].contains(locale.languageCode);
 
   @override
   bool shouldReload(_AppLocalizationsDelegate old) => false;
@@ -545,10 +721,18 @@ class _AppLocalizationsDelegate
 AppLocalizations lookupAppLocalizations(Locale locale) {
   // Lookup logic when only language code is specified.
   switch (locale.languageCode) {
+    case 'de':
+      return AppLocalizationsDe();
     case 'en':
       return AppLocalizationsEn();
     case 'es':
       return AppLocalizationsEs();
+    case 'fr':
+      return AppLocalizationsFr();
+    case 'it':
+      return AppLocalizationsIt();
+    case 'pt':
+      return AppLocalizationsPt();
   }
 
   throw FlutterError(

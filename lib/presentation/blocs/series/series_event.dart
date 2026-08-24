@@ -49,3 +49,8 @@ final class SeriesDetailRequested extends SeriesEvent {
 final class SeriesDetailClosed extends SeriesEvent {
   const SeriesDetailClosed();
 }
+
+/// Fuerza la recarga del catálogo de series desde el proveedor.
+final class SeriesRefreshRequested extends SeriesEvent {
+  const SeriesRefreshRequested();
+}

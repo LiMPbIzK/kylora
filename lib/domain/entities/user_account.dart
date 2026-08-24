@@ -13,6 +13,7 @@ class UserAccount extends Equatable {
     this.expiresAt,
     this.maxConnections,
     this.activeConnections,
+    this.xmltvUrl,
   });
 
   final String serverUrl;
@@ -25,6 +26,9 @@ class UserAccount extends Equatable {
   final DateTime? expiresAt;
   final int? maxConnections;
   final int? activeConnections;
+
+  /// URL de la guía EPG XMLTV (solo fuentes M3U con XMLTV configurado).
+  final String? xmltvUrl;
 
   bool get isActive => status.toLowerCase() == 'active';
 
@@ -41,5 +45,6 @@ class UserAccount extends Equatable {
     expiresAt,
     maxConnections,
     activeConnections,
+    xmltvUrl,
   ];
 }

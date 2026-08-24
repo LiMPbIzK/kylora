@@ -161,6 +161,114 @@
   "@settings": {
     "description": "Panel section for application settings."
   },
+  "settingsSectionAccount": "Account",
+  "@settingsSectionAccount": {
+    "description": "Header of the account section in settings."
+  },
+  "settingsSectionCatalog": "Catalog",
+  "@settingsSectionCatalog": {
+    "description": "Header of the catalog section in settings."
+  },
+  "settingsSectionAppearance": "Appearance",
+  "@settingsSectionAppearance": {
+    "description": "Header of the appearance section in settings."
+  },
+  "settingsSectionSecurity": "Security",
+  "@settingsSectionSecurity": {
+    "description": "Header of the security section in settings."
+  },
+  "accountSource": "Source",
+  "@accountSource": {
+    "description": "Label of the session source (Xtream or M3U)."
+  },
+  "accountExpiration": "Expiration",
+  "@accountExpiration": {
+    "description": "Label of the account expiration date."
+  },
+  "accountConnectionsLabel": "Connections",
+  "@accountConnectionsLabel": {
+    "description": "Label of the account active connections count."
+  },
+  "accountXmltvPresent": "Configured",
+  "@accountXmltvPresent": {
+    "description": "Indicates the M3U source has an XMLTV EPG configured."
+  },
+  "accountXmltvMissing": "Not configured",
+  "@accountXmltvMissing": {
+    "description": "Indicates the M3U source has no XMLTV EPG."
+  },
+  "refreshCatalog": "Refresh catalog",
+  "@refreshCatalog": {
+    "description": "Button that forces the catalog reload from the provider."
+  },
+  "refreshCatalogDescription": "Reloads channels, movies and series from the provider.",
+  "@refreshCatalogDescription": {
+    "description": "Description of the catalog refresh button."
+  },
+  "refreshCatalogSuccess": "Catalog updated successfully",
+  "@refreshCatalogSuccess": {
+    "description": "Message shown when the catalog is updated successfully."
+  },
+  "refreshCatalogFailure": "Could not update the catalog. Check your connection.",
+  "@refreshCatalogFailure": {
+    "description": "Message shown when the catalog update fails."
+  },
+  "clearCache": "Clear cache",
+  "@clearCache": {
+    "description": "Button that clears the local catalog cache."
+  },
+  "clearCacheConfirm": "The local cache (saved channels) will be deleted. They will be downloaded again next time.",
+  "@clearCacheConfirm": {
+    "description": "Confirmation before clearing the local cache."
+  },
+  "clearCacheSuccess": "Cache cleared",
+  "@clearCacheSuccess": {
+    "description": "Message shown when the cache is cleared successfully."
+  },
+  "localeSystem": "System language",
+  "@localeSystem": {
+    "description": "Option to follow the system language."
+  },
+  "languageSpanish": "Spanish",
+  "@languageSpanish": {
+    "description": "Spanish language option."
+  },
+  "languageEnglish": "English",
+  "@languageEnglish": {
+    "description": "English language option."
+  },
+  "languageFrench": "French",
+  "@languageFrench": {
+    "description": "French language option."
+  },
+  "languageGerman": "German",
+  "@languageGerman": {
+    "description": "German language option."
+  },
+  "languageItalian": "Italian",
+  "@languageItalian": {
+    "description": "Italian language option."
+  },
+  "languagePortuguese": "Portuguese",
+  "@languagePortuguese": {
+    "description": "Portuguese language option."
+  },
+  "themeDark": "Dark",
+  "@themeDark": {
+    "description": "Dark theme option."
+  },
+  "themeLight": "Light",
+  "@themeLight": {
+    "description": "Light theme option."
+  },
+  "pinCode": "PIN code",
+  "@pinCode": {
+    "description": "App lock with PIN option."
+  },
+  "comingSoon": "Coming soon",
+  "@comingSoon": {
+    "description": "Indicator of a feature not yet available."
+  },
   "epgNoProgram": "No program information",
   "@epgNoProgram": {
     "description": "Shown when no EPG information is available for a channel."

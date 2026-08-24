@@ -141,4 +141,10 @@ class _FakeRepo implements IptvRepository {
 
   @override
   Future<void> clearHistory() async {}
+
+  @override
+  Future<void> refreshCatalog() async {}
+
+  @override
+  Future<void> clearCatalogCache() async {}
 }

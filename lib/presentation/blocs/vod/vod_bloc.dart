@@ -13,6 +13,7 @@ class VodBloc extends Bloc<VodEvent, VodState> {
     on<VodStarted>(_onStarted);
     on<VodCategorySelected>(_onCategorySelected);
     on<VodSearchChanged>(_onSearchChanged);
+    on<VodRefreshRequested>(_onRefreshRequested);
   }
 
   final IptvRepository _repository;
@@ -20,6 +21,27 @@ class VodBloc extends Bloc<VodEvent, VodState> {
   List<Category> _categories = <Category>[];
   List<Movie> _allMovies = <Movie>[];
   String _query = '';
+
+  Future<void> _onRefreshRequested(
+    VodRefreshRequested event,
+    Emitter<VodState> emit,
+  ) async {
+    emit(const VodLoading());
+    try {
+      final List<Category> categories = await _repository.fetchVodCategories();
+      final List<Movie> movies = await _repository.fetchVodStreams();
+      _categories = categories;
+      _allMovies = movies;
+      _query = '';
+      emit(_buildLoaded(selectedCategoryId: null));
+    } catch (e, stack) {
+      if (kDebugMode) {
+        debugPrint('VodBloc refresh error: ${e.runtimeType}: $e');
+        debugPrint('$stack');
+      }
+      emit(const VodFailure('vodLoadError'));
+    }
+  }
 
   Future<void> _onStarted(VodStarted event, Emitter<VodState> emit) async {
     emit(const VodLoading());

@@ -129,6 +129,90 @@ class AppLocalizationsEs extends AppLocalizations {
   String get settings => 'Ajustes';
 
   @override
+  String get settingsSectionAccount => 'Cuenta';
+
+  @override
+  String get settingsSectionCatalog => 'Catálogo';
+
+  @override
+  String get settingsSectionAppearance => 'Apariencia';
+
+  @override
+  String get settingsSectionSecurity => 'Seguridad';
+
+  @override
+  String get accountSource => 'Fuente';
+
+  @override
+  String get accountExpiration => 'Caducidad';
+
+  @override
+  String get accountConnectionsLabel => 'Conexiones';
+
+  @override
+  String get accountXmltvPresent => 'Configurada';
+
+  @override
+  String get accountXmltvMissing => 'No configurada';
+
+  @override
+  String get refreshCatalog => 'Actualizar catálogo';
+
+  @override
+  String get refreshCatalogDescription =>
+      'Recarga canales, películas y series desde el proveedor.';
+
+  @override
+  String get refreshCatalogSuccess => 'Catálogo actualizado correctamente';
+
+  @override
+  String get refreshCatalogFailure =>
+      'No se pudo actualizar el catálogo. Revisa tu conexión.';
+
+  @override
+  String get clearCache => 'Borrar caché';
+
+  @override
+  String get clearCacheConfirm =>
+      'Se eliminará la caché local (canales guardados). Volverán a descargarse la próxima vez.';
+
+  @override
+  String get clearCacheSuccess => 'Caché borrada';
+
+  @override
+  String get localeSystem => 'Idioma del sistema';
+
+  @override
+  String get languageSpanish => 'Español';
+
+  @override
+  String get languageEnglish => 'Inglés';
+
+  @override
+  String get languageFrench => 'Francés';
+
+  @override
+  String get languageGerman => 'Alemán';
+
+  @override
+  String get languageItalian => 'Italiano';
+
+  @override
+  String get languagePortuguese => 'Portugués';
+
+  @override
+  String get themeDark => 'Oscuro';
+
+  @override
+  String get themeLight => 'Claro';
+
+  @override
+  String get pinCode => 'Código PIN';
+
+  @override
+  String get comingSoon => 'Próximamente';
+
+  @override
   String get epgNoProgram => 'Sin información de programación';
 
   @override

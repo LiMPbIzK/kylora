@@ -13,6 +13,7 @@ class LiveBloc extends Bloc<LiveEvent, LiveState> {
     on<LiveStarted>(_onStarted);
     on<LiveCategorySelected>(_onCategorySelected);
     on<LiveSearchChanged>(_onSearchChanged);
+    on<LiveRefreshRequested>(_onRefreshRequested);
   }
 
   final IptvRepository _repository;
@@ -20,6 +21,27 @@ class LiveBloc extends Bloc<LiveEvent, LiveState> {
   List<Category> _categories = <Category>[];
   List<Channel> _allChannels = <Channel>[];
   String _query = '';
+
+  Future<void> _onRefreshRequested(
+    LiveRefreshRequested event,
+    Emitter<LiveState> emit,
+  ) async {
+    emit(const LiveLoading());
+    try {
+      final List<Category> categories = await _repository.fetchLiveCategories();
+      final List<Channel> channels = await _repository.fetchLiveChannels();
+      _categories = categories;
+      _allChannels = channels;
+      _query = '';
+      emit(_buildLoaded(selectedCategoryId: null));
+    } catch (e, stack) {
+      if (kDebugMode) {
+        debugPrint('LiveBloc refresh error: ${e.runtimeType}: $e');
+        debugPrint('$stack');
+      }
+      emit(const LiveFailure('liveLoadError'));
+    }
+  }
 
   Future<void> _onStarted(LiveStarted event, Emitter<LiveState> emit) async {
     emit(const LiveLoading());

@@ -53,7 +53,22 @@ class History extends Table {
   IntColumn get duration => integer().nullable()();
 }
 
-@DriftDatabase(tables: <Type>[LiveCategories, LiveChannels, Favorites, History])
+/// Preferencias de la aplicación (pares clave-valor: locale, tema, PIN, ...).
+class AppSettings extends Table {
+  TextColumn get key => text()();
+  TextColumn get value => text().nullable()();
+
+  @override
+  Set<Column<Object>> get primaryKey => {key};
+}
+
+@DriftDatabase(tables: <Type>[
+  LiveCategories,
+  LiveChannels,
+  Favorites,
+  History,
+  AppSettings,
+])
 class AppDatabase extends _$AppDatabase {
   AppDatabase([QueryExecutor? executor])
     : super(executor ?? _openDefaultConnection());
@@ -68,7 +83,7 @@ class AppDatabase extends _$AppDatabase {
   }
 
   @override
-  int get schemaVersion => 2;
+  int get schemaVersion => 3;
 
   @override
   MigrationStrategy get migration {
@@ -78,6 +93,9 @@ class AppDatabase extends _$AppDatabase {
         if (from < 2) {
           await m.createTable(favorites);
           await m.createTable(history);
+        }
+        if (from < 3) {
+          await m.createTable(appSettings);
         }
       },
     );

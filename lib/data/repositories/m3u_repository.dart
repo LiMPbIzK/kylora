@@ -73,6 +73,7 @@ class M3uRepository implements IptvRepository {
       password: '',
       status: 'Active',
       sourceType: config.sourceType,
+      xmltvUrl: m3u.xmltvUrl,
     );
   }
 
@@ -94,6 +95,7 @@ class M3uRepository implements IptvRepository {
         password: stored.password,
         status: 'Active',
         sourceType: stored.sourceType,
+        xmltvUrl: stored.xmltvUrl,
       );
     } on M3uNetworkException {
       await _authStore.clear();
@@ -252,6 +254,20 @@ class M3uRepository implements IptvRepository {
   Future<void> clearHistory() async {
     await _db.delete(_db.history).go();
   }
+
+  @override
+  Future<void> refreshCatalog() async {
+    final StoredCredentials? stored = await _authStore.read();
+    if (stored == null || stored.sourceType != IptvSourceType.m3u) return;
+    await _loadPlaylist(stored.m3uUrl ?? '', stored.xmltvUrl);
+    await _cache.replaceLiveContent(
+      categories: _categories,
+      channels: _buildChannels(),
+    );
+  }
+
+  @override
+  Future<void> clearCatalogCache() => _cache.clear();
 
   /// Descarga y parsea la lista M3U (y la guía XMLTV opcional).
   Future<void> _loadPlaylist(String m3uUrl, String? xmltvUrl) async {

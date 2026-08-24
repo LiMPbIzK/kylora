@@ -1,13 +1,9 @@
 import 'package:flutter/material.dart';
-import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:go_router/go_router.dart';
 
 import '../../../app.dart';
 import '../../../core/theme/app_theme.dart';
 import '../../../l10n/app_localizations.dart';
-import '../../blocs/auth/auth_bloc.dart';
-import '../../blocs/auth/auth_event.dart';
-import '../../blocs/auth/auth_state.dart';
 import '../live/live_screen.dart';
 import '../series/series_screen.dart';
 import '../vod/vod_screen.dart';
@@ -36,32 +32,10 @@ class HomeShellScreen extends StatelessWidget {
               icon: const Icon(Icons.history),
               onPressed: () => context.push(Routes.history),
             ),
-            BlocBuilder<AuthBloc, AuthState>(
-              buildWhen: (previous, current) => current is AuthAuthenticated,
-              builder: (context, state) {
-                if (state is! AuthAuthenticated) return const SizedBox.shrink();
-                return Row(
-                  mainAxisSize: MainAxisSize.min,
-                  children: <Widget>[
-                    IconButton(
-                      tooltip: l10n.changeAccount,
-                      icon: const Icon(Icons.switch_account),
-                      onPressed: () {
-                        context
-                            .read<AuthBloc>()
-                            .add(const AuthLogoutRequested());
-                      },
-                    ),
-                    IconButton(
-                      tooltip: l10n.signOut,
-                      icon: const Icon(Icons.logout),
-                      onPressed: () => context
-                          .read<AuthBloc>()
-                          .add(const AuthLogoutRequested()),
-                    ),
-                  ],
-                );
-              },
+            IconButton(
+              tooltip: l10n.settings,
+              icon: const Icon(Icons.settings_outlined),
+              onPressed: () => context.push(Routes.settings),
             ),
           ],
           bottom: TabBar(

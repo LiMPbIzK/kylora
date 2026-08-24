@@ -129,6 +129,90 @@ class AppLocalizationsEn extends AppLocalizations {
   String get settings => 'Settings';
 
   @override
+  String get settingsSectionAccount => 'Account';
+
+  @override
+  String get settingsSectionCatalog => 'Catalog';
+
+  @override
+  String get settingsSectionAppearance => 'Appearance';
+
+  @override
+  String get settingsSectionSecurity => 'Security';
+
+  @override
+  String get accountSource => 'Source';
+
+  @override
+  String get accountExpiration => 'Expiration';
+
+  @override
+  String get accountConnectionsLabel => 'Connections';
+
+  @override
+  String get accountXmltvPresent => 'Configured';
+
+  @override
+  String get accountXmltvMissing => 'Not configured';
+
+  @override
+  String get refreshCatalog => 'Refresh catalog';
+
+  @override
+  String get refreshCatalogDescription =>
+      'Reloads channels, movies and series from the provider.';
+
+  @override
+  String get refreshCatalogSuccess => 'Catalog updated successfully';
+
+  @override
+  String get refreshCatalogFailure =>
+      'Could not update the catalog. Check your connection.';
+
+  @override
+  String get clearCache => 'Clear cache';
+
+  @override
+  String get clearCacheConfirm =>
+      'The local cache (saved channels) will be deleted. They will be downloaded again next time.';
+
+  @override
+  String get clearCacheSuccess => 'Cache cleared';
+
+  @override
+  String get localeSystem => 'System language';
+
+  @override
+  String get languageSpanish => 'Spanish';
+
+  @override
+  String get languageEnglish => 'English';
+
+  @override
+  String get languageFrench => 'French';
+
+  @override
+  String get languageGerman => 'German';
+
+  @override
+  String get languageItalian => 'Italian';
+
+  @override
+  String get languagePortuguese => 'Portuguese';
+
+  @override
+  String get themeDark => 'Dark';
+
+  @override
+  String get themeLight => 'Light';
+
+  @override
+  String get pinCode => 'PIN code';
+
+  @override
+  String get comingSoon => 'Coming soon';
+
+  @override
   String get epgNoProgram => 'No program information';
 
   @override

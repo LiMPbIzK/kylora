@@ -15,7 +15,7 @@ abstract final class AppColors {
   static const Color error = Color(0xFFFF6B6B);
 }
 
-/// Tema oscuro base. Los estilos de foco para TV se ampliarán en M8.
+/// Tema oscuro base. Los estilos de foco para TV se ampliaron en M8.
 abstract final class AppTheme {
   static ThemeData get dark {
     final ColorScheme scheme = ColorScheme.dark(
@@ -46,4 +46,51 @@ abstract final class AppTheme {
       highlightColor: AppColors.focusGlow.withValues(alpha: 0.12),
     );
   }
+
+  /// Tema claro básico (registrado en `AppThemes`; se pulirá en posteriores
+  /// revisiones de diseño).
+  static ThemeData get light {
+    final ColorScheme scheme = ColorScheme.light(
+      primary: AppColors.primary,
+      onPrimary: AppColors.onPrimary,
+      secondary: AppColors.secondary,
+      surface: const Color(0xFFF5F5F8),
+      onSurface: const Color(0xFF1A1D27),
+      error: AppColors.error,
+    );
+
+    return ThemeData(
+      useMaterial3: true,
+      colorScheme: scheme,
+      scaffoldBackgroundColor: const Color(0xFFFBFBFF),
+      appBarTheme: const AppBarTheme(
+        backgroundColor: Color(0xFFF5F5F8),
+        foregroundColor: Color(0xFF1A1D27),
+      ),
+      cardTheme: const CardThemeData(
+        color: Colors.white,
+        margin: EdgeInsets.zero,
+      ),
+      dividerTheme: const DividerThemeData(color: Color(0xFFE2E2E8)),
+      focusColor: AppColors.focusGlow.withValues(alpha: 0.35),
+      hoverColor: AppColors.focusGlow.withValues(alpha: 0.15),
+      splashColor: AppColors.primary.withValues(alpha: 0.25),
+      highlightColor: AppColors.focusGlow.withValues(alpha: 0.12),
+    );
+  }
+}
+
+/// Registro de temas por id: `dark` (por defecto) y `light`.
+/// Los diseños personalizados se añadirán como nuevas entradas.
+abstract final class AppThemes {
+  static const String dark = 'dark';
+  static const String light = 'light';
+
+  static final Map<String, ThemeData> all = <String, ThemeData>{
+    dark: AppTheme.dark,
+    light: AppTheme.light,
+  };
+
+  /// Resuelve el tema por id, con el oscuro como respaldo.
+  static ThemeData byId(String? id) => all[id] ?? AppTheme.dark;
 }

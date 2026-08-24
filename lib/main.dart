@@ -10,6 +10,7 @@ import 'core/media/playback_controller.dart';
 import 'data/datasources/local/app_database.dart';
 import 'data/datasources/local/auth_store.dart';
 import 'data/datasources/local/live_cache_store.dart';
+import 'data/datasources/local/settings_store.dart';
 import 'data/datasources/remote/m3u_downloader.dart';
 import 'data/datasources/remote/xtream_api_client.dart';
 import 'data/repositories/m3u_repository.dart';
@@ -23,6 +24,8 @@ import 'presentation/blocs/favorites/favorites_bloc.dart';
 import 'presentation/blocs/history/history_bloc.dart';
 import 'presentation/blocs/live/live_bloc.dart';
 import 'presentation/blocs/series/series_bloc.dart';
+import 'presentation/blocs/settings/settings_bloc.dart';
+import 'presentation/blocs/settings/settings_event.dart';
 import 'presentation/blocs/vod/vod_bloc.dart';
 
 Future<void> main() async {
@@ -49,6 +52,8 @@ Future<void> main() async {
   final EpgBloc epgBloc = EpgBloc(repository);
   final FavoritesBloc favoritesBloc = FavoritesBloc(repository);
   final HistoryBloc historyBloc = HistoryBloc(repository);
+  final SettingsBloc settingsBloc = SettingsBloc(SettingsStore(database))
+    ..add(const SettingsStarted());
 
   runApp(
     KyloraApp(
@@ -59,6 +64,7 @@ Future<void> main() async {
       epgBloc: epgBloc,
       favoritesBloc: favoritesBloc,
       historyBloc: historyBloc,
+      settingsBloc: settingsBloc,
       repository: repository,
       playbackController: PlaybackController(),
     ),

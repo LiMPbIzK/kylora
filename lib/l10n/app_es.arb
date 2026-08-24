@@ -161,6 +161,114 @@
   "@settings": {
     "description": "Sección del panel para ajustes de la aplicación."
   },
+  "settingsSectionAccount": "Cuenta",
+  "@settingsSectionAccount": {
+    "description": "Encabezado de la sección de cuenta en los ajustes."
+  },
+  "settingsSectionCatalog": "Catálogo",
+  "@settingsSectionCatalog": {
+    "description": "Encabezado de la sección de catálogo en los ajustes."
+  },
+  "settingsSectionAppearance": "Apariencia",
+  "@settingsSectionAppearance": {
+    "description": "Encabezado de la sección de apariencia en los ajustes."
+  },
+  "settingsSectionSecurity": "Seguridad",
+  "@settingsSectionSecurity": {
+    "description": "Encabezado de la sección de seguridad en los ajustes."
+  },
+  "accountSource": "Fuente",
+  "@accountSource": {
+    "description": "Etiqueta del origen de la sesión (Xtream o M3U)."
+  },
+  "accountExpiration": "Caducidad",
+  "@accountExpiration": {
+    "description": "Etiqueta de la fecha de caducidad de la cuenta."
+  },
+  "accountConnectionsLabel": "Conexiones",
+  "@accountConnectionsLabel": {
+    "description": "Etiqueta del número de conexiones activas de la cuenta."
+  },
+  "accountXmltvPresent": "Configurada",
+  "@accountXmltvPresent": {
+    "description": "Indica que la fuente M3U tiene una guía EPG XMLTV configurada."
+  },
+  "accountXmltvMissing": "No configurada",
+  "@accountXmltvMissing": {
+    "description": "Indica que la fuente M3U no tiene guía EPG XMLTV."
+  },
+  "refreshCatalog": "Actualizar catálogo",
+  "@refreshCatalog": {
+    "description": "Botón que fuerza la recarga del catálogo desde el proveedor."
+  },
+  "refreshCatalogDescription": "Recarga canales, películas y series desde el proveedor.",
+  "@refreshCatalogDescription": {
+    "description": "Descripción del botón de actualización del catálogo."
+  },
+  "refreshCatalogSuccess": "Catálogo actualizado correctamente",
+  "@refreshCatalogSuccess": {
+    "description": "Mensaje mostrado cuando el catálogo se actualiza con éxito."
+  },
+  "refreshCatalogFailure": "No se pudo actualizar el catálogo. Revisa tu conexión.",
+  "@refreshCatalogFailure": {
+    "description": "Mensaje mostrado cuando falla la actualización del catálogo."
+  },
+  "clearCache": "Borrar caché",
+  "@clearCache": {
+    "description": "Botón que borra la caché local del catálogo."
+  },
+  "clearCacheConfirm": "Se eliminará la caché local (canales guardados). Volverán a descargarse la próxima vez.",
+  "@clearCacheConfirm": {
+    "description": "Confirmación antes de borrar la caché local."
+  },
+  "clearCacheSuccess": "Caché borrada",
+  "@clearCacheSuccess": {
+    "description": "Mensaje mostrado cuando la caché se borra correctamente."
+  },
+  "localeSystem": "Idioma del sistema",
+  "@localeSystem": {
+    "description": "Opción para seguir el idioma del sistema."
+  },
+  "languageSpanish": "Español",
+  "@languageSpanish": {
+    "description": "Opción de idioma español."
+  },
+  "languageEnglish": "Inglés",
+  "@languageEnglish": {
+    "description": "Opción de idioma inglés."
+  },
+  "languageFrench": "Francés",
+  "@languageFrench": {
+    "description": "Opción de idioma francés."
+  },
+  "languageGerman": "Alemán",
+  "@languageGerman": {
+    "description": "Opción de idioma alemán."
+  },
+  "languageItalian": "Italiano",
+  "@languageItalian": {
+    "description": "Opción de idioma italiano."
+  },
+  "languagePortuguese": "Portugués",
+  "@languagePortuguese": {
+    "description": "Opción de idioma portugués."
+  },
+  "themeDark": "Oscuro",
+  "@themeDark": {
+    "description": "Opción de tema oscuro."
+  },
+  "themeLight": "Claro",
+  "@themeLight": {
+    "description": "Opción de tema claro."
+  },
+  "pinCode": "Código PIN",
+  "@pinCode": {
+    "description": "Opción de bloqueo de la aplicación con PIN."
+  },
+  "comingSoon": "Próximamente",
+  "@comingSoon": {
+    "description": "Indicador de una funcionalidad aún no disponible."
+  },
   "epgNoProgram": "Sin información de programación",
   "@epgNoProgram": {
     "description": "Se muestra cuando no hay información EPG disponible para un canal."

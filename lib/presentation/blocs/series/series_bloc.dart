@@ -16,6 +16,7 @@ class SeriesBloc extends Bloc<SeriesEvent, SeriesState> {
     on<SeriesSearchChanged>(_onSearchChanged);
     on<SeriesDetailRequested>(_onDetailRequested);
     on<SeriesDetailClosed>(_onDetailClosed);
+    on<SeriesRefreshRequested>(_onRefreshRequested);
   }
 
   final IptvRepository _repository;
@@ -23,6 +24,28 @@ class SeriesBloc extends Bloc<SeriesEvent, SeriesState> {
   List<Category> _categories = <Category>[];
   List<Series> _allSeries = <Series>[];
   String _query = '';
+
+  Future<void> _onRefreshRequested(
+    SeriesRefreshRequested event,
+    Emitter<SeriesState> emit,
+  ) async {
+    emit(const SeriesLoading());
+    try {
+      final List<Category> categories =
+          await _repository.fetchSeriesCategories();
+      final List<Series> seriesList = await _repository.fetchSeries();
+      _categories = categories;
+      _allSeries = seriesList;
+      _query = '';
+      emit(_buildLoaded(selectedCategoryId: null));
+    } catch (e, stack) {
+      if (kDebugMode) {
+        debugPrint('SeriesBloc refresh error: ${e.runtimeType}: $e');
+        debugPrint('$stack');
+      }
+      emit(const SeriesFailure('seriesLoadError'));
+    }
+  }
 
   Future<void> _onStarted(SeriesStarted event, Emitter<SeriesState> emit) async {
     emit(const SeriesLoading());

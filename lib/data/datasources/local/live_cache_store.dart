@@ -52,6 +52,14 @@ class LiveCacheStore {
     });
   }
 
+  /// Vacía la caché local del catálogo en directo.
+  Future<void> clear() async {
+    await _db.transaction(() async {
+      await _db.delete(_db.liveCategories).go();
+      await _db.delete(_db.liveChannels).go();
+    });
+  }
+
   Channel _toChannel(LiveChannel row) => Channel(
     id: row.streamId,
     name: row.name,
