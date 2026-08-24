@@ -18,8 +18,8 @@
 
 * **Multi-Source Support:** Direct compatibility with Xtream Codes API and static M3U/M3U8 playlists with XMLTV EPG.
 * **100% Local & Private:** No custom backend, telemetry, or external databases. Your credentials and playlists stay strictly on your device.
-* **Native Cross-Platform UI:** Tailored interface with responsive touch controls for mobile/tablet and full D-Pad focus management for TV remotes and keyboard navigation.
-* **Hardware-Accelerated Engine:** Powered by `media_kit` (libmpv) for native MPEG-TS, HLS, and MKV stream demuxing with multi-track audio and embedded subtitle selection.
+* **Native Cross-Platform UI:** Tailored interface with responsive touch controls for mobile/tablet and full D-Pad focus management for TV remotes and keyboard navigation, with a Leanback banner for Android TV/Fire TV. Grid catalog with vertical section selection, context menu (play / favorites / guide) and an embedded program guide inside the player.
+* **Hardware-Accelerated Engine:** Powered by `media_kit` (libmpv) for native MPEG-TS, HLS, and MKV stream demuxing with multi-track audio and embedded subtitle selection. The player OSD includes a seekable progress bar, centered audio/subtitle selectors, volume control and native fullscreen.
 * **Smart Local Indexing:** Heavy playlist parsing executed in background isolates and indexed with Drift (SQLite) for instant search and categorization.
 * **Multi-Language (i18n):** Native support for English, Spanish, French, German, Italian, and Portuguese.
 
@@ -129,10 +129,12 @@ Built on `flutter_localizations` + `intl` with generated ARB files and automatic
 | :--- | :--- |
 | English | ✅ |
 | Spanish | ✅ |
-| French | 🔜 Roadmap |
-| German | 🔜 Roadmap |
-| Italian | 🔜 Roadmap |
-| Portuguese | 🔜 Roadmap |
+| French | ✅ |
+| German | ✅ |
+| Italian | ✅ |
+| Portuguese | ✅ |
+
+The language selector (system or manual) and the theme selector (dark/light) are configured from the **Settings** screen.
 
 ---
 
@@ -143,11 +145,11 @@ Built on `flutter_localizations` + `intl` with generated ARB files and automatic
 - [x] **M2 — Live catalog:** Drift schema + indexing, categories, channel list with logos
 - [x] **M3 — Player:** media_kit integration, OSD controls, audio/subtitle tracks, retry handling
 - [x] **M4 — VOD & Series:** grids, detail views, series episodes
-- [ ] **M5 — EPG:** now/next in channel list, full schedule view, XMLTV + Xtream short EPG
-- [ ] **M6 — Favorites, history & search:** persistent favorites, playback history, instant search
-- [ ] **M7 — M3U/XMLTV source:** source selector, background-isolate parsing, unified contract
-- [ ] **M8 — Android TV / Fire TV:** D-Pad focus management, leanback banner, remote navigation
-- [ ] **M9 — Settings & release:** language switcher, cache management, remaining locales, v1.0.0
+- [x] **M5 — EPG:** now/next in channel list, full schedule view, XMLTV + Xtream short EPG
+- [x] **M6 — Favorites, history & search:** persistent favorites, playback history, instant search
+- [x] **M7 — M3U/XMLTV source:** source selector, background-isolate parsing, unified contract
+- [x] **M8 — Android TV / Fire TV:** D-Pad focus management, leanback banner, remote navigation
+- [x] **M9 — Settings & release:** Settings screen (account data, manual catalog refresh and cache clearing, language and theme selectors, account switching; PIN lock planned), cache management, fr/de/it/pt locales, **v1.0.0**
 - [ ] **M10 — Linux/macOS portability (post-v1.0.0):** desktop builds for Linux (.deb/.AppImage) and macOS (.dmg), notarization and per-OS CI — no logic changes (v1.1)
 
 ---

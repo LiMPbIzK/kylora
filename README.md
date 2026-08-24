@@ -129,10 +129,12 @@ Construida sobre `flutter_localizations` + `intl` con archivos ARB generados y d
 | :--- | :--- |
 | Español | ✅ |
 | Inglés | ✅ |
-| Francés | 🔜 Hoja de ruta |
-| Alemán | 🔜 Hoja de ruta |
-| Italiano | 🔜 Hoja de ruta |
-| Portugués | 🔜 Hoja de ruta |
+| Francés | ✅ |
+| Alemán | ✅ |
+| Italiano | ✅ |
+| Portugués | ✅ |
+
+El selector de idioma (sistema o manual) y el selector de temas (oscuro/claro) se configuran desde la pantalla de **Ajustes**.
 
 ---
 
@@ -147,7 +149,7 @@ Construida sobre `flutter_localizations` + `intl` con archivos ARB generados y d
 - [x] **M6 — Favoritos, historial y búsqueda:** favoritos persistentes, historial de reproducción, búsqueda instantánea
 - [x] **M7 — Fuente M3U/XMLTV:** selector de fuente (Xtream/M3U), parseo de M3U y XMLTV en isolates, repositorio M3U con contrato unificado, persistencia multi-fuente
 - [x] **M8 — Android TV / Fire TV:** foco D-Pad con anillos y escala (TvFocusable), banner leanback, navegación con mando (Enter/OK y Back en el reproductor)
-- [ ] **M9 — Ajustes y release:** pantalla de Ajustes (datos de la cuenta, actualización manual del catálogo, selector de idioma, selector de temas dark/light, cambio de cuenta, bloqueo por PIN planificado), gestión de caché, idiomas restantes, v1.0.0
+- [x] **M9 — Ajustes y release:** pantalla de Ajustes (datos de la cuenta, actualización manual y borrado de caché del catálogo, selector de idioma, selector de temas dark/light, cambio de cuenta; bloqueo por PIN planificado), gestión de caché, idiomas fr/de/it/pt, **v1.0.0**
 - [ ] **M10 — Portabilidad Linux/macOS (post-v1.0.0):** builds de escritorio para Linux (.deb/.AppImage) y macOS (.dmg), notarización y CI por SO — sin cambios de lógica (v1.1)
 
 ---
