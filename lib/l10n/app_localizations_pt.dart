@@ -207,7 +207,7 @@ class AppLocalizationsPt extends AppLocalizations {
   String get themeExpressive => 'Expressive';
 
   @override
-  String get themeAurora => 'Aurora';
+  String get themePacotis => 'Pacotis';
 
   @override
   String get themeCanvas => 'Canvas';

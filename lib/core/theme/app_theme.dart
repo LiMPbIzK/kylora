@@ -61,9 +61,9 @@ class AppColors extends ThemeExtension<AppColors> {
     error: Color(0xFFFFB4AB),
   );
 
-  /// Tema "Aurora": teal/coral sobre pizarra teal, basado en
+  /// Tema "Pacotis": teal/coral sobre pizarra teal, basado en
   /// `Kylora_Redesign_03_Aurora` (solo paleta; se mantiene la navegación actual).
-  static const AppColors aurora = AppColors(
+  static const AppColors pacotis = AppColors(
     primary: Color(0xFF63E6D3),
     onPrimary: Color(0xFF04211F),
     primaryContainer: Color(0xFF18343D),
@@ -237,10 +237,10 @@ abstract final class AppTheme {
     );
   }
 
-  /// Aurora: teal/coral sobre pizarra teal.
-  static ThemeData get aurora {
+  /// Pacotis: teal/coral sobre pizarra teal.
+  static ThemeData get pacotis {
     return _base(
-      palette: AppColors.aurora,
+      palette: AppColors.pacotis,
       brightness: Brightness.dark,
       cardRadius: 16,
       inputDecoration: const InputDecorationTheme(
@@ -273,13 +273,13 @@ abstract final class AppTheme {
 abstract final class AppThemes {
   static const String nocturne = 'nocturne';
   static const String expressive = 'expressive';
-  static const String aurora = 'aurora';
+  static const String pacotis = 'pacotis';
   static const String canvas = 'canvas';
 
   static final Map<String, ThemeData> all = <String, ThemeData>{
     nocturne: AppTheme.nocturne,
     expressive: AppTheme.expressive,
-    aurora: AppTheme.aurora,
+    pacotis: AppTheme.pacotis,
     canvas: AppTheme.canvas,
   };
 
@@ -287,12 +287,13 @@ abstract final class AppThemes {
   static List<MapEntry<String, ThemeData>> get entries =>
       all.entries.toList(growable: false);
 
-  /// Resuelve el tema por id. Acepta los alias históricos `dark`/`light`.
+  /// Resuelve el tema por id. Acepta los alias históricos `dark`, `light` y
+  /// `aurora` (nombre previo de Pacotis).
   static ThemeData byId(String? id) {
     return switch (id) {
       nocturne => AppTheme.nocturne,
       expressive => AppTheme.expressive,
-      aurora => AppTheme.aurora,
+      pacotis || 'aurora' => AppTheme.pacotis,
       canvas || 'light' => AppTheme.canvas,
       'dark' => AppTheme.nocturne,
       _ => AppTheme.nocturne,

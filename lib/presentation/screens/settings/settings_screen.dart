@@ -335,7 +335,7 @@ class _SettingsScreenState extends State<SettingsScreen> {
     return switch (id) {
       AppThemes.nocturne => l10n.themeNocturne,
       AppThemes.expressive => l10n.themeExpressive,
-      AppThemes.aurora => l10n.themeAurora,
+      AppThemes.pacotis => l10n.themePacotis,
       AppThemes.canvas => l10n.themeCanvas,
       _ => id,
     };

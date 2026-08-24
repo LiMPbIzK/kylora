@@ -22,7 +22,7 @@
 * **Motor acelerado por hardware:** Impulsado por `media_kit` (libmpv) para demuxing nativo de flujos MPEG-TS, HLS y MKV, con múltiples pistas de audio y selección de subtítulos embebidos. El OSD del reproductor incluye barra de progreso con búsqueda (seek), selectores centrados de audio/subtítulos, control de volumen y pantalla completa nativa.
 * **Indexación local inteligente:** El análisis pesado de listas se ejecuta en isolates en segundo plano y se indexa con Drift (SQLite) para búsqueda y categorización instantáneas.
 * **Multidioma (i18n):** Soporte nativo de inglés, español, francés, alemán, italiano y portugués.
-* **Temas:** 4 temas de diseño desde el registro `AppThemes` — **Nocturne** (oscuro por defecto), **Expressive** (Material 3), **Aurora** (teal/coral) y **Canvas** (claro editorial), con paleta `AppColors` por tema y aplicados en caliente desde Ajustes.
+* **Temas:** 4 temas de diseño desde el registro `AppThemes` — **Nocturne** (oscuro por defecto), **Expressive** (Material 3), **Pacotis** (teal/coral) y **Canvas** (claro editorial), con paleta `AppColors` por tema y aplicados en caliente desde Ajustes.
 
 ---
 
@@ -150,7 +150,7 @@ El selector de idioma (sistema o manual) y el selector de temas (oscuro/claro) s
 - [x] **M6 — Favoritos, historial y búsqueda:** favoritos persistentes, historial de reproducción, búsqueda instantánea
 - [x] **M7 — Fuente M3U/XMLTV:** selector de fuente (Xtream/M3U), parseo de M3U y XMLTV en isolates, repositorio M3U con contrato unificado, persistencia multi-fuente
 - [x] **M8 — Android TV / Fire TV:** foco D-Pad con anillos y escala (TvFocusable), banner leanback, navegación con mando (Enter/OK y Back en el reproductor)
-- [x] **M9 — Ajustes y release:** pantalla de Ajustes (datos de la cuenta, actualización manual y borrado de caché del catálogo, selector de idioma, cambio de cuenta; bloqueo por PIN planificado), gestión de caché, idiomas fr/de/it/pt, **v1.0.0** · *(tanda post-M9: 4 temas de diseño — Nocturne, Expressive, Aurora, Canvas —)*
+- [x] **M9 — Ajustes y release:** pantalla de Ajustes (datos de la cuenta, actualización manual y borrado de caché del catálogo, selector de idioma, cambio de cuenta; bloqueo por PIN planificado), gestión de caché, idiomas fr/de/it/pt, **v1.0.0** · *(tanda post-M9: 4 temas de diseño — Nocturne, Expressive, Pacotis, Canvas —)*
 - [ ] **M10 — Portabilidad Linux/macOS (post-v1.0.0):** builds de escritorio para Linux (.deb/.AppImage) y macOS (.dmg), notarización y CI por SO — sin cambios de lógica (v1.1)
 
 ---

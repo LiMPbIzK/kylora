@@ -481,8 +481,8 @@ abstract class AppLocalizations {
   /// Name of the teal/coral theme (palette).
   ///
   /// In en, this message translates to:
-  /// **'Aurora'**
-  String get themeAurora;
+  /// **'Pacotis'**
+  String get themePacotis;
 
   /// Name of the light editorial theme.
   ///

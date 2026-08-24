@@ -261,8 +261,8 @@
   "@themeExpressive": {
     "description": "Nome del tema sperimentale Material 3."
   },
-  "themeAurora": "Aurora",
-  "@themeAurora": {
+  "themePacotis": "Pacotis",
+  "@themePacotis": {
     "description": "Nome del tema acquamarina/corallo (palette)."
   },
   "themeCanvas": "Canvas",
