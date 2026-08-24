@@ -22,6 +22,7 @@
 * **Hardware-Accelerated Engine:** Powered by `media_kit` (libmpv) for native MPEG-TS, HLS, and MKV stream demuxing with multi-track audio and embedded subtitle selection. The player OSD includes a seekable progress bar, centered audio/subtitle selectors, volume control and native fullscreen.
 * **Smart Local Indexing:** Heavy playlist parsing executed in background isolates and indexed with Drift (SQLite) for instant search and categorization.
 * **Multi-Language (i18n):** Native support for English, Spanish, French, German, Italian, and Portuguese.
+* **Themes:** 4 design themes from the `AppThemes` registry — **Nocturne** (default dark), **Expressive** (Material 3), **Aurora** (teal/coral) and **Canvas** (light editorial), each with its own `AppColors` palette, applied live from Settings.
 
 ---
 
@@ -149,7 +150,7 @@ The language selector (system or manual) and the theme selector (dark/light) are
 - [x] **M6 — Favorites, history & search:** persistent favorites, playback history, instant search
 - [x] **M7 — M3U/XMLTV source:** source selector, background-isolate parsing, unified contract
 - [x] **M8 — Android TV / Fire TV:** D-Pad focus management, leanback banner, remote navigation
-- [x] **M9 — Settings & release:** Settings screen (account data, manual catalog refresh and cache clearing, language and theme selectors, account switching; PIN lock planned), cache management, fr/de/it/pt locales, **v1.0.0**
+- [x] **M9 — Settings & release:** Settings screen (account data, manual catalog refresh and cache clearing, language and theme selectors, account switching; PIN lock planned), cache management, fr/de/it/pt locales, **v1.0.0** · *(post-M9 batch: 4 design themes — Nocturne, Expressive, Aurora, Canvas —)*
 - [ ] **M10 — Linux/macOS portability (post-v1.0.0):** desktop builds for Linux (.deb/.AppImage) and macOS (.dmg), notarization and per-OS CI — no logic changes (v1.1)
 
 ---
