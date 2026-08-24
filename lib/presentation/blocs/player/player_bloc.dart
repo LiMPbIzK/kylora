@@ -42,6 +42,18 @@ class PlayerBloc extends Bloc<PlayerEvent, PlayerState> {
   /// La URL del stream actual, si existe.
   String? get streamUrl => _streamUrl;
 
+  /// Resetea el contenido activo (URL y reintentos) sin destruir el player.
+  ///
+  /// Se llama al cerrar la pantalla para que una nueva reproducción del mismo
+  /// contenido vuelva a abrir el stream (evita la pantalla negra si solo se
+  /// compara el título).
+  void resetContent() {
+    _retryTimer?.cancel();
+    _retriesLeft = 0;
+    _streamUrl = null;
+    _pendingOpen = null;
+  }
+
   static Future<String> _noContent() =>
       throw StateError('No hay contenido en el reproductor');
 

@@ -11,9 +11,13 @@ import '../../../core/media/playback_controller.dart';
 import '../../../core/media/playback_request.dart';
 import '../../../core/theme/app_theme.dart';
 import '../../../domain/entities/content_type.dart';
+import '../../../domain/entities/epg.dart';
 import '../../../domain/entities/history_item.dart';
 import '../../../domain/repositories/iptv_repository.dart';
 import '../../../l10n/app_localizations.dart';
+import '../../blocs/epg/epg_bloc.dart';
+import '../../blocs/epg/epg_event.dart';
+import '../../blocs/epg/epg_state.dart';
 import '../../blocs/player/player_bloc.dart';
 import '../../blocs/player/player_event.dart';
 import '../../blocs/player/player_state.dart';
@@ -41,6 +45,8 @@ class _PlayerScreenState extends State<PlayerScreen> {
   Timer? _hideTimer;
   bool _osdVisible = true;
   bool _isFullscreen = false;
+  bool _guideOpen = false;
+  int? _liveContentId;
   String _title = '';
   _TrackPickerMode? _picker;
 
@@ -56,14 +62,29 @@ class _PlayerScreenState extends State<PlayerScreen> {
 
   void _onControllerChanged() {
     final PlaybackRequest? request = widget.controller.current;
-    if (request != null) {
-      if (_title != request.title || _bloc.streamUrl == null) {
-        setState(() => _title = request.title);
+    if (request == null) {
+      if (!_bloc.isClosed) _bloc.player.stop();
+      return;
+    }
+    final bool needsPlay = _title != request.title || _bloc.streamUrl == null;
+    final int? liveId = request.contentType == 'live' ? request.contentId : null;
+    final bool wantsGuide = request.openGuide;
+    if (needsPlay || _liveContentId != liveId || _guideOpen != wantsGuide) {
+      // En directo, pide el EPG corto (ahora/siguiente) del canal reproducido
+      // para que el OSD muestre la programación aunque la rejilla no lo haya
+      // solicitado (p. ej. al reproducir desde el menú contextual).
+      if (liveId != null) {
+        context.read<EpgBloc>().add(EpgNowNextRequested(liveId));
+      }
+      setState(() {
+        _title = request.title;
+        _liveContentId = liveId;
+        _guideOpen = wantsGuide;
+      });
+      if (needsPlay) {
         _bloc.add(PlayerPlayRequested(request.urlBuilder));
         _recordHistory(request);
       }
-    } else if (!_bloc.isClosed) {
-      _bloc.player.stop();
     }
   }
 
@@ -110,6 +131,11 @@ class _PlayerScreenState extends State<PlayerScreen> {
 
   void _closePlayer() {
     _bloc.player.stop();
+    _bloc.resetContent();
+    setState(() {
+      _guideOpen = false;
+      _liveContentId = null;
+    });
     widget.controller.stop();
   }
 
@@ -187,6 +213,11 @@ class _PlayerScreenState extends State<PlayerScreen> {
                 if (_osdVisible) _buildOsd(),
                 if (_picker != null)
                   _buildTrackPicker(AppLocalizations.of(context)!),
+                if (_guideOpen && _liveContentId != null)
+                  _buildEmbeddedGuide(
+                    AppLocalizations.of(context)!,
+                    _liveContentId!,
+                  ),
               ],
             ),
           ),
@@ -242,11 +273,56 @@ child: Column(
                     ],
                   ),
                   const Spacer(),
-                  _buildProgressBar(l10n),
+                  if (_liveContentId != null)
+                    _buildLiveEpgBar(l10n, _liveContentId!)
+                  else
+                    _buildProgressBar(l10n),
                   _buildControlBar(l10n),
                 ],
               ),
         ),
+      ),
+    );
+  }
+
+  /// Línea del OSD para directo: muestra el programa actual y siguiente del
+  /// canal en reproducción, junto a un acceso a la guía embebida.
+  Widget _buildLiveEpgBar(AppLocalizations l10n, int streamId) {
+    return Padding(
+      padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 4),
+      child: BlocBuilder<EpgBloc, EpgState>(
+        buildWhen: (previous, current) =>
+            current is EpgNowNextLoaded && current.streamId == streamId,
+        builder: (context, state) {
+          if (state is! EpgNowNextLoaded || state.streamId != streamId) {
+            return const SizedBox.shrink();
+          }
+          final String now = state.now?.title ?? '—';
+          final String next = state.next?.title ?? '—';
+          return Row(
+            children: <Widget>[
+              Expanded(
+                child: Text(
+                  '${l10n.nowEpg}: $now   ·   ${l10n.nextEpg}: $next',
+                  maxLines: 1,
+                  overflow: TextOverflow.ellipsis,
+                  style: const TextStyle(color: Colors.white70, fontSize: 13),
+                ),
+              ),
+              if (state.hasGuide)
+                IconButton(
+                  tooltip: l10n.epgGuide,
+                  icon: const Icon(Icons.calendar_view_day),
+                  color: Colors.white,
+                  onPressed: () {
+                    _scheduleHide();
+                    setState(() => _guideOpen = true);
+                    _liveContentId ??= streamId;
+                  },
+                ),
+            ],
+          );
+        },
       ),
     );
   }
@@ -407,6 +483,117 @@ child: Column(
           ),
         ],
       ),
+    );
+  }
+
+  /// Guía embebida del canal en directo: overlay dentro del reproductor que
+  /// muestra la programación completa mientras el stream sigue reproduciendo.
+  Widget _buildEmbeddedGuide(AppLocalizations l10n, int streamId) {
+    // Dispara la carga de la programación completa si aún no está en caché.
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      if (mounted) {
+        context.read<EpgBloc>().add(EpgGuideRequested(streamId, _title));
+      }
+    });
+
+    return Positioned.fill(
+      child: GestureDetector(
+        behavior: HitTestBehavior.opaque,
+        onTap: () {
+          setState(() => _guideOpen = false);
+          _scheduleHide();
+        },
+        child: Container(
+          color: Colors.black87,
+          alignment: Alignment.center,
+          child: Material(
+            color: AppColors.surface,
+            borderRadius: BorderRadius.circular(16),
+            clipBehavior: Clip.antiAlias,
+            child: ConstrainedBox(
+              constraints: const BoxConstraints(maxWidth: 640, maxHeight: 500),
+              child: Column(
+                children: <Widget>[
+                  Padding(
+                    padding: const EdgeInsets.fromLTRB(16, 12, 8, 4),
+                    child: Row(
+                      children: <Widget>[
+                        const Icon(
+                          Icons.calendar_view_day,
+                          color: AppColors.primary,
+                        ),
+                        const SizedBox(width: 12),
+                        Expanded(
+                          child: Text(
+                            l10n.epgGuide,
+                            style: const TextStyle(
+                              fontWeight: FontWeight.bold,
+                              color: AppColors.onSurface,
+                            ),
+                          ),
+                        ),
+                        IconButton(
+                          tooltip: l10n.close,
+                          icon: const Icon(Icons.close, color: AppColors.onSurface),
+                          onPressed: () {
+                            setState(() => _guideOpen = false);
+                            _scheduleHide();
+                          },
+                        ),
+                      ],
+                    ),
+                  ),
+                  const Divider(height: 1),
+                  Expanded(
+                    child: BlocBuilder<EpgBloc, EpgState>(
+                      buildWhen: (previous, current) => switch (current) {
+                        EpgGuideLoaded() => current.streamId == streamId,
+                        EpgLoading() => current.streamId == streamId,
+                        EpgEmpty() => current.streamId == streamId,
+                        EpgFailure() => current.streamId == streamId,
+                        _ => false,
+                      },
+                      builder: (context, state) {
+                        switch (state) {
+                          case EpgGuideLoaded() when state.streamId == streamId:
+                            return state.entries.isEmpty
+                                ? Center(child: Text(l10n.epgNoProgram))
+                                : _buildGuideList(state.entries);
+                          case EpgLoading() when state.streamId == streamId:
+                          case EpgEmpty() when state.streamId == streamId:
+                            return Center(child: Text(l10n.epgNoProgram));
+                          case EpgFailure() when state.streamId == streamId:
+                            return Center(child: Text(l10n.epgLoadError));
+                          default:
+                            return const Center(
+                              child: CircularProgressIndicator(
+                                color: AppColors.primary,
+                              ),
+                            );
+                        }
+                      },
+                    ),
+                  ),
+                ],
+              ),
+            ),
+          ),
+        ),
+      ),
+    );
+  }
+
+  Widget _buildGuideList(List<EpgEntry> entries) {
+    return ListView.builder(
+      padding: const EdgeInsets.symmetric(vertical: 8),
+      itemCount: entries.length,
+      itemBuilder: (context, index) {
+        final EpgEntry entry = entries[index];
+        return _GuideTile(
+          entry: entry,
+          isOnAir: entry.isOnAir(DateTime.now()),
+        );
+      },
     );
   }
 
@@ -573,4 +760,73 @@ class _ErrorOverlay extends StatelessWidget {
       ),
     );
   }
+}
+
+/// Fila de programa de la guía embebida, con el actual resaltado.
+class _GuideTile extends StatelessWidget {
+  const _GuideTile({required this.entry, required this.isOnAir});
+
+  final EpgEntry entry;
+  final bool isOnAir;
+
+  @override
+  Widget build(BuildContext context) {
+    final String time = '${_two(entry.start.hour)}:${_two(entry.start.minute)}'
+        ' - ${_two(entry.end.hour)}:${_two(entry.end.minute)}';
+
+    return Container(
+      margin: const EdgeInsets.symmetric(horizontal: 12, vertical: 4),
+      padding: const EdgeInsets.all(10),
+      decoration: BoxDecoration(
+        color: isOnAir ? AppColors.primaryContainer : AppColors.surfaceVariant,
+        borderRadius: BorderRadius.circular(8),
+      ),
+      child: Row(
+        children: <Widget>[
+          SizedBox(
+            width: 78,
+            child: Text(
+              time,
+              style: TextStyle(
+                color: isOnAir ? AppColors.primary : AppColors.onSurface,
+                fontWeight: FontWeight.w600,
+              ),
+            ),
+          ),
+          const SizedBox(width: 12),
+          Expanded(
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: <Widget>[
+                Text(
+                  entry.title,
+                  maxLines: 2,
+                  overflow: TextOverflow.ellipsis,
+                  style: TextStyle(
+                    fontWeight: isOnAir
+                        ? FontWeight.bold
+                        : FontWeight.normal,
+                  ),
+                ),
+                if (entry.description?.isNotEmpty == true) ...<Widget>[
+                  const SizedBox(height: 4),
+                  Text(
+                    entry.description!,
+                    maxLines: 2,
+                    overflow: TextOverflow.ellipsis,
+                    style: const TextStyle(
+                      color: AppColors.onSurfaceVariant,
+                      fontSize: 12,
+                    ),
+                  ),
+                ],
+              ],
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+
+  static String _two(int value) => value.toString().padLeft(2, '0');
 }

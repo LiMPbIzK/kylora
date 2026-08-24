@@ -6,6 +6,7 @@ class PlaybackRequest {
     required this.urlBuilder,
     this.contentType,
     this.contentId,
+    this.openGuide = false,
   });
 
   /// Título del contenido que se reproduce.
@@ -19,4 +20,8 @@ class PlaybackRequest {
 
   /// ID del contenido para historial.
   final int? contentId;
+
+  /// Si es true, al iniciar la reproducción se abre la guía embebida del canal
+  /// dentro del reproductor (vista de programación overlay, sin detener el stream).
+  final bool openGuide;
 }

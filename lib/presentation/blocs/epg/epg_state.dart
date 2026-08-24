@@ -34,6 +34,7 @@ final class EpgNowNextLoaded extends EpgState {
     required this.streamId,
     required this.now,
     required this.next,
+    this.hasGuide = false,
     this.loadedAt,
   });
 
@@ -45,11 +46,17 @@ final class EpgNowNextLoaded extends EpgState {
   /// Siguiente programa programado (puede ser nulo).
   final EpgEntry? next;
 
+  /// Indica si el canal dispone de guía EPG (lista de programas no vacía).
+  ///
+  /// Se usa para mostrar el icono de guía en la tarjeta y el botón del OSD
+  /// solo en canales que realmente tienen programación.
+  final bool hasGuide;
+
   /// Marca de tiempo de la carga (para refrescar el "ahora").
   final DateTime? loadedAt;
 
   @override
-  List<Object?> get props => <Object?>[streamId, now, next];
+  List<Object?> get props => <Object?>[streamId, now, next, hasGuide];
 }
 
 /// Programación completa de un canal cargada.

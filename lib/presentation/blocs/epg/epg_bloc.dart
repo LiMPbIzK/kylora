@@ -57,6 +57,7 @@ class EpgBloc extends Bloc<EpgEvent, EpgState> {
         streamId: event.streamId,
         now: onAir,
         next: next,
+        hasGuide: entries.isNotEmpty,
         loadedAt: now,
       );
       _nowNextCache[event.streamId] = loaded;
