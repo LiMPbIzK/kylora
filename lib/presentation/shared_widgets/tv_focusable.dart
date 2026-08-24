@@ -68,7 +68,7 @@ class _TvFocusableState extends State<TvFocusable> {
             decoration: BoxDecoration(
               borderRadius: widget.borderRadius,
               border: Border.all(
-                color: active ? AppColors.focusGlow : Colors.transparent,
+                color: active ? context.colors.focusGlow : Colors.transparent,
                 width: 3,
               ),
             ),

@@ -253,13 +253,21 @@
   "@languagePortuguese": {
     "description": "Option de langue portugaise."
   },
-  "themeDark": "Sombre",
-  "@themeDark": {
-    "description": "Option de thème sombre."
+  "themeNocturne": "Nocturne",
+  "@themeNocturne": {
+    "description": "Nom du thème sombre par défaut (violet/cyan)."
   },
-  "themeLight": "Clair",
-  "@themeLight": {
-    "description": "Option de thème clair."
+  "themeExpressive": "Expressive",
+  "@themeExpressive": {
+    "description": "Nom du thème expérimental Material 3."
+  },
+  "themeAurora": "Aurora",
+  "@themeAurora": {
+    "description": "Nom du thème sarcelle/corail (palette)."
+  },
+  "themeCanvas": "Canvas",
+  "@themeCanvas": {
+    "description": "Nom du thème clair éditorial."
   },
   "pinCode": "Code PIN",
   "@pinCode": {

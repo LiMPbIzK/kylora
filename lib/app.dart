@@ -186,7 +186,7 @@ class KyloraApp extends StatelessWidget {
                   : null;
               final ThemeData theme = settings is SettingsLoaded
                   ? AppThemes.byId(settings.themeId)
-                  : AppTheme.dark;
+                  : AppTheme.nocturne;
               return MaterialApp.router(
                 title: 'Kylora',
                 debugShowCheckedModeBanner: false,

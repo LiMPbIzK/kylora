@@ -253,13 +253,21 @@
   "@languagePortuguese": {
     "description": "Portugiesische Sprachoption."
   },
-  "themeDark": "Dunkel",
-  "@themeDark": {
-    "description": "Dunkles Theme-Option."
+  "themeNocturne": "Nocturne",
+  "@themeNocturne": {
+    "description": "Name des Standard-Dunkelthemas (violett/cyan)."
   },
-  "themeLight": "Hell",
-  "@themeLight": {
-    "description": "Helles Theme-Option."
+  "themeExpressive": "Expressive",
+  "@themeExpressive": {
+    "description": "Name des experimentellen Material-3-Themas."
+  },
+  "themeAurora": "Aurora",
+  "@themeAurora": {
+    "description": "Name des türkis/korallen Themas (Palette)."
+  },
+  "themeCanvas": "Canvas",
+  "@themeCanvas": {
+    "description": "Name des hellen redaktionellen Themas."
   },
   "pinCode": "PIN-Code",
   "@pinCode": {

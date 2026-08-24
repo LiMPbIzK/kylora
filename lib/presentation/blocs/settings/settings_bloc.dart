@@ -25,7 +25,7 @@ class SettingsBloc extends Bloc<SettingsEvent, SettingsState> {
     emit(
       SettingsLoaded(
         locale: localeCode == null ? null : Locale(localeCode),
-        themeId: themeId ?? AppThemes.dark,
+        themeId: themeId ?? AppThemes.nocturne,
       ),
     );
   }
@@ -61,6 +61,6 @@ class SettingsBloc extends Bloc<SettingsEvent, SettingsState> {
 
   String _currentThemeId() => switch (state) {
     SettingsLoaded loaded => loaded.themeId,
-    _ => AppThemes.dark,
+    _ => AppThemes.nocturne,
   };
 }

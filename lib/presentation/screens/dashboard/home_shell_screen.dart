@@ -39,9 +39,9 @@ class HomeShellScreen extends StatelessWidget {
             ),
           ],
           bottom: TabBar(
-            indicatorColor: AppColors.primary,
-            labelColor: AppColors.onSurface,
-            unselectedLabelColor: AppColors.onSurface,
+            indicatorColor: context.colors.primary,
+            labelColor: context.colors.onSurface,
+            unselectedLabelColor: context.colors.onSurface,
             tabs: <Widget>[
               Tab(text: l10n.liveTv, icon: const Icon(Icons.live_tv, size: 20)),
               Tab(text: l10n.movies, icon: const Icon(Icons.movie, size: 20)),

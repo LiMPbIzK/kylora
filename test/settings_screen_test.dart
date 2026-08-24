@@ -331,16 +331,16 @@ await tester.drag(settingsScrollable(), const Offset(0, -600));
       store: store,
     );
 
-await tester.drag(settingsScrollable(), const Offset(0, -1200));
+await tester.drag(settingsScrollable(), const Offset(0, -1400));
     await tester.pumpAndSettle();
     await tester.tap(
       find.ancestor(
-        of: find.text('Light'),
+        of: find.text('Canvas'),
         matching: find.byType(RadioListTile<String>),
       ),
     );
     await tester.pumpAndSettle();
 
-    expect(store.values['theme_id'], 'light');
+    expect(store.values['theme_id'], 'canvas');
   });
 }

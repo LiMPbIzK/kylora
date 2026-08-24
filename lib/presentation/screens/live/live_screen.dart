@@ -110,7 +110,7 @@ class _LiveContent extends StatelessWidget {
               isDense: true,
               border: OutlineInputBorder(
                 borderRadius: BorderRadius.circular(12),
-                borderSide: const BorderSide(color: AppColors.surfaceVariant),
+                borderSide: BorderSide(color: context.colors.surfaceVariant),
               ),
             ),
           ),
@@ -229,12 +229,13 @@ class _ChannelCardState extends State<_ChannelCard> {
       builder: (context, epgState) {
         final bool hasGuide = epgState is EpgNowNextLoaded && epgState.hasGuide;
         _hasGuide = hasGuide;
+        final AppColors colors = context.colors;
         return TvFocusable(
           autofocus: widget.autofocus,
           onPressed: _play,
           borderRadius: BorderRadius.circular(10),
           child: Material(
-            color: AppColors.surface,
+            color: colors.surface,
             borderRadius: BorderRadius.circular(10),
             clipBehavior: Clip.antiAlias,
             child: InkWell(
@@ -255,7 +256,7 @@ class _ChannelCardState extends State<_ChannelCard> {
                           child: Icon(
                             Icons.favorite,
                             color: widget.isFavorite
-                                ? AppColors.secondary
+                                ? colors.secondary
                                 : Colors.transparent,
                             size: 22,
                             semanticLabel:
@@ -271,7 +272,7 @@ class _ChannelCardState extends State<_ChannelCard> {
                                 padding: const EdgeInsets.all(6),
                                 child: Icon(
                                   Icons.calendar_view_day,
-                                  color: AppColors.primary,
+                                  color: colors.primary,
                                   size: 22,
                                   semanticLabel: AppLocalizations.of(
                                     context,
@@ -368,8 +369,8 @@ class _ChannelCardState extends State<_ChannelCard> {
                 widget.isFavorite ? Icons.favorite : Icons.favorite_border,
                 size: 20,
                 color: widget.isFavorite
-                    ? AppColors.secondary
-                    : AppColors.onSurfaceVariant,
+                    ? context.colors.secondary
+                    : context.colors.onSurfaceVariant,
               ),
               const SizedBox(width: 12),
               Text(l10n.favorites),
@@ -511,20 +512,20 @@ class _ChannelLogo extends StatelessWidget {
   Widget build(BuildContext context) {
     final String? url = logo;
     if (url == null || url.isEmpty) {
-      return _fallbackLogo;
+      return _fallbackLogo(context);
     }
     return CachedNetworkImage(
       imageUrl: url,
       fit: BoxFit.contain,
-      placeholder: (context, url) => _fallbackLogo,
-      errorWidget: (context, url, error) => _fallbackLogo,
+      placeholder: (context, url) => _fallbackLogo(context),
+      errorWidget: (context, url, error) => _fallbackLogo(context),
     );
   }
 
-  Widget get _fallbackLogo => Container(
-    color: AppColors.surfaceVariant,
+  Widget _fallbackLogo(BuildContext context) => Container(
+    color: context.colors.surfaceVariant,
     alignment: Alignment.center,
-    child: const Icon(Icons.tv, color: AppColors.primary, size: 32),
+    child: Icon(Icons.tv, color: context.colors.primary, size: 32),
   );
 }
 
@@ -541,7 +542,7 @@ class _ErrorView extends StatelessWidget {
       child: Column(
         mainAxisAlignment: MainAxisAlignment.center,
         children: <Widget>[
-          const Icon(Icons.error_outline, size: 56, color: AppColors.error),
+          Icon(Icons.error_outline, size: 56, color: context.colors.error),
           const SizedBox(height: 12),
           Text(message, textAlign: TextAlign.center),
           const SizedBox(height: 12),

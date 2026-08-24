@@ -88,12 +88,13 @@ class _ProgramTile extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final String time = _formatRange(entry.start, entry.end);
+    final AppColors colors = context.colors;
 
     return Container(
       margin: const EdgeInsets.symmetric(horizontal: 12, vertical: 4),
       padding: const EdgeInsets.all(12),
       decoration: BoxDecoration(
-        color: isOnAir ? AppColors.primaryContainer : AppColors.surfaceVariant,
+        color: isOnAir ? colors.primaryContainer : colors.surfaceVariant,
         borderRadius: BorderRadius.circular(8),
       ),
       child: Row(
@@ -103,7 +104,7 @@ class _ProgramTile extends StatelessWidget {
             child: Text(
               time,
               style: TextStyle(
-                color: isOnAir ? AppColors.primary : AppColors.onSurface,
+                color: isOnAir ? colors.primary : colors.onSurface,
                 fontWeight: FontWeight.w600,
               ),
             ),
@@ -127,8 +128,8 @@ class _ProgramTile extends StatelessWidget {
                     entry.description!,
                     maxLines: 3,
                     overflow: TextOverflow.ellipsis,
-                    style: const TextStyle(
-                      color: AppColors.onSurfaceVariant,
+                    style: TextStyle(
+                      color: colors.onSurfaceVariant,
                       fontSize: 13,
                     ),
                   ),
@@ -159,7 +160,7 @@ class _EmptyView extends StatelessWidget {
       child: Column(
         mainAxisAlignment: MainAxisAlignment.center,
         children: <Widget>[
-          const Icon(Icons.event_note, size: 56, color: AppColors.surfaceVariant),
+          Icon(Icons.event_note, size: 56, color: context.colors.surfaceVariant),
           const SizedBox(height: 12),
           Text(message, textAlign: TextAlign.center),
         ],

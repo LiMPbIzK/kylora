@@ -65,6 +65,7 @@ class _SettingsScreenState extends State<SettingsScreen> {
       builder: (context, state) {
         if (state is! AuthAuthenticated) return const SizedBox.shrink();
         final UserAccount account = state.account;
+        final AppColors colors = context.colors;
 
         return Column(
           children: <Widget>[
@@ -81,10 +82,10 @@ class _SettingsScreenState extends State<SettingsScreen> {
                   .add(const AuthLogoutRequested()),
             ),
             ListTile(
-              leading: const Icon(Icons.logout, color: AppColors.error),
+              leading: Icon(Icons.logout, color: colors.error),
               title: Text(
                 l10n.signOut,
-                style: const TextStyle(color: AppColors.error),
+                style: TextStyle(color: colors.error),
               ),
               onTap: () => context
                   .read<AuthBloc>()
@@ -126,7 +127,9 @@ class _SettingsScreenState extends State<SettingsScreen> {
         icon: Icons.verified_user_outlined,
         label: l10n.accountStatus,
         value: account.isActive ? l10n.accountActive : l10n.accountExpired,
-        valueColor: account.isActive ? AppColors.secondary : AppColors.error,
+        valueColor: account.isActive
+          ? context.colors.secondary
+          : context.colors.error,
       ),
       _InfoTile(
         icon: Icons.event_outlined,
@@ -308,7 +311,7 @@ class _SettingsScreenState extends State<SettingsScreen> {
       builder: (context, state) {
         final String currentId = state is SettingsLoaded
             ? state.themeId
-            : AppThemes.dark;
+            : AppThemes.nocturne;
         return RadioGroup<String>(
           groupValue: currentId,
           onChanged: (String? id) {
@@ -316,19 +319,26 @@ class _SettingsScreenState extends State<SettingsScreen> {
           },
           child: Column(
             children: <Widget>[
-              RadioListTile<String>(
-                value: AppThemes.dark,
-                title: Text(l10n.themeDark),
-              ),
-              RadioListTile<String>(
-                value: AppThemes.light,
-                title: Text(l10n.themeLight),
-              ),
+              for (final MapEntry<String, ThemeData> entry in AppThemes.entries)
+                RadioListTile<String>(
+                  value: entry.key,
+                  title: Text(_themeLabel(l10n, entry.key)),
+                ),
             ],
           ),
         );
       },
     );
+  }
+
+  String _themeLabel(AppLocalizations l10n, String id) {
+    return switch (id) {
+      AppThemes.nocturne => l10n.themeNocturne,
+      AppThemes.expressive => l10n.themeExpressive,
+      AppThemes.aurora => l10n.themeAurora,
+      AppThemes.canvas => l10n.themeCanvas,
+      _ => id,
+    };
   }
 
   void _setTheme(BuildContext context, String themeId) {
@@ -369,7 +379,7 @@ class _SectionHeader extends StatelessWidget {
       child: Text(
         title,
         style: Theme.of(context).textTheme.titleMedium?.copyWith(
-          color: AppColors.primary,
+          color: context.colors.primary,
           fontWeight: FontWeight.bold,
         ),
       ),
@@ -393,19 +403,20 @@ class _InfoTile extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final AppColors colors = context.colors;
     return ListTile(
       dense: true,
-      leading: Icon(icon, color: AppColors.onSurfaceVariant),
+      leading: Icon(icon, color: colors.onSurfaceVariant),
       title: Text(
         label,
-        style: const TextStyle(
+        style: TextStyle(
           fontSize: 13,
-          color: AppColors.onSurfaceVariant,
+          color: colors.onSurfaceVariant,
         ),
       ),
       subtitle: Text(
         value,
-        style: TextStyle(color: valueColor ?? AppColors.onSurface),
+        style: TextStyle(color: valueColor ?? colors.onSurface),
       ),
     );
   }

@@ -114,10 +114,10 @@ class _LoginScreenState extends State<LoginScreen> {
                       mainAxisSize: MainAxisSize.min,
                       crossAxisAlignment: CrossAxisAlignment.stretch,
                       children: <Widget>[
-                        const Icon(
+                        Icon(
                           Icons.live_tv,
                           size: 72,
-                          color: AppColors.primary,
+                          color: context.colors.primary,
                         ),
                         const SizedBox(height: 12),
                         Text(
@@ -125,7 +125,7 @@ class _LoginScreenState extends State<LoginScreen> {
                           textAlign: TextAlign.center,
                           style: Theme.of(context).textTheme.headlineMedium
                               ?.copyWith(
-                                color: AppColors.primary,
+                                color: context.colors.primary,
                                 fontWeight: FontWeight.bold,
                               ),
                         ),
@@ -135,7 +135,7 @@ class _LoginScreenState extends State<LoginScreen> {
                           textAlign: TextAlign.center,
                           style: Theme.of(context).textTheme.titleMedium
                               ?.copyWith(
-                                color: AppColors.onSurface.withValues(
+                                color: context.colors.onSurface.withValues(
                                   alpha: 0.7,
                                 ),
                               ),

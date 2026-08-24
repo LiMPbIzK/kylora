@@ -152,7 +152,7 @@ class _Logo extends StatelessWidget {
   Widget build(BuildContext context) {
     final String? url = logo;
     if (url == null || url.isEmpty) {
-      return _fallback;
+      return _fallback(context);
     }
     return ClipRRect(
       borderRadius: BorderRadius.circular(6),
@@ -162,18 +162,18 @@ class _Logo extends StatelessWidget {
         child: CachedNetworkImage(
           imageUrl: url,
           fit: BoxFit.contain,
-          placeholder: (context, url) => _fallback,
-          errorWidget: (context, url, error) => _fallback,
+          placeholder: (context, url) => _fallback(context),
+          errorWidget: (context, url, error) => _fallback(context),
         ),
       ),
     );
   }
 
-  Widget get _fallback => Container(
+  Widget _fallback(BuildContext context) => Container(
     width: 40,
     height: 40,
-    color: AppColors.surfaceVariant,
-    child: Icon(icon, color: AppColors.primary, size: 22),
+    color: context.colors.surfaceVariant,
+    child: Icon(icon, color: context.colors.primary, size: 22),
   );
 }
 
@@ -189,7 +189,7 @@ class _EmptyView extends StatelessWidget {
       child: Column(
         mainAxisAlignment: MainAxisAlignment.center,
         children: <Widget>[
-          const Icon(Icons.history, size: 56, color: AppColors.surfaceVariant),
+          Icon(Icons.history, size: 56, color: context.colors.surfaceVariant),
           const SizedBox(height: 12),
           Text(message, textAlign: TextAlign.center),
         ],

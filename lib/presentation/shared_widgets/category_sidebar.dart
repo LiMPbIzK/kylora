@@ -72,10 +72,11 @@ class _SidebarButton extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final AppColors colors = context.colors;
     return TvFocusable(
       borderRadius: BorderRadius.circular(8),
       child: Material(
-        color: selected ? AppColors.primary : Colors.transparent,
+        color: selected ? colors.primary : Colors.transparent,
         borderRadius: BorderRadius.circular(8),
         clipBehavior: Clip.antiAlias,
         child: InkWell(
@@ -87,7 +88,7 @@ class _SidebarButton extends StatelessWidget {
                 Icon(
                   icon,
                   size: 18,
-                  color: selected ? AppColors.onPrimary : AppColors.secondary,
+                  color: selected ? colors.onPrimary : colors.secondary,
                 ),
                 const SizedBox(width: 12),
                 Expanded(
@@ -96,9 +97,7 @@ class _SidebarButton extends StatelessWidget {
                     maxLines: 2,
                     overflow: TextOverflow.ellipsis,
                     style: TextStyle(
-                      color: selected
-                          ? AppColors.onPrimary
-                          : AppColors.onSurface,
+                      color: selected ? colors.onPrimary : colors.onSurface,
                       fontWeight: selected
                           ? FontWeight.bold
                           : FontWeight.normal,

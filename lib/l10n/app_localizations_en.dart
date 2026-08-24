@@ -201,10 +201,16 @@ class AppLocalizationsEn extends AppLocalizations {
   String get languagePortuguese => 'Portuguese';
 
   @override
-  String get themeDark => 'Dark';
+  String get themeNocturne => 'Nocturne';
 
   @override
-  String get themeLight => 'Light';
+  String get themeExpressive => 'Expressive';
+
+  @override
+  String get themeAurora => 'Aurora';
+
+  @override
+  String get themeCanvas => 'Canvas';
 
   @override
   String get pinCode => 'PIN code';

@@ -51,7 +51,7 @@ class MovieDetailScreen extends StatelessWidget {
                       const SizedBox(height: 8),
                       Row(
                         children: <Widget>[
-                          const Icon(Icons.star, size: 18, color: AppColors.secondary),
+                          Icon(Icons.star, size: 18, color: context.colors.secondary),
                           const SizedBox(width: 4),
                           Text(movie.rating!),
                         ],

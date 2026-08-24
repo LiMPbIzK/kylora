@@ -118,6 +118,7 @@ class _DetailContent extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final AppLocalizations l10n = AppLocalizations.of(context)!;
+    final AppColors colors = context.colors;
     final List<Season> seasons = info.seasons;
     final List<Episode> episodes = _seasonEpisodes(seasons, selectedSeason);
 
@@ -148,7 +149,7 @@ class _DetailContent extends StatelessWidget {
                     const SizedBox(height: 6),
                     Row(
                       children: <Widget>[
-                        const Icon(Icons.star, size: 16, color: AppColors.secondary),
+                        Icon(Icons.star, size: 16, color: context.colors.secondary),
                         const SizedBox(width: 4),
                         Text('${l10n.rating}: ${series.rating}'),
                       ],
@@ -175,12 +176,12 @@ class _DetailContent extends StatelessWidget {
                     child: ChoiceChip(
                       label: Text('${l10n.season} ${season.number}'),
                       selected: selectedSeason == season.number,
-                      selectedColor: AppColors.primary,
-                      backgroundColor: AppColors.surface,
+                      selectedColor: colors.primary,
+                      backgroundColor: colors.surface,
                       labelStyle: TextStyle(
                         color: selectedSeason == season.number
-                            ? AppColors.onPrimary
-                            : AppColors.onSurface,
+                            ? colors.onPrimary
+                            : colors.onSurface,
                       ),
                       onSelected: (_) => onSeasonSelected(season.number),
                     ),
@@ -242,9 +243,9 @@ class _EpisodeTile extends StatelessWidget {
           maxLines: 2,
           overflow: TextOverflow.ellipsis,
         ),
-        trailing: const Icon(
+        trailing: Icon(
           Icons.play_circle_outline,
-          color: AppColors.primary,
+          color: context.colors.primary,
         ),
         onTap: () => _play(context),
       ),
@@ -280,12 +281,15 @@ class _EpisodeNumber extends StatelessWidget {
       height: 40,
       alignment: Alignment.center,
       decoration: BoxDecoration(
-        color: AppColors.surfaceVariant,
+        color: context.colors.surfaceVariant,
         borderRadius: BorderRadius.circular(8),
       ),
       child: Text(
         '$number',
-        style: const TextStyle(fontWeight: FontWeight.bold, color: AppColors.primary),
+        style: TextStyle(
+          fontWeight: FontWeight.bold,
+          color: context.colors.primary,
+        ),
       ),
     );
   }
@@ -310,7 +314,7 @@ class _ErrorView extends StatelessWidget {
       child: Column(
         mainAxisAlignment: MainAxisAlignment.center,
         children: <Widget>[
-          const Icon(Icons.error_outline, size: 56, color: AppColors.error),
+          Icon(Icons.error_outline, size: 56, color: context.colors.error),
           const SizedBox(height: 12),
           Text(message, textAlign: TextAlign.center),
           const SizedBox(height: 12),

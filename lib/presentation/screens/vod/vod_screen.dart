@@ -96,7 +96,7 @@ class _VodContent extends StatelessWidget {
               isDense: true,
               border: OutlineInputBorder(
                 borderRadius: BorderRadius.circular(12),
-                borderSide: const BorderSide(color: AppColors.surfaceVariant),
+                borderSide: BorderSide(color: context.colors.surfaceVariant),
               ),
             ),
           ),
@@ -198,7 +198,7 @@ class _ErrorView extends StatelessWidget {
       child: Column(
         mainAxisAlignment: MainAxisAlignment.center,
         children: <Widget>[
-          const Icon(Icons.error_outline, size: 56, color: AppColors.error),
+          Icon(Icons.error_outline, size: 56, color: context.colors.error),
           const SizedBox(height: 12),
           Text(message, textAlign: TextAlign.center),
           const SizedBox(height: 12),

@@ -33,7 +33,7 @@ void main() {
       emitsInOrder(<dynamic>[
         isA<SettingsLoaded>()
             .having((s) => s.locale, 'locale', isNull)
-            .having((s) => s.themeId, 'themeId', AppThemes.dark),
+            .having((s) => s.themeId, 'themeId', AppThemes.nocturne),
       ]),
     );
     await bloc.close();
@@ -42,14 +42,14 @@ void main() {
   test('SettingsBloc carga locale y tema persistidos', () async {
     final _FakeSettingsStore store = _FakeSettingsStore()
       ..values[SettingsStore.kLocale] = 'es'
-      ..values[SettingsStore.kThemeId] = AppThemes.light;
+      ..values[SettingsStore.kThemeId] = AppThemes.canvas;
     final SettingsBloc bloc = SettingsBloc(store)..add(const SettingsStarted());
     await expectLater(
       bloc.stream,
       emitsInOrder(<dynamic>[
         isA<SettingsLoaded>()
             .having((s) => s.locale?.languageCode, 'locale', 'es')
-            .having((s) => s.themeId, 'themeId', AppThemes.light),
+            .having((s) => s.themeId, 'themeId', AppThemes.canvas),
       ]),
     );
     await bloc.close();
@@ -87,15 +87,15 @@ void main() {
     final SettingsBloc bloc = SettingsBloc(store)..add(const SettingsStarted());
     await bloc.stream.first;
 
-    bloc.add(const SettingsThemeChanged(AppThemes.light));
+    bloc.add(const SettingsThemeChanged(AppThemes.canvas));
     await expectLater(
       bloc.stream,
       emitsInOrder(<dynamic>[
         isA<SettingsLoaded>()
-            .having((s) => s.themeId, 'themeId', AppThemes.light),
+            .having((s) => s.themeId, 'themeId', AppThemes.canvas),
       ]),
     );
-    expect(store.values[SettingsStore.kThemeId], AppThemes.light);
+    expect(store.values[SettingsStore.kThemeId], AppThemes.canvas);
     await bloc.close();
   });
 }

@@ -15,22 +15,22 @@ class MediaPoster extends StatelessWidget {
   Widget build(BuildContext context) {
     final String? imageUrl = url;
     if (imageUrl == null || imageUrl.isEmpty) {
-      return _fallback;
+      return _fallback(context);
     }
     return ClipRRect(
       borderRadius: BorderRadius.circular(8),
       child: CachedNetworkImage(
         imageUrl: imageUrl,
         fit: BoxFit.cover,
-        placeholder: (context, url) => _fallback,
-        errorWidget: (context, url, error) => _fallback,
+        placeholder: (context, url) => _fallback(context),
+        errorWidget: (context, url, error) => _fallback(context),
       ),
     );
   }
 
-  Widget get _fallback => Container(
-    color: AppColors.surfaceVariant,
+  Widget _fallback(BuildContext context) => Container(
+    color: context.colors.surfaceVariant,
     alignment: Alignment.center,
-    child: Icon(fallbackIcon, color: AppColors.primary, size: 32),
+    child: Icon(fallbackIcon, color: context.colors.primary, size: 32),
   );
 }

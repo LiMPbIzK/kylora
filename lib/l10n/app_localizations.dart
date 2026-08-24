@@ -466,17 +466,29 @@ abstract class AppLocalizations {
   /// **'Portuguese'**
   String get languagePortuguese;
 
-  /// Dark theme option.
+  /// Name of the default dark theme (violet/cyan).
   ///
   /// In en, this message translates to:
-  /// **'Dark'**
-  String get themeDark;
+  /// **'Nocturne'**
+  String get themeNocturne;
 
-  /// Light theme option.
+  /// Name of the Material 3 expressive theme.
   ///
   /// In en, this message translates to:
-  /// **'Light'**
-  String get themeLight;
+  /// **'Expressive'**
+  String get themeExpressive;
+
+  /// Name of the teal/coral theme (palette).
+  ///
+  /// In en, this message translates to:
+  /// **'Aurora'**
+  String get themeAurora;
+
+  /// Name of the light editorial theme.
+  ///
+  /// In en, this message translates to:
+  /// **'Canvas'**
+  String get themeCanvas;
 
   /// App lock with PIN option.
   ///

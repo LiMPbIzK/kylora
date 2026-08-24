@@ -194,9 +194,9 @@ class _PlayerScreenState extends State<PlayerScreen> {
                   bloc: _bloc,
                   builder: (context, state) {
                     if (state is PlayerLoading) {
-                      return const Center(
+                      return Center(
                         child: CircularProgressIndicator(
-                          color: AppColors.primary,
+                          color: context.colors.primary,
                         ),
                       );
                     }
@@ -367,7 +367,7 @@ child: Column(
                   child: Slider(
                     value: value,
                     max: duration.inMilliseconds.toDouble(),
-                    activeColor: AppColors.primary,
+                    activeColor: context.colors.primary,
                     inactiveColor: Colors.white24,
                     onChangeStart: (_) => _cancelHide(),
                     onChangeEnd: (_) => _scheduleHide(),
@@ -458,7 +458,7 @@ child: Column(
                       child: Slider(
                         value: volume,
                         max: 1.0,
-                        activeColor: AppColors.primary,
+                        activeColor: context.colors.primary,
                         inactiveColor: Colors.white24,
                         onChangeStart: (_) => _cancelHide(),
                         onChangeEnd: (_) => _scheduleHide(),
@@ -507,7 +507,7 @@ child: Column(
           color: Colors.black87,
           alignment: Alignment.center,
           child: Material(
-            color: AppColors.surface,
+            color: context.colors.surface,
             borderRadius: BorderRadius.circular(16),
             clipBehavior: Clip.antiAlias,
             child: ConstrainedBox(
@@ -518,23 +518,26 @@ child: Column(
                     padding: const EdgeInsets.fromLTRB(16, 12, 8, 4),
                     child: Row(
                       children: <Widget>[
-                        const Icon(
+                        Icon(
                           Icons.calendar_view_day,
-                          color: AppColors.primary,
+                          color: context.colors.primary,
                         ),
                         const SizedBox(width: 12),
                         Expanded(
                           child: Text(
                             l10n.epgGuide,
-                            style: const TextStyle(
+                            style: TextStyle(
                               fontWeight: FontWeight.bold,
-                              color: AppColors.onSurface,
+                              color: context.colors.onSurface,
                             ),
                           ),
                         ),
                         IconButton(
                           tooltip: l10n.close,
-                          icon: const Icon(Icons.close, color: AppColors.onSurface),
+                          icon: Icon(
+                            Icons.close,
+                            color: context.colors.onSurface,
+                          ),
                           onPressed: () {
                             setState(() => _guideOpen = false);
                             _scheduleHide();
@@ -565,9 +568,9 @@ child: Column(
                           case EpgFailure() when state.streamId == streamId:
                             return Center(child: Text(l10n.epgLoadError));
                           default:
-                            return const Center(
+                            return Center(
                               child: CircularProgressIndicator(
-                                color: AppColors.primary,
+                                color: context.colors.primary,
                               ),
                             );
                         }
@@ -619,7 +622,7 @@ child: Column(
           color: Colors.black45,
           alignment: Alignment.center,
           child: Material(
-            color: AppColors.surface,
+            color: context.colors.surface,
             borderRadius: BorderRadius.circular(16),
             clipBehavior: Clip.antiAlias,
             child: ConstrainedBox(
@@ -635,9 +638,9 @@ child: Column(
                     padding: const EdgeInsets.fromLTRB(16, 8, 16, 8),
                     child: Text(
                       audioMode ? l10n.audioTrack : l10n.subtitles,
-                      style: const TextStyle(
+                      style: TextStyle(
                         fontWeight: FontWeight.bold,
-                        color: AppColors.onSurface,
+                        color: context.colors.onSurface,
                       ),
                     ),
                   ),
@@ -706,13 +709,15 @@ child: Column(
       leading: Icon(
         selected ? Icons.check_circle : Icons.circle_outlined,
         size: 20,
-        color: selected ? AppColors.secondary : AppColors.onSurfaceVariant,
+        color: selected
+            ? context.colors.secondary
+            : context.colors.onSurfaceVariant,
       ),
       title: Text(
         label,
         maxLines: 1,
         overflow: TextOverflow.ellipsis,
-        style: TextStyle(color: AppColors.onSurface),
+        style: TextStyle(color: context.colors.onSurface),
       ),
       onTap: onTap,
     );
@@ -751,7 +756,7 @@ class _ErrorOverlay extends StatelessWidget {
       child: Column(
         mainAxisAlignment: MainAxisAlignment.center,
         children: <Widget>[
-          const Icon(Icons.error_outline, size: 56, color: AppColors.error),
+          Icon(Icons.error_outline, size: 56, color: context.colors.error),
           const SizedBox(height: 12),
           Text(message, style: const TextStyle(color: Colors.white)),
           const SizedBox(height: 12),
@@ -773,12 +778,13 @@ class _GuideTile extends StatelessWidget {
   Widget build(BuildContext context) {
     final String time = '${_two(entry.start.hour)}:${_two(entry.start.minute)}'
         ' - ${_two(entry.end.hour)}:${_two(entry.end.minute)}';
+    final AppColors colors = context.colors;
 
     return Container(
       margin: const EdgeInsets.symmetric(horizontal: 12, vertical: 4),
       padding: const EdgeInsets.all(10),
       decoration: BoxDecoration(
-        color: isOnAir ? AppColors.primaryContainer : AppColors.surfaceVariant,
+        color: isOnAir ? colors.primaryContainer : colors.surfaceVariant,
         borderRadius: BorderRadius.circular(8),
       ),
       child: Row(
@@ -788,7 +794,7 @@ class _GuideTile extends StatelessWidget {
             child: Text(
               time,
               style: TextStyle(
-                color: isOnAir ? AppColors.primary : AppColors.onSurface,
+                color: isOnAir ? colors.primary : colors.onSurface,
                 fontWeight: FontWeight.w600,
               ),
             ),
@@ -814,8 +820,8 @@ class _GuideTile extends StatelessWidget {
                     entry.description!,
                     maxLines: 2,
                     overflow: TextOverflow.ellipsis,
-                    style: const TextStyle(
-                      color: AppColors.onSurfaceVariant,
+                    style: TextStyle(
+                      color: colors.onSurfaceVariant,
                       fontSize: 12,
                     ),
                   ),
