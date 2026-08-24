@@ -10,6 +10,7 @@ import 'history_state.dart';
 class HistoryBloc extends Bloc<HistoryEvent, HistoryState> {
   HistoryBloc(this._repository) : super(const HistoryLoading()) {
     on<HistoryStarted>(_onStarted);
+    on<HistoryCleared>(_onCleared);
   }
 
   final IptvRepository _repository;
@@ -24,6 +25,19 @@ class HistoryBloc extends Bloc<HistoryEvent, HistoryState> {
       emit(HistoryLoaded(items));
     } catch (e) {
       if (kDebugMode) debugPrint('HistoryBloc error: $e');
+      emit(const HistoryFailure('historyLoadError'));
+    }
+  }
+
+  Future<void> _onCleared(
+    HistoryCleared event,
+    Emitter<HistoryState> emit,
+  ) async {
+    try {
+      await _repository.clearHistory();
+      emit(const HistoryLoaded(<HistoryItem>[]));
+    } catch (e) {
+      if (kDebugMode) debugPrint('HistoryBloc clear error: $e');
       emit(const HistoryFailure('historyLoadError'));
     }
   }

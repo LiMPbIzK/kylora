@@ -295,6 +295,11 @@ class XtreamRepository implements IptvRepository {
         .toList();
   }
 
+  @override
+  Future<void> clearHistory() async {
+    await _db.delete(_db.history).go();
+  }
+
   domain.ContentType _parseContentType(String value) {
     return switch (value) {
       'live' => domain.ContentType.live,

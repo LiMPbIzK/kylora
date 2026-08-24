@@ -187,6 +187,9 @@ class _FakeRepository implements IptvRepository {
 
   @override
   Future<List<HistoryItem>> getHistory() async => <HistoryItem>[];
+
+  @override
+  Future<void> clearHistory() async {}
 }
 
 void main() {
@@ -241,7 +244,7 @@ void main() {
       ),
     );
     expect(find.byType(HomeShellScreen), findsOneWidget);
-    expect(find.text('Kylora'), findsOneWidget);
+    expect(find.text('Live TV'), findsOneWidget);
   });
 
   testWidgets('Login válido navega al dashboard', (WidgetTester tester) async {
@@ -462,6 +465,9 @@ class _FailingRepository implements IptvRepository {
   @override
   Future<List<HistoryItem>> getHistory() async =>
       throw UnimplementedError();
+
+  @override
+  Future<void> clearHistory() async => throw UnimplementedError();
 }
 
 void _testAuthBloc() {

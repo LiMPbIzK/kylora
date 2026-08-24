@@ -111,6 +111,9 @@ class _FakeRepo implements IptvRepository {
   @override
   Future<List<HistoryItem>> getHistory() async =>
       throw UnimplementedError();
+
+  @override
+  Future<void> clearHistory() async => throw UnimplementedError();
 }
 
 /// Procesa los microtasks del bloc hasta que el estado sea un `VodLoaded`

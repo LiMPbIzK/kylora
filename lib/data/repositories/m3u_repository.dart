@@ -248,6 +248,11 @@ class M3uRepository implements IptvRepository {
         .toList();
   }
 
+  @override
+  Future<void> clearHistory() async {
+    await _db.delete(_db.history).go();
+  }
+
   /// Descarga y parsea la lista M3U (y la guía XMLTV opcional).
   Future<void> _loadPlaylist(String m3uUrl, String? xmltvUrl) async {
     final String content = await _downloader.download(

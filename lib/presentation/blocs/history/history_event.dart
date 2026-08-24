@@ -12,3 +12,8 @@ sealed class HistoryEvent extends Equatable {
 final class HistoryStarted extends HistoryEvent {
   const HistoryStarted();
 }
+
+/// Vacía por completo el historial de reproducción.
+final class HistoryCleared extends HistoryEvent {
+  const HistoryCleared();
+}

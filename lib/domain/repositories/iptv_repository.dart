@@ -79,4 +79,7 @@ abstract interface class IptvRepository {
 
   /// Obtiene el historial de reproducción ordenado por fecha (más reciente primero).
   Future<List<HistoryItem>> getHistory();
+
+  /// Vacía todo el historial de reproducción.
+  Future<void> clearHistory();
 }
