@@ -18,7 +18,7 @@
 
 * **Soporte multi-fuente:** Compatibilidad directa con la API Xtream Codes y listas estáticas M3U/M3U8 con EPG XMLTV.
 * **100% local y privado:** Sin backend propio, telemetría ni bases de datos externas. Tus credenciales y listas permanecen estrictamente en tu dispositivo.
-* **UI nativa multiplataforma:** Interfaz adaptada con controles táctiles responsivos para móvil/tablet y gestión completa del foco D-Pad (anillos de foco, `autofocus`) para mandos de TV y navegación con teclado, con banner Leanback para Android TV/Fire TV.
+* **UI nativa multiplataforma:** Interfaz adaptada con controles táctiles responsivos para móvil/tablet y gestión completa del foco D-Pad (anillos de foco, `autofocus`) para mandos de TV y navegación con teclado, con banner Leanback para Android TV/Fire TV. Catálogo en rejilla con selección de secciones vertical, menú contextual (reproducir / favoritos / guía) y guía de programación embebida en el reproductor.
 * **Motor acelerado por hardware:** Impulsado por `media_kit` (libmpv) para demuxing nativo de flujos MPEG-TS, HLS y MKV, con múltiples pistas de audio y selección de subtítulos embebidos. El OSD del reproductor incluye barra de progreso con búsqueda (seek), selectores centrados de audio/subtítulos, control de volumen y pantalla completa nativa.
 * **Indexación local inteligente:** El análisis pesado de listas se ejecuta en isolates en segundo plano y se indexa con Drift (SQLite) para búsqueda y categorización instantáneas.
 * **Multidioma (i18n):** Soporte nativo de inglés, español, francés, alemán, italiano y portugués.
