@@ -125,6 +125,14 @@
   "@allCategories": {
     "description": "Etiqueta del chip para mostrar todos los canales sin filtrar."
   },
+  "addedToFavorites": "Añadido a favoritos",
+  "@addedToFavorites": {
+    "description": "Mensaje al añadir un canal a favoritos con pulsación prolongada."
+  },
+  "removedFromFavorites": "Eliminado de favoritos",
+  "@removedFromFavorites": {
+    "description": "Mensaje al quitar un canal de favoritos con pulsación prolongada."
+  },
   "noChannels": "No hay canales en esta categoría",
   "@noChannels": {
     "description": "Se muestra cuando la categoría seleccionada no tiene canales."
@@ -172,6 +180,10 @@
   "nextEpg": "Siguiente",
   "@nextEpg": {
     "description": "Etiqueta del siguiente programa en la lista de canales."
+  },
+  "close": "Cerrar",
+  "@close": {
+    "description": "Botón para cerrar un panel o diálogo."
   },
   "searchPlaceholder": "Buscar canales, películas...",
   "@searchPlaceholder": {
@@ -254,6 +266,18 @@
     "description": "Mensaje de error cuando falla la carga de favoritos."
   },
   "noHistory": "No hay historial de reproducción",
+  "clearHistory": "Vaciar historial",
+  "@clearHistory": {
+    "description": "Botón para vaciar por completo el historial de reproducción."
+  },
+  "clearHistoryConfirm": "¿Seguro que quieres borrar todo el historial? Esta acción no se puede deshacer.",
+  "@clearHistoryConfirm": {
+    "description": "Mensaje de confirmación antes de vaciar el historial."
+  },
+  "cancel": "Cancelar",
+  "@cancel": {
+    "description": "Botón para cancelar una acción de confirmación."
+  },
   "@noHistory": {
     "description": "Se muestra cuando el historial está vacío."
   },

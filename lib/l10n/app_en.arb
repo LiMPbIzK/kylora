@@ -121,9 +121,17 @@
   "@liveTv": {
     "description": "Panel section for live channels."
   },
-  "allCategories": "All",
+"allCategories": "All",
   "@allCategories": {
-    "description": "Chip label to show all live channels without filtering."
+    "description": "Label of the chip that shows all channels without filtering."
+  },
+  "addedToFavorites": "Added to favorites",
+  "@addedToFavorites": {
+    "description": "Message shown when a channel is added to favorites with a long press."
+  },
+  "removedFromFavorites": "Removed from favorites",
+  "@removedFromFavorites": {
+    "description": "Message shown when a channel is removed from favorites with a long press."
   },
   "noChannels": "No channels in this category",
   "@noChannels": {
@@ -169,9 +177,13 @@
   "@nowEpg": {
     "description": "Label of the currently on-air program in the channel list."
   },
-  "nextEpg": "Next",
+"nextEpg": "Next",
   "@nextEpg": {
-    "description": "Label of the upcoming program in the channel list."
+    "description": "Label of the next program in the channel list."
+  },
+  "close": "Close",
+  "@close": {
+    "description": "Button to close a panel or dialog."
   },
   "searchPlaceholder": "Search channels, movies...",
   "@searchPlaceholder": {
@@ -254,6 +266,18 @@
     "description": "Error message when favorites fail to load."
   },
   "noHistory": "No playback history",
+  "clearHistory": "Clear history",
+  "@clearHistory": {
+    "description": "Button to clear the entire playback history."
+  },
+  "clearHistoryConfirm": "Are you sure you want to delete all history? This action cannot be undone.",
+  "@clearHistoryConfirm": {
+    "description": "Confirmation message before clearing history."
+  },
+  "cancel": "Cancel",
+  "@cancel": {
+    "description": "Button to cancel a confirmation action."
+  },
   "@noHistory": {
     "description": "Shown when the history is empty."
   },

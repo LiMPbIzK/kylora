@@ -101,6 +101,12 @@ class AppLocalizationsEs extends AppLocalizations {
   String get allCategories => 'Todas';
 
   @override
+  String get addedToFavorites => 'Añadido a favoritos';
+
+  @override
+  String get removedFromFavorites => 'Eliminado de favoritos';
+
+  @override
   String get noChannels => 'No hay canales en esta categoría';
 
   @override
@@ -136,6 +142,9 @@ class AppLocalizationsEs extends AppLocalizations {
 
   @override
   String get nextEpg => 'Siguiente';
+
+  @override
+  String get close => 'Cerrar';
 
   @override
   String get searchPlaceholder => 'Buscar canales, películas...';
@@ -199,6 +208,16 @@ class AppLocalizationsEs extends AppLocalizations {
 
   @override
   String get noHistory => 'No hay historial de reproducción';
+
+  @override
+  String get clearHistory => 'Vaciar historial';
+
+  @override
+  String get clearHistoryConfirm =>
+      '¿Seguro que quieres borrar todo el historial? Esta acción no se puede deshacer.';
+
+  @override
+  String get cancel => 'Cancelar';
 
   @override
   String get historyLoadError => 'No se pudo cargar el historial';

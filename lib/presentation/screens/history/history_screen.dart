@@ -32,17 +32,54 @@ class _HistoryScreenState extends State<HistoryScreen> {
   Widget build(BuildContext context) {
     final AppLocalizations l10n = AppLocalizations.of(context)!;
 
-    return BlocBuilder<HistoryBloc, HistoryState>(
-      builder: (context, state) {
-        return switch (state) {
-          HistoryLoading() => const Center(child: CircularProgressIndicator()),
-          HistoryFailure() => _EmptyView(message: l10n.historyLoadError),
-          HistoryLoaded() => state.items.isEmpty
-              ? _EmptyView(message: l10n.noHistory)
-              : _HistoryList(items: state.items),
-        };
-      },
+    return Scaffold(
+      appBar: AppBar(
+        title: Text(l10n.history),
+        actions: <Widget>[
+          IconButton(
+            tooltip: l10n.clearHistory,
+            icon: const Icon(Icons.delete_outline),
+            onPressed: () => _confirmClear(context, l10n),
+          ),
+        ],
+      ),
+      body: BlocBuilder<HistoryBloc, HistoryState>(
+        builder: (context, state) {
+          return switch (state) {
+            HistoryLoading() => const Center(child: CircularProgressIndicator()),
+            HistoryFailure() => _EmptyView(message: l10n.historyLoadError),
+            HistoryLoaded() => state.items.isEmpty
+                ? _EmptyView(message: l10n.noHistory)
+                : _HistoryList(items: state.items),
+          };
+        },
+      ),
     );
+  }
+
+  void _confirmClear(BuildContext context, AppLocalizations l10n) {
+    final HistoryBloc bloc = context.read<HistoryBloc>();
+    showDialog<bool>(
+      context: context,
+      builder: (dialogContext) => AlertDialog(
+        title: Text(l10n.clearHistory),
+        content: Text(l10n.clearHistoryConfirm),
+        actions: <Widget>[
+          TextButton(
+            onPressed: () => Navigator.of(dialogContext).pop(false),
+            child: Text(l10n.cancel),
+          ),
+          FilledButton(
+            onPressed: () => Navigator.of(dialogContext).pop(true),
+            child: Text(l10n.clearHistory),
+          ),
+        ],
+      ),
+    ).then((bool? confirmed) {
+      if (confirmed ?? false) {
+        bloc.add(const HistoryCleared());
+      }
+    });
   }
 }
 

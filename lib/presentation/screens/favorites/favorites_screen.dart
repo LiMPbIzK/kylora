@@ -35,16 +35,19 @@ class _FavoritesScreenState extends State<FavoritesScreen> {
   Widget build(BuildContext context) {
     final AppLocalizations l10n = AppLocalizations.of(context)!;
 
-    return BlocBuilder<FavoritesBloc, FavoritesState>(
-      builder: (context, state) {
-        return switch (state) {
-          FavoritesLoading() => const Center(child: CircularProgressIndicator()),
-          FavoritesFailure() => _EmptyView(message: l10n.favoritesLoadError),
-          FavoritesLoaded() => state.items.isEmpty
-              ? _EmptyView(message: l10n.noFavorites)
-              : _FavoritesList(items: state.items),
-        };
-      },
+    return Scaffold(
+      appBar: AppBar(title: Text(l10n.favorites)),
+      body: BlocBuilder<FavoritesBloc, FavoritesState>(
+        builder: (context, state) {
+          return switch (state) {
+            FavoritesLoading() => const Center(child: CircularProgressIndicator()),
+            FavoritesFailure() => _EmptyView(message: l10n.favoritesLoadError),
+            FavoritesLoaded() => state.items.isEmpty
+                ? _EmptyView(message: l10n.noFavorites)
+                : _FavoritesList(items: state.items),
+          };
+        },
+      ),
     );
   }
 }

@@ -260,11 +260,23 @@ abstract class AppLocalizations {
   /// **'Live TV'**
   String get liveTv;
 
-  /// Chip label to show all live channels without filtering.
+  /// Label of the chip that shows all channels without filtering.
   ///
   /// In en, this message translates to:
   /// **'All'**
   String get allCategories;
+
+  /// Message shown when a channel is added to favorites with a long press.
+  ///
+  /// In en, this message translates to:
+  /// **'Added to favorites'**
+  String get addedToFavorites;
+
+  /// Message shown when a channel is removed from favorites with a long press.
+  ///
+  /// In en, this message translates to:
+  /// **'Removed from favorites'**
+  String get removedFromFavorites;
 
   /// Shown when the selected category has no channels.
   ///
@@ -332,11 +344,17 @@ abstract class AppLocalizations {
   /// **'Now'**
   String get nowEpg;
 
-  /// Label of the upcoming program in the channel list.
+  /// Label of the next program in the channel list.
   ///
   /// In en, this message translates to:
   /// **'Next'**
   String get nextEpg;
+
+  /// Button to close a panel or dialog.
+  ///
+  /// In en, this message translates to:
+  /// **'Close'**
+  String get close;
 
   /// Placeholder text of the search field.
   ///
@@ -457,6 +475,24 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'No playback history'**
   String get noHistory;
+
+  /// Button to clear the entire playback history.
+  ///
+  /// In en, this message translates to:
+  /// **'Clear history'**
+  String get clearHistory;
+
+  /// Confirmation message before clearing history.
+  ///
+  /// In en, this message translates to:
+  /// **'Are you sure you want to delete all history? This action cannot be undone.'**
+  String get clearHistoryConfirm;
+
+  /// Button to cancel a confirmation action.
+  ///
+  /// In en, this message translates to:
+  /// **'Cancel'**
+  String get cancel;
 
   /// Error message when history fails to load.
   ///
