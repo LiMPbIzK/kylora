@@ -4,12 +4,12 @@ import 'package:go_router/go_router.dart';
 
 import '../../../app.dart';
 import '../../../core/theme/app_theme.dart';
-import '../../../domain/entities/category.dart';
 import '../../../domain/entities/series.dart';
 import '../../../l10n/app_localizations.dart';
 import '../../blocs/series/series_bloc.dart';
 import '../../blocs/series/series_event.dart';
 import '../../blocs/series/series_state.dart';
+import '../../shared_widgets/category_sidebar.dart';
 import '../../shared_widgets/media_poster.dart';
 import '../../shared_widgets/tv_focusable.dart';
 
@@ -106,54 +106,51 @@ class _SeriesContent extends StatelessWidget {
             ),
           ),
         ),
-        SizedBox(
-          height: 48,
-          child: ListView(
-            scrollDirection: Axis.horizontal,
-            padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
-            children: <Widget>[
-              _CategoryChip(
-                label: l10n.allCategories,
-                selected: state.isAllSelected,
-                onTap: () =>
-                    context.read<SeriesBloc>().add(const SeriesCategorySelected(null)),
-              ),
-              for (final Category category in state.categories)
-                _CategoryChip(
-                  label: category.name,
-                  selected: state.selectedCategoryId == category.id,
-                  onTap: () => context
-                      .read<SeriesBloc>()
-                      .add(SeriesCategorySelected(category.id)),
-                ),
-            ],
-          ),
-        ),
         const Divider(height: 1),
         Expanded(
-          child: state.seriesList.isEmpty
-              ? Center(
-                  child: Text(
-                    state.isSearching ? l10n.searchNoResults : l10n.noSeries,
-                  ),
-                )
-              : GridView.builder(
-                  padding: const EdgeInsets.all(12),
-                  gridDelegate:
-                      const SliverGridDelegateWithMaxCrossAxisExtent(
-                        maxCrossAxisExtent: 220,
-                        mainAxisSpacing: 12,
-                        crossAxisSpacing: 12,
-                        childAspectRatio: 0.62,
+          child: Row(
+            crossAxisAlignment: CrossAxisAlignment.stretch,
+            children: <Widget>[
+              CategorySidebar(
+                categories: state.categories,
+                allLabel: l10n.allCategories,
+                isAllSelected: state.isAllSelected,
+                selectedCategoryId: state.selectedCategoryId,
+                onCategorySelected: (int? id) => context
+                    .read<SeriesBloc>()
+                    .add(SeriesCategorySelected(id)),
+                icon: Icons.theaters,
+              ),
+              const VerticalDivider(width: 1),
+              Expanded(
+                child: state.seriesList.isEmpty
+                    ? Center(
+                        child: Text(
+                          state.isSearching
+                              ? l10n.searchNoResults
+                              : l10n.noSeries,
+                        ),
+                      )
+                    : GridView.builder(
+                        padding: const EdgeInsets.all(12),
+                        gridDelegate:
+                            const SliverGridDelegateWithMaxCrossAxisExtent(
+                              maxCrossAxisExtent: 220,
+                              mainAxisSpacing: 12,
+                              crossAxisSpacing: 12,
+                              childAspectRatio: 0.62,
+                            ),
+                        itemCount: state.seriesList.length,
+                        itemBuilder: (context, index) {
+                          return _SeriesCard(
+                            series: state.seriesList[index],
+                            autofocus: index == 0,
+                          );
+                        },
                       ),
-                  itemCount: state.seriesList.length,
-                  itemBuilder: (context, index) {
-                    return _SeriesCard(
-                      series: state.seriesList[index],
-                      autofocus: index == 0,
-                    );
-                  },
-                ),
+              ),
+            ],
+          ),
         ),
       ],
     );
@@ -191,37 +188,6 @@ class _SeriesCard extends StatelessWidget {
             ),
           ],
         ),
-      ),
-    );
-  }
-}
-
-/// Chip de categoría seleccionable.
-class _CategoryChip extends StatelessWidget {
-  const _CategoryChip({
-    required this.label,
-    required this.selected,
-    required this.onTap,
-  });
-
-  final String label;
-  final bool selected;
-  final VoidCallback onTap;
-
-  @override
-  Widget build(BuildContext context) {
-    return Padding(
-      padding: const EdgeInsets.symmetric(horizontal: 4),
-      child: ChoiceChip(
-        label: Text(label),
-        selected: selected,
-        onSelected: (_) => onTap(),
-        selectedColor: AppColors.primary,
-        backgroundColor: AppColors.surface,
-        labelStyle: TextStyle(
-          color: selected ? AppColors.onPrimary : AppColors.onSurface,
-        ),
-        side: BorderSide(color: AppColors.surfaceVariant),
       ),
     );
   }

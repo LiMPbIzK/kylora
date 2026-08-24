@@ -25,7 +25,6 @@ class HomeShellScreen extends StatelessWidget {
       length: 3,
       child: Scaffold(
         appBar: AppBar(
-          title: const Text('Kylora'),
           actions: <Widget>[
             IconButton(
               tooltip: l10n.favorites,
@@ -68,7 +67,7 @@ class HomeShellScreen extends StatelessWidget {
           bottom: TabBar(
             indicatorColor: AppColors.primary,
             labelColor: AppColors.onSurface,
-            unselectedLabelColor: AppColors.surfaceVariant,
+            unselectedLabelColor: AppColors.onSurface,
             tabs: <Widget>[
               Tab(text: l10n.liveTv, icon: const Icon(Icons.live_tv, size: 20)),
               Tab(text: l10n.movies, icon: const Icon(Icons.movie, size: 20)),

@@ -45,29 +45,35 @@ class _TvFocusableState extends State<TvFocusable> {
       onShowHoverHighlight: (bool value) {
         if (mounted) setState(() => _hovered = value);
       },
-      actions: <Type, Action<Intent>>{
-        ActivateIntent: CallbackAction<ActivateIntent>(
-          onInvoke: (Intent intent) {
-            widget.onPressed?.call();
-            return null;
-          },
-        ),
-      },
-      child: AnimatedScale(
-        scale: active ? widget.focusScale : 1.0,
-        duration: const Duration(milliseconds: 120),
-        curve: Curves.easeOut,
-        child: AnimatedContainer(
+      actions: widget.onPressed == null
+          ? null
+          : <Type, Action<Intent>>{
+              ActivateIntent: CallbackAction<ActivateIntent>(
+                onInvoke: (Intent intent) {
+                  widget.onPressed?.call();
+                  return null;
+                },
+              ),
+            },
+      child: ClipRect(
+        // Recorta la escala para que el elemento enfocado no se salga del
+        // ancho de la pantalla (el efecto crece desde el centro).
+        child: AnimatedScale(
+          scale: active ? widget.focusScale : 1.0,
           duration: const Duration(milliseconds: 120),
           curve: Curves.easeOut,
-          decoration: BoxDecoration(
-            borderRadius: widget.borderRadius,
-            border: Border.all(
-              color: active ? AppColors.focusGlow : Colors.transparent,
-              width: 3,
+          child: AnimatedContainer(
+            duration: const Duration(milliseconds: 120),
+            curve: Curves.easeOut,
+            decoration: BoxDecoration(
+              borderRadius: widget.borderRadius,
+              border: Border.all(
+                color: active ? AppColors.focusGlow : Colors.transparent,
+                width: 3,
+              ),
             ),
+            child: widget.child,
           ),
-          child: widget.child,
         ),
       ),
     );

@@ -1,26 +1,35 @@
 import 'package:cached_network_image/cached_network_image.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
-import 'package:go_router/go_router.dart';
 
-import '../../../app.dart';
 import '../../../core/media/playback_request.dart';
 import '../../../core/theme/app_theme.dart';
-import '../../../domain/entities/category.dart';
 import '../../../domain/entities/channel.dart';
+import '../../../domain/entities/content_type.dart';
 import '../../../domain/entities/epg.dart';
+import '../../../domain/entities/favorite_item.dart';
 import '../../../domain/repositories/iptv_repository.dart';
 import '../../../l10n/app_localizations.dart';
 import '../../blocs/epg/epg_bloc.dart';
 import '../../blocs/epg/epg_event.dart';
 import '../../blocs/epg/epg_state.dart';
+import '../../blocs/favorites/favorites_bloc.dart';
+import '../../blocs/favorites/favorites_event.dart';
+import '../../blocs/favorites/favorites_state.dart';
 import '../../blocs/live/live_bloc.dart';
 import '../../blocs/live/live_event.dart';
 import '../../blocs/live/live_state.dart';
+import '../../shared_widgets/category_sidebar.dart';
 import '../../shared_widgets/tv_focusable.dart';
 import '../player/playback_scope.dart';
 
-/// Catálogo de canales en directo con categorías y logos.
+/// Catálogo de canales en directo con buscador, categorías a la izquierda y
+/// rejilla de tarjetas.
+///
+/// Layout orientado a Android TV: las secciones se seleccionan en una columna
+/// vertical a la izquierda y los canales se muestran en una rejilla de tarjetas
+/// cuadradas. Un toque reproduce el canal; una pulsación prolongada alterna el
+/// favorito mostrando un mensaje con la acción realizada.
 class LiveScreen extends StatefulWidget {
   const LiveScreen({super.key});
 
@@ -55,14 +64,17 @@ class _LiveScreenState extends State<LiveScreen> {
         return switch (state) {
           LiveLoading() => const Center(child: CircularProgressIndicator()),
           LiveFailure() => _ErrorView(message: l10n.liveLoadError),
-          LiveLoaded() => _LiveContent(state: state, controller: _searchController),
+          LiveLoaded() => _LiveContent(
+            state: state,
+            controller: _searchController,
+          ),
         };
       },
     );
   }
 }
 
-/// Contenido del catálogo: buscador, chips de categorías y lista de canales.
+/// Contenido del catálogo: buscador, categorías verticales y rejilla de canales.
 class _LiveContent extends StatelessWidget {
   const _LiveContent({required this.state, required this.controller});
 
@@ -76,7 +88,7 @@ class _LiveContent extends StatelessWidget {
     return Column(
       children: <Widget>[
         Padding(
-          padding: const EdgeInsets.fromLTRB(12, 8, 12, 0),
+          padding: const EdgeInsets.fromLTRB(12, 8, 12, 4),
           child: TextField(
             controller: controller,
             onChanged: (String value) =>
@@ -89,7 +101,9 @@ class _LiveContent extends StatelessWidget {
                       icon: const Icon(Icons.clear),
                       onPressed: () {
                         controller.clear();
-                        context.read<LiveBloc>().add(const LiveSearchChanged(''));
+                        context
+                            .read<LiveBloc>()
+                            .add(const LiveSearchChanged(''));
                       },
                     )
                   : null,
@@ -101,96 +115,101 @@ class _LiveContent extends StatelessWidget {
             ),
           ),
         ),
-        SizedBox(
-          height: 48,
-          child: ListView(
-            scrollDirection: Axis.horizontal,
-            padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
-            children: <Widget>[
-              _CategoryChip(
-                label: l10n.allCategories,
-                selected: state.isAllSelected,
-                onTap: () => context.read<LiveBloc>().add(
-                  const LiveCategorySelected(null),
-                ),
-              ),
-              for (final Category category in state.categories)
-                _CategoryChip(
-                  label: category.name,
-                  selected: state.selectedCategoryId == category.id,
-                  onTap: () => context.read<LiveBloc>().add(
-                    LiveCategorySelected(category.id),
-                  ),
-                ),
-            ],
-          ),
-        ),
         const Divider(height: 1),
         Expanded(
-          child: state.channels.isEmpty
-              ? Center(
-                  child: Text(
-                    state.isSearching ? l10n.searchNoResults : l10n.noChannels,
-                  ),
-                )
-              : ListView.builder(
-                  itemCount: state.channels.length,
-                  itemBuilder: (context, index) {
-                    return _ChannelTile(
-                      channel: state.channels[index],
-                      autofocus: index == 0,
-                    );
-                  },
-                ),
+          child: Row(
+            crossAxisAlignment: CrossAxisAlignment.stretch,
+            children: <Widget>[
+              CategorySidebar(
+                categories: state.categories,
+                allLabel: l10n.allCategories,
+                isAllSelected: state.isAllSelected,
+                selectedCategoryId: state.selectedCategoryId,
+                onCategorySelected: (int? id) => context
+                    .read<LiveBloc>()
+                    .add(LiveCategorySelected(id)),
+              ),
+              const VerticalDivider(width: 1),
+              Expanded(
+                child: state.channels.isEmpty
+                    ? Center(
+                        child: Text(
+                          state.isSearching
+                              ? l10n.searchNoResults
+                              : l10n.noChannels,
+                        ),
+                      )
+                    : _ChannelsGrid(channels: state.channels),
+              ),
+            ],
+          ),
         ),
       ],
     );
   }
 }
 
-/// Chip de categoría seleccionable.
-class _CategoryChip extends StatelessWidget {
-  const _CategoryChip({
-    required this.label,
-    required this.selected,
-    required this.onTap,
-  });
+/// Rejilla de tarjetas cuadradas de canales.
+class _ChannelsGrid extends StatelessWidget {
+  const _ChannelsGrid({required this.channels});
 
-  final String label;
-  final bool selected;
-  final VoidCallback onTap;
+  final List<Channel> channels;
 
   @override
   Widget build(BuildContext context) {
-    return Padding(
-      padding: const EdgeInsets.symmetric(horizontal: 4),
-      child: ChoiceChip(
-        label: Text(label),
-        selected: selected,
-        onSelected: (_) => onTap(),
-        selectedColor: AppColors.primary,
-        backgroundColor: AppColors.surface,
-        labelStyle: TextStyle(
-          color: selected ? AppColors.onPrimary : AppColors.onSurface,
-        ),
-        side: BorderSide(color: AppColors.surfaceVariant),
-      ),
+    return BlocBuilder<FavoritesBloc, FavoritesState>(
+      buildWhen: (previous, current) => current is FavoritesLoaded,
+      builder: (context, favoritesState) {
+        final Set<int> favoriteIds = <int>{};
+        if (favoritesState is FavoritesLoaded) {
+          for (final FavoriteItem item in favoritesState.items) {
+            if (item.contentType.name == 'live') favoriteIds.add(item.contentId);
+          }
+        }
+        return GridView.builder(
+          padding: const EdgeInsets.all(12),
+          gridDelegate: const SliverGridDelegateWithMaxCrossAxisExtent(
+            maxCrossAxisExtent: 220,
+            mainAxisSpacing: 12,
+            crossAxisSpacing: 12,
+            childAspectRatio: 1.0,
+          ),
+          itemCount: channels.length,
+          itemBuilder: (context, index) {
+            return _ChannelCard(
+              channel: channels[index],
+              isFavorite: favoriteIds.contains(channels[index].id),
+              autofocus: index == 0,
+            );
+          },
+        );
+      },
     );
   }
 }
 
-/// Fila de canal con logo, programa ahora/siguiente y acceso a la guía.
-class _ChannelTile extends StatefulWidget {
-  const _ChannelTile({required this.channel, this.autofocus = false});
+/// Tarjeta cuadrada de canal: logo, botón de guía y reproducción/favorito.
+/// Acciones disponibles en el menú contextual de una tarjeta de canal.
+enum _ChannelAction { play, favorite, guide }
+
+class _ChannelCard extends StatefulWidget {
+  const _ChannelCard({
+    required this.channel,
+    this.isFavorite = false,
+    this.autofocus = false,
+  });
 
   final Channel channel;
+  final bool isFavorite;
   final bool autofocus;
 
   @override
-  State<_ChannelTile> createState() => _ChannelTileState();
+  State<_ChannelCard> createState() => _ChannelCardState();
 }
 
-class _ChannelTileState extends State<_ChannelTile> {
+class _ChannelCardState extends State<_ChannelCard> {
+  bool _hasGuide = false;
+
   @override
   void initState() {
     super.initState();
@@ -204,46 +223,97 @@ class _ChannelTileState extends State<_ChannelTile> {
 
   @override
   Widget build(BuildContext context) {
-    final String? number =
-        widget.channel.number != null ? '${widget.channel.number}' : null;
-
-    return TvFocusable(
-      autofocus: widget.autofocus,
-      borderRadius: BorderRadius.circular(8),
-      onPressed: _play,
-      child: ListTile(
-        leading: _ChannelLogo(logo: widget.channel.logo),
-        title: Text(
-          widget.channel.name,
-          maxLines: 1,
-          overflow: TextOverflow.ellipsis,
-        ),
-        subtitle: Column(
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: <Widget>[
-            if (number != null)
-              Text('CH $number', style: const TextStyle(fontSize: 12)),
-            _EpgLine(streamId: widget.channel.id),
-          ],
-        ),
-        isThreeLine: true,
-        trailing: IconButton(
-          tooltip: context.l10n.epgGuide,
-          icon: const Icon(
-            Icons.calendar_view_day,
-            color: AppColors.primary,
+    return BlocBuilder<EpgBloc, EpgState>(
+      buildWhen: (previous, current) =>
+          current is EpgNowNextLoaded && current.streamId == widget.channel.id,
+      builder: (context, epgState) {
+        final bool hasGuide = epgState is EpgNowNextLoaded && epgState.hasGuide;
+        _hasGuide = hasGuide;
+        return TvFocusable(
+          autofocus: widget.autofocus,
+          onPressed: _play,
+          borderRadius: BorderRadius.circular(10),
+          child: Material(
+            color: AppColors.surface,
+            borderRadius: BorderRadius.circular(10),
+            clipBehavior: Clip.antiAlias,
+            child: InkWell(
+              onTap: _play,
+              onLongPress: _showContextMenu,
+              onSecondaryTap: _showContextMenu,
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.stretch,
+                children: <Widget>[
+                  Expanded(
+                    child: Stack(
+                      fit: StackFit.expand,
+                      children: <Widget>[
+                        _ChannelLogo(logo: widget.channel.logo),
+                        Positioned(
+                          top: 6,
+                          left: 6,
+                          child: Icon(
+                            Icons.favorite,
+                            color: widget.isFavorite
+                                ? AppColors.secondary
+                                : Colors.transparent,
+                            size: 22,
+                            semanticLabel:
+                                AppLocalizations.of(context)!.favorites,
+                          ),
+                        ),
+                        if (hasGuide)
+                          Positioned(
+                            top: 0,
+                            right: 0,
+                            child: IgnorePointer(
+                              child: Padding(
+                                padding: const EdgeInsets.all(6),
+                                child: Icon(
+                                  Icons.calendar_view_day,
+                                  color: AppColors.primary,
+                                  size: 22,
+                                  semanticLabel: AppLocalizations.of(
+                                    context,
+                                  )!.epgGuide,
+                                ),
+                              ),
+                            ),
+                          ),
+                      ],
+                    ),
+                  ),
+                  Padding(
+                    padding: const EdgeInsets.fromLTRB(8, 4, 8, 8),
+                    child: Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: <Widget>[
+                        Text(
+                          widget.channel.name,
+                          maxLines: 1,
+                          overflow: TextOverflow.ellipsis,
+                          style: const TextStyle(
+                            fontWeight: FontWeight.w600,
+                          ),
+                        ),
+                        _EpgLine(streamId: widget.channel.id),
+                      ],
+                    ),
+                  ),
+                ],
+              ),
+            ),
           ),
-          onPressed: () => context.push(
-            Routes.programGuide,
-            extra: widget.channel,
-          ),
-        ),
-        onTap: _play,
-      ),
+        );
+      },
     );
   }
 
   void _play() {
+    _playWithGuide(openGuide: false);
+  }
+
+  void _playWithGuide({bool openGuide = true}) {
     final IptvRepository repository = context.read<IptvRepository>();
     PlaybackScope.of(context).play(
       PlaybackRequest(
@@ -251,6 +321,113 @@ class _ChannelTileState extends State<_ChannelTile> {
         urlBuilder: () => repository.buildStreamUrl(widget.channel),
         contentType: 'live',
         contentId: widget.channel.id,
+        openGuide: openGuide,
+      ),
+    );
+  }
+
+  Future<void> _showContextMenu() async {
+    final AppLocalizations l10n = AppLocalizations.of(context)!;
+    final RenderBox? box = context.findRenderObject() as RenderBox?;
+    final Size screen = MediaQuery.sizeOf(context);
+
+    // Ancla el menú sobre la propia tarjeta (centrado en su posición).
+    RelativeRect position;
+    if (box != null && box.hasSize) {
+      final Offset topLeft = box.localToGlobal(Offset.zero);
+      final Rect anchor = Rect.fromLTWH(
+        topLeft.dx,
+        topLeft.dy,
+        box.size.width,
+        box.size.height,
+      );
+      position = RelativeRect.fromRect(anchor, Offset.zero & screen);
+    } else {
+      position = const RelativeRect.fromLTRB(0, 0, 0, 0);
+    }
+
+    final _ChannelAction? action = await showMenu<_ChannelAction>(
+      context: context,
+      position: position,
+      items: <PopupMenuEntry<_ChannelAction>>[
+        PopupMenuItem<_ChannelAction>(
+          value: _ChannelAction.play,
+          child: Row(
+            children: <Widget>[
+              const Icon(Icons.play_arrow, size: 20),
+              const SizedBox(width: 12),
+              Text(l10n.play),
+            ],
+          ),
+        ),
+        PopupMenuItem<_ChannelAction>(
+          value: _ChannelAction.favorite,
+          child: Row(
+            children: <Widget>[
+              Icon(
+                widget.isFavorite ? Icons.favorite : Icons.favorite_border,
+                size: 20,
+                color: widget.isFavorite
+                    ? AppColors.secondary
+                    : AppColors.onSurfaceVariant,
+              ),
+              const SizedBox(width: 12),
+              Text(l10n.favorites),
+            ],
+          ),
+        ),
+        if (_hasGuide)
+          PopupMenuItem<_ChannelAction>(
+            value: _ChannelAction.guide,
+            child: Row(
+              children: <Widget>[
+                const Icon(Icons.calendar_view_day, size: 20),
+                const SizedBox(width: 12),
+                Text(l10n.epgGuide),
+              ],
+            ),
+          ),
+      ],
+    );
+
+    switch (action) {
+      case _ChannelAction.play:
+        _play();
+      case _ChannelAction.favorite:
+        await _toggleFavorite();
+      case _ChannelAction.guide:
+        _playWithGuide();
+      case null:
+        break;
+    }
+  }
+
+  Future<void> _toggleFavorite() async {
+    final IptvRepository repository = context.read<IptvRepository>();
+    final FavoritesBloc favoritesBloc = context.read<FavoritesBloc>();
+    final AppLocalizations l10n = AppLocalizations.of(context)!;
+    final ScaffoldMessengerState messenger = ScaffoldMessenger.of(context);
+
+    final bool isFav = await repository.isFavorite(
+      widget.channel.id,
+      ContentType.live,
+    );
+    favoritesBloc.add(
+      FavoritesToggled(
+        widget.channel.id,
+        ContentType.live.name,
+        widget.channel.name,
+        widget.channel.logo,
+      ),
+    );
+    favoritesBloc.add(FavoritesStarted());
+
+    messenger.showSnackBar(
+      SnackBar(
+        content: Text(
+          isFav ? l10n.removedFromFavorites : l10n.addedToFavorites,
+        ),
+        duration: const Duration(seconds: 2),
       ),
     );
   }
@@ -336,26 +513,18 @@ class _ChannelLogo extends StatelessWidget {
     if (url == null || url.isEmpty) {
       return _fallbackLogo;
     }
-    return ClipRRect(
-      borderRadius: BorderRadius.circular(6),
-      child: SizedBox(
-        width: 40,
-        height: 40,
-        child: CachedNetworkImage(
-          imageUrl: url,
-          fit: BoxFit.contain,
-          placeholder: (context, url) => _fallbackLogo,
-          errorWidget: (context, url, error) => _fallbackLogo,
-        ),
-      ),
+    return CachedNetworkImage(
+      imageUrl: url,
+      fit: BoxFit.contain,
+      placeholder: (context, url) => _fallbackLogo,
+      errorWidget: (context, url, error) => _fallbackLogo,
     );
   }
 
   Widget get _fallbackLogo => Container(
-    width: 40,
-    height: 40,
     color: AppColors.surfaceVariant,
-    child: const Icon(Icons.tv, color: AppColors.primary, size: 22),
+    alignment: Alignment.center,
+    child: const Icon(Icons.tv, color: AppColors.primary, size: 32),
   );
 }
 

@@ -4,12 +4,12 @@ import 'package:go_router/go_router.dart';
 
 import '../../../app.dart';
 import '../../../core/theme/app_theme.dart';
-import '../../../domain/entities/category.dart';
 import '../../../domain/entities/movie.dart';
 import '../../../l10n/app_localizations.dart';
 import '../../blocs/vod/vod_bloc.dart';
 import '../../blocs/vod/vod_event.dart';
 import '../../blocs/vod/vod_state.dart';
+import '../../shared_widgets/category_sidebar.dart';
 import '../../shared_widgets/media_poster.dart';
 import '../../shared_widgets/tv_focusable.dart';
 
@@ -101,53 +101,48 @@ class _VodContent extends StatelessWidget {
             ),
           ),
         ),
-        SizedBox(
-          height: 48,
-          child: ListView(
-            scrollDirection: Axis.horizontal,
-            padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
-            children: <Widget>[
-              _CategoryChip(
-                label: l10n.allCategories,
-                selected: state.isAllSelected,
-                onTap: () => context
-                    .read<VodBloc>()
-                    .add(const VodCategorySelected(null)),
-              ),
-              for (final Category category in state.categories)
-                _CategoryChip(
-                  label: category.name,
-                  selected: state.selectedCategoryId == category.id,
-                  onTap: () => context
-                      .read<VodBloc>()
-                      .add(VodCategorySelected(category.id)),
-                ),
-            ],
-          ),
-        ),
         const Divider(height: 1),
         Expanded(
-          child: state.movies.isEmpty
-              ? Center(
-                  child: Text(state.isSearching ? l10n.searchNoResults : l10n.noMovies),
-                )
-              : GridView.builder(
-                  padding: const EdgeInsets.all(12),
-                  gridDelegate:
-                      const SliverGridDelegateWithMaxCrossAxisExtent(
-                        maxCrossAxisExtent: 220,
-                        mainAxisSpacing: 12,
-                        crossAxisSpacing: 12,
-                        childAspectRatio: 0.62,
+          child: Row(
+            crossAxisAlignment: CrossAxisAlignment.stretch,
+            children: <Widget>[
+              CategorySidebar(
+                categories: state.categories,
+                allLabel: l10n.allCategories,
+                isAllSelected: state.isAllSelected,
+                selectedCategoryId: state.selectedCategoryId,
+                onCategorySelected: (int? id) =>
+                    context.read<VodBloc>().add(VodCategorySelected(id)),
+                icon: Icons.movie,
+              ),
+              const VerticalDivider(width: 1),
+              Expanded(
+                child: state.movies.isEmpty
+                    ? Center(
+                        child: Text(
+                          state.isSearching ? l10n.searchNoResults : l10n.noMovies,
+                        ),
+                      )
+                    : GridView.builder(
+                        padding: const EdgeInsets.all(12),
+                        gridDelegate:
+                            const SliverGridDelegateWithMaxCrossAxisExtent(
+                              maxCrossAxisExtent: 220,
+                              mainAxisSpacing: 12,
+                              crossAxisSpacing: 12,
+                              childAspectRatio: 0.62,
+                            ),
+                        itemCount: state.movies.length,
+                        itemBuilder: (context, index) {
+                          return _MovieCard(
+                            movie: state.movies[index],
+                            autofocus: index == 0,
+                          );
+                        },
                       ),
-                  itemCount: state.movies.length,
-                  itemBuilder: (context, index) {
-                    return _MovieCard(
-                      movie: state.movies[index],
-                      autofocus: index == 0,
-                    );
-                  },
-                ),
+              ),
+            ],
+          ),
         ),
       ],
     );
@@ -185,37 +180,6 @@ class _MovieCard extends StatelessWidget {
             ),
           ],
         ),
-      ),
-    );
-  }
-}
-
-/// Chip de categoría seleccionable.
-class _CategoryChip extends StatelessWidget {
-  const _CategoryChip({
-    required this.label,
-    required this.selected,
-    required this.onTap,
-  });
-
-  final String label;
-  final bool selected;
-  final VoidCallback onTap;
-
-  @override
-  Widget build(BuildContext context) {
-    return Padding(
-      padding: const EdgeInsets.symmetric(horizontal: 4),
-      child: ChoiceChip(
-        label: Text(label),
-        selected: selected,
-        onSelected: (_) => onTap(),
-        selectedColor: AppColors.primary,
-        backgroundColor: AppColors.surface,
-        labelStyle: TextStyle(
-          color: selected ? AppColors.onPrimary : AppColors.onSurface,
-        ),
-        side: BorderSide(color: AppColors.surfaceVariant),
       ),
     );
   }
