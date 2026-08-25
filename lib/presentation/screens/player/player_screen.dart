@@ -40,15 +40,29 @@ class PlayerScreen extends StatefulWidget {
 enum _TrackPickerMode { audio, subtitles }
 
 class _PlayerScreenState extends State<PlayerScreen> {
-  late final VideoController _videoController;
   late final PlayerBloc _bloc;
+  late final VideoController _videoController;
   Timer? _hideTimer;
   bool _osdVisible = true;
   bool _isFullscreen = false;
-  bool _guideOpen = false;
-  int? _liveContentId;
   String _title = '';
+  int? _liveContentId;
+  bool _guideOpen = false;
   _TrackPickerMode? _picker;
+  StreamSubscription<Tracks>? _tracksSubscription;
+  bool _audioPreferenceApplied = false;
+  bool _audioPreferenceBlocked = false;
+
+  /// Códigos de idioma (ISO-639-1/2 y nombres) aceptados por pista de audio,
+  /// agrupados por el idioma de la aplicación.
+  static const Map<String, List<String>> _audioLanguageCodes = <String, List<String>>{
+    'es': <String>['es', 'spa', 'esp', 'cast', 'castellano', 'español'],
+    'en': <String>['en', 'eng', 'ing', 'ingles', 'inglés', 'english'],
+    'fr': <String>['fr', 'fra', 'fre', 'frances', 'francés', 'french'],
+    'de': <String>['de', 'ger', 'deu', 'aleman', 'alemán', 'german'],
+    'it': <String>['it', 'ita', 'ital', 'italian'],
+    'pt': <String>['pt', 'por', 'portug', 'portugués'],
+  };
 
   @override
   void initState() {
@@ -57,7 +71,42 @@ class _PlayerScreenState extends State<PlayerScreen> {
     _bloc = PlayerBloc(AppPlayer.instance.player);
     _videoController = VideoController(_bloc.player);
     widget.controller.addListener(_onControllerChanged);
+    _tracksSubscription = _bloc.player.stream.tracks.listen(_onTracksChanged);
     _onControllerChanged();
+  }
+
+  /// Selecciona la pista de audio por defecto según el idioma de la aplicación.
+  ///
+  /// Si ninguna pista coincide con el idioma de la app, se deja la primera
+  /// disponible (comportamiento por defecto de media_kit). Se ignora cuando el
+  /// usuario elige manualmente la pista desde el OSD.
+  void _onTracksChanged(Tracks tracks) {
+    if (!mounted || _audioPreferenceApplied || _audioPreferenceBlocked) return;
+    _audioPreferenceApplied = true;
+    final List<AudioTrack> audio = tracks.audio;
+    if (audio.isEmpty) return;
+    final String? appLang = Localizations.maybeLocaleOf(context)?.languageCode;
+    if (appLang == null) return;
+    final AudioTrack? match = _matchAudioTrack(audio, appLang);
+    if (match != null) {
+      _bloc.player.setAudioTrack(match);
+    }
+  }
+
+  AudioTrack? _matchAudioTrack(List<AudioTrack> audio, String appLang) {
+    final List<String> codes = _audioLanguageCodes[appLang] ?? <String>[appLang];
+    for (final AudioTrack track in audio) {
+      final String lang = (track.language ?? '').toLowerCase();
+      final String title = (track.title ?? '').toLowerCase();
+      final bool match = codes.any(
+        (String code) =>
+            lang.contains(code) ||
+            lang.split('-').first.contains(code) ||
+            title.contains(code),
+      );
+      if (match) return track;
+    }
+    return null;
   }
 
   void _onControllerChanged() {
@@ -82,6 +131,8 @@ class _PlayerScreenState extends State<PlayerScreen> {
         _guideOpen = wantsGuide;
       });
       if (needsPlay) {
+        _audioPreferenceApplied = false;
+        _audioPreferenceBlocked = false;
         _bloc.add(PlayerPlayRequested(request.urlBuilder));
         _recordHistory(request);
       }
@@ -160,6 +211,7 @@ class _PlayerScreenState extends State<PlayerScreen> {
   @override
   void dispose() {
     widget.controller.removeListener(_onControllerChanged);
+    _tracksSubscription?.cancel();
     _hideTimer?.cancel();
     _bloc.close();
     super.dispose();
@@ -653,6 +705,7 @@ child: Column(
                         onTap: () {
                           setState(() => _picker = null);
                           _scheduleHide();
+                          _audioPreferenceBlocked = true;
                           final AudioTrack? found = _firstOrNull<AudioTrack>(
                             tracks.audio,
                             (AudioTrack t) => t.id == track.id,

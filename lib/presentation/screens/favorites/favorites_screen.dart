@@ -1,11 +1,15 @@
 import 'package:cached_network_image/cached_network_image.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
+import 'package:go_router/go_router.dart';
 
+import '../../../app.dart';
 import '../../../core/media/playback_request.dart';
 import '../../../core/theme/app_theme.dart';
 import '../../../domain/entities/channel.dart';
 import '../../../domain/entities/favorite_item.dart';
+import '../../../domain/entities/movie.dart';
+import '../../../domain/entities/series.dart';
 import '../../../domain/repositories/iptv_repository.dart';
 import '../../../l10n/app_localizations.dart';
 import '../../blocs/favorites/favorites_bloc.dart';
@@ -107,23 +111,41 @@ class _FavoriteTile extends StatelessWidget {
           },
         ),
         onTap: () {
-          if (item.contentType.name == 'live') {
-            final IptvRepository repository = context.read<IptvRepository>();
-            PlaybackScope.of(context).play(
-              PlaybackRequest(
-                title: item.name,
-                urlBuilder: () => repository.buildStreamUrl(
-                  Channel(
-                    id: item.contentId,
-                    name: item.name,
-                    categoryId: 0,
-                    logo: item.logo,
+          switch (item.contentType.name) {
+            case 'live':
+              final IptvRepository repository = context.read<IptvRepository>();
+              PlaybackScope.of(context).play(
+                PlaybackRequest(
+                  title: item.name,
+                  urlBuilder: () => repository.buildStreamUrl(
+                    Channel(
+                      id: item.contentId,
+                      name: item.name,
+                      categoryId: 0,
+                      logo: item.logo,
+                    ),
                   ),
+                  contentType: item.contentType.name,
+                  contentId: item.contentId,
                 ),
-                contentType: item.contentType.name,
-                contentId: item.contentId,
-              ),
-            );
+              );
+            case 'vod':
+              // Abrir la ficha de la película para poder reproducirla.
+              context.push(
+                Routes.movieDetail,
+                extra: Movie(
+                  id: item.contentId,
+                  name: item.name,
+                  categoryId: 0,
+                  streamIcon: item.logo,
+                ),
+              );
+            case 'series':
+              // Abrir la ficha de la serie para poder reproducir episodios.
+              context.push(
+                Routes.seriesDetail,
+                extra: Series(id: item.contentId, name: item.name, cover: item.logo),
+              );
           }
         },
       ),
