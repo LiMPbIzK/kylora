@@ -52,21 +52,26 @@ class M3uRepository implements IptvRepository {
   @override
   Future<UserAccount> login(IptvAuthConfig config) async {
     final M3uAuthConfig m3u = config as M3uAuthConfig;
+    final StoredCredentials newCredentials = StoredCredentials(
+      serverUrl: m3u.m3uUrl,
+      username: '',
+      password: '',
+      sourceType: config.sourceType,
+      m3uUrl: m3u.m3uUrl,
+      xmltvUrl: m3u.xmltvUrl,
+    );
+    final StoredCredentials? previous = await _authStore.read();
+    if (previous == null || previous.fingerprint != newCredentials.fingerprint) {
+      await _cache.clear();
+    }
     await _loadPlaylist(m3u.m3uUrl, m3u.xmltvUrl);
     await _cache.replaceLiveContent(
+      accountKey: newCredentials.fingerprint,
       categories: _categories,
       channels: _buildChannels(),
     );
-    await _authStore.write(
-      StoredCredentials(
-        serverUrl: m3u.m3uUrl,
-        username: '',
-        password: '',
-        sourceType: config.sourceType,
-        m3uUrl: m3u.m3uUrl,
-        xmltvUrl: m3u.xmltvUrl,
-      ),
-    );
+    await _authStore.write(newCredentials);
+    await _adoptOrphans(newCredentials.fingerprint);
     return UserAccount(
       serverUrl: m3u.m3uUrl,
       username: m3u.displayName ?? m3u.m3uUrl,
@@ -86,9 +91,11 @@ class M3uRepository implements IptvRepository {
     try {
       await _loadPlaylist(stored.m3uUrl ?? '', stored.xmltvUrl);
       await _cache.replaceLiveContent(
+        accountKey: stored.fingerprint,
         categories: _categories,
         channels: _buildChannels(),
       );
+      await _adoptOrphans(stored.fingerprint);
       return UserAccount(
         serverUrl: stored.serverUrl,
         username: stored.username,
@@ -111,14 +118,19 @@ class M3uRepository implements IptvRepository {
 
   @override
   Future<List<Category>> fetchLiveCategories() async {
-    final List<Category> cached = await _cache.getCategories();
+    final StoredCredentials? stored = await _authStore.read();
+    if (stored == null) return const <Category>[];
+    final List<Category> cached = await _cache.getCategories(stored.fingerprint);
     if (cached.isNotEmpty) return cached;
     return _categories;
   }
 
   @override
   Future<List<Channel>> fetchLiveChannels({int? categoryId}) async {
+    final StoredCredentials? stored = await _authStore.read();
+    if (stored == null) return const <Channel>[];
     final List<Channel> cached = await _cache.getChannels(
+      stored.fingerprint,
       categoryId: categoryId,
     );
     if (cached.isNotEmpty) return cached;
@@ -176,8 +188,11 @@ class M3uRepository implements IptvRepository {
 
   @override
   Future<void> addToFavorite(FavoriteItem item) async {
+    final StoredCredentials? stored = await _authStore.read();
+    if (stored == null) return;
     await _db.into(_db.favorites).insert(
       FavoritesCompanion.insert(
+        accountKey: Value(stored.fingerprint),
         contentId: item.contentId,
         contentType: item.contentType.name,
         name: item.name,
@@ -189,7 +204,10 @@ class M3uRepository implements IptvRepository {
 
   @override
   Future<void> removeFromFavorite(int contentId, domain.ContentType type) async {
+    final StoredCredentials? stored = await _authStore.read();
+    if (stored == null) return;
     await (_db.delete(_db.favorites)
+          ..where((f) => f.accountKey.equals(stored.fingerprint))
           ..where((f) => f.contentId.equals(contentId))
           ..where((f) => f.contentType.equals(type.name)))
         .go();
@@ -197,7 +215,10 @@ class M3uRepository implements IptvRepository {
 
   @override
   Future<bool> isFavorite(int contentId, domain.ContentType type) async {
+    final StoredCredentials? stored = await _authStore.read();
+    if (stored == null) return false;
     final List<Favorite> rows = await (_db.select(_db.favorites)
+          ..where((f) => f.accountKey.equals(stored.fingerprint))
           ..where((f) => f.contentId.equals(contentId))
           ..where((f) => f.contentType.equals(type.name)))
         .get();
@@ -206,7 +227,11 @@ class M3uRepository implements IptvRepository {
 
   @override
   Future<List<FavoriteItem>> getFavorites() async {
-    final List<Favorite> rows = await _db.select(_db.favorites).get();
+    final StoredCredentials? stored = await _authStore.read();
+    if (stored == null) return const <FavoriteItem>[];
+    final List<Favorite> rows = await (_db.select(_db.favorites)
+          ..where((f) => f.accountKey.equals(stored.fingerprint)))
+        .get();
     return rows
         .map((Favorite row) => FavoriteItem(
               contentId: row.contentId,
@@ -219,8 +244,11 @@ class M3uRepository implements IptvRepository {
 
   @override
   Future<void> addToHistory(HistoryItem item) async {
+    final StoredCredentials? stored = await _authStore.read();
+    if (stored == null) return;
     await _db.into(_db.history).insert(
       HistoryCompanion.insert(
+        accountKey: Value(stored.fingerprint),
         contentId: item.contentId,
         contentType: item.contentType.name,
         name: item.name,
@@ -234,7 +262,10 @@ class M3uRepository implements IptvRepository {
 
   @override
   Future<List<HistoryItem>> getHistory() async {
+    final StoredCredentials? stored = await _authStore.read();
+    if (stored == null) return const <HistoryItem>[];
     final List<HistoryData> rows = await (_db.select(_db.history)
+          ..where((t) => t.accountKey.equals(stored.fingerprint))
           ..orderBy([(t) => OrderingTerm.desc(t.watchedAt)]))
         .get();
     return rows
@@ -252,7 +283,11 @@ class M3uRepository implements IptvRepository {
 
   @override
   Future<void> clearHistory() async {
-    await _db.delete(_db.history).go();
+    final StoredCredentials? stored = await _authStore.read();
+    if (stored == null) return;
+    await (_db.delete(_db.history)
+          ..where((t) => t.accountKey.equals(stored.fingerprint)))
+        .go();
   }
 
   @override
@@ -261,6 +296,7 @@ class M3uRepository implements IptvRepository {
     if (stored == null || stored.sourceType != IptvSourceType.m3u) return;
     await _loadPlaylist(stored.m3uUrl ?? '', stored.xmltvUrl);
     await _cache.replaceLiveContent(
+      accountKey: stored.fingerprint,
       categories: _categories,
       channels: _buildChannels(),
     );
@@ -268,6 +304,19 @@ class M3uRepository implements IptvRepository {
 
   @override
   Future<void> clearCatalogCache() => _cache.clear();
+
+  /// Migración v3→v4: reasigna los favoritos e historial huérfanos
+  /// (accountKey == '') a la cuenta activa.
+  Future<void> _adoptOrphans(String fingerprint) async {
+    await _db.transaction(() async {
+      await (_db.update(_db.favorites)
+            ..where((f) => f.accountKey.equals('')))
+          .write(FavoritesCompanion(accountKey: Value(fingerprint)));
+      await (_db.update(_db.history)
+            ..where((t) => t.accountKey.equals('')))
+          .write(HistoryCompanion(accountKey: Value(fingerprint)));
+    });
+  }
 
   /// Descarga y parsea la lista M3U (y la guía XMLTV opcional).
   Future<void> _loadPlaylist(String m3uUrl, String? xmltvUrl) async {

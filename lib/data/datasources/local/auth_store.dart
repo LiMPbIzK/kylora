@@ -34,6 +34,15 @@ class StoredCredentials {
   /// URL que identifica la fuente según su tipo.
   String get sourceUrl =>
       sourceType == IptvSourceType.xtream ? serverUrl : (m3uUrl ?? serverUrl);
+
+  /// Identificador estable de la cuenta: nucleo para particionar caché,
+  /// favoritos e historial por cuenta.
+  String get fingerprint {
+    if (sourceType == IptvSourceType.xtream) {
+      return 'xtream|$serverUrl|$username';
+    }
+    return 'm3u|${m3uUrl ?? serverUrl}';
+  }
 }
 
 /// Almacenamiento cifrado de credenciales (flutter_secure_storage).

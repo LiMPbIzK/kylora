@@ -9,6 +9,18 @@ class $LiveCategoriesTable extends LiveCategories
   final GeneratedDatabase attachedDatabase;
   final String? _alias;
   $LiveCategoriesTable(this.attachedDatabase, [this._alias]);
+  static const VerificationMeta _accountKeyMeta = const VerificationMeta(
+    'accountKey',
+  );
+  @override
+  late final GeneratedColumn<String> accountKey = GeneratedColumn<String>(
+    'account_key',
+    aliasedName,
+    false,
+    type: DriftSqlType.string,
+    requiredDuringInsert: false,
+    defaultValue: const Constant(''),
+  );
   static const VerificationMeta _idMeta = const VerificationMeta('id');
   @override
   late final GeneratedColumn<int> id = GeneratedColumn<int>(
@@ -16,7 +28,7 @@ class $LiveCategoriesTable extends LiveCategories
     aliasedName,
     false,
     type: DriftSqlType.int,
-    requiredDuringInsert: false,
+    requiredDuringInsert: true,
   );
   static const VerificationMeta _nameMeta = const VerificationMeta('name');
   @override
@@ -28,7 +40,7 @@ class $LiveCategoriesTable extends LiveCategories
     requiredDuringInsert: true,
   );
   @override
-  List<GeneratedColumn> get $columns => [id, name];
+  List<GeneratedColumn> get $columns => [accountKey, id, name];
   @override
   String get aliasedName => _alias ?? actualTableName;
   @override
@@ -41,8 +53,16 @@ class $LiveCategoriesTable extends LiveCategories
   }) {
     final context = VerificationContext();
     final data = instance.toColumns(true);
+    if (data.containsKey('account_key')) {
+      context.handle(
+        _accountKeyMeta,
+        accountKey.isAcceptableOrUnknown(data['account_key']!, _accountKeyMeta),
+      );
+    }
     if (data.containsKey('id')) {
       context.handle(_idMeta, id.isAcceptableOrUnknown(data['id']!, _idMeta));
+    } else if (isInserting) {
+      context.missing(_idMeta);
     }
     if (data.containsKey('name')) {
       context.handle(
@@ -56,11 +76,15 @@ class $LiveCategoriesTable extends LiveCategories
   }
 
   @override
-  Set<GeneratedColumn> get $primaryKey => {id};
+  Set<GeneratedColumn> get $primaryKey => {accountKey, id};
   @override
   LiveCategory map(Map<String, dynamic> data, {String? tablePrefix}) {
     final effectivePrefix = tablePrefix != null ? '$tablePrefix.' : '';
     return LiveCategory(
+      accountKey: attachedDatabase.typeMapping.read(
+        DriftSqlType.string,
+        data['${effectivePrefix}account_key'],
+      )!,
       id: attachedDatabase.typeMapping.read(
         DriftSqlType.int,
         data['${effectivePrefix}id'],
@@ -79,19 +103,30 @@ class $LiveCategoriesTable extends LiveCategories
 }
 
 class LiveCategory extends DataClass implements Insertable<LiveCategory> {
+  /// Id de la cuenta (fingerprint) a la que pertenece la fila.
+  final String accountKey;
   final int id;
   final String name;
-  const LiveCategory({required this.id, required this.name});
+  const LiveCategory({
+    required this.accountKey,
+    required this.id,
+    required this.name,
+  });
   @override
   Map<String, Expression> toColumns(bool nullToAbsent) {
     final map = <String, Expression>{};
+    map['account_key'] = Variable<String>(accountKey);
     map['id'] = Variable<int>(id);
     map['name'] = Variable<String>(name);
     return map;
   }
 
   LiveCategoriesCompanion toCompanion(bool nullToAbsent) {
-    return LiveCategoriesCompanion(id: Value(id), name: Value(name));
+    return LiveCategoriesCompanion(
+      accountKey: Value(accountKey),
+      id: Value(id),
+      name: Value(name),
+    );
   }
 
   factory LiveCategory.fromJson(
@@ -100,6 +135,7 @@ class LiveCategory extends DataClass implements Insertable<LiveCategory> {
   }) {
     serializer ??= driftRuntimeOptions.defaultSerializer;
     return LiveCategory(
+      accountKey: serializer.fromJson<String>(json['accountKey']),
       id: serializer.fromJson<int>(json['id']),
       name: serializer.fromJson<String>(json['name']),
     );
@@ -108,15 +144,23 @@ class LiveCategory extends DataClass implements Insertable<LiveCategory> {
   Map<String, dynamic> toJson({ValueSerializer? serializer}) {
     serializer ??= driftRuntimeOptions.defaultSerializer;
     return <String, dynamic>{
+      'accountKey': serializer.toJson<String>(accountKey),
       'id': serializer.toJson<int>(id),
       'name': serializer.toJson<String>(name),
     };
   }
 
-  LiveCategory copyWith({int? id, String? name}) =>
-      LiveCategory(id: id ?? this.id, name: name ?? this.name);
+  LiveCategory copyWith({String? accountKey, int? id, String? name}) =>
+      LiveCategory(
+        accountKey: accountKey ?? this.accountKey,
+        id: id ?? this.id,
+        name: name ?? this.name,
+      );
   LiveCategory copyWithCompanion(LiveCategoriesCompanion data) {
     return LiveCategory(
+      accountKey: data.accountKey.present
+          ? data.accountKey.value
+          : this.accountKey,
       id: data.id.present ? data.id.value : this.id,
       name: data.name.present ? data.name.value : this.name,
     );
@@ -125,6 +169,7 @@ class LiveCategory extends DataClass implements Insertable<LiveCategory> {
   @override
   String toString() {
     return (StringBuffer('LiveCategory(')
+          ..write('accountKey: $accountKey, ')
           ..write('id: $id, ')
           ..write('name: $name')
           ..write(')'))
@@ -132,46 +177,76 @@ class LiveCategory extends DataClass implements Insertable<LiveCategory> {
   }
 
   @override
-  int get hashCode => Object.hash(id, name);
+  int get hashCode => Object.hash(accountKey, id, name);
   @override
   bool operator ==(Object other) =>
       identical(this, other) ||
-      (other is LiveCategory && other.id == this.id && other.name == this.name);
+      (other is LiveCategory &&
+          other.accountKey == this.accountKey &&
+          other.id == this.id &&
+          other.name == this.name);
 }
 
 class LiveCategoriesCompanion extends UpdateCompanion<LiveCategory> {
+  final Value<String> accountKey;
   final Value<int> id;
   final Value<String> name;
+  final Value<int> rowid;
   const LiveCategoriesCompanion({
+    this.accountKey = const Value.absent(),
     this.id = const Value.absent(),
     this.name = const Value.absent(),
+    this.rowid = const Value.absent(),
   });
   LiveCategoriesCompanion.insert({
-    this.id = const Value.absent(),
+    this.accountKey = const Value.absent(),
+    required int id,
     required String name,
-  }) : name = Value(name);
+    this.rowid = const Value.absent(),
+  }) : id = Value(id),
+       name = Value(name);
   static Insertable<LiveCategory> custom({
+    Expression<String>? accountKey,
     Expression<int>? id,
     Expression<String>? name,
+    Expression<int>? rowid,
   }) {
     return RawValuesInsertable({
+      if (accountKey != null) 'account_key': accountKey,
       if (id != null) 'id': id,
       if (name != null) 'name': name,
+      if (rowid != null) 'rowid': rowid,
     });
   }
 
-  LiveCategoriesCompanion copyWith({Value<int>? id, Value<String>? name}) {
-    return LiveCategoriesCompanion(id: id ?? this.id, name: name ?? this.name);
+  LiveCategoriesCompanion copyWith({
+    Value<String>? accountKey,
+    Value<int>? id,
+    Value<String>? name,
+    Value<int>? rowid,
+  }) {
+    return LiveCategoriesCompanion(
+      accountKey: accountKey ?? this.accountKey,
+      id: id ?? this.id,
+      name: name ?? this.name,
+      rowid: rowid ?? this.rowid,
+    );
   }
 
   @override
   Map<String, Expression> toColumns(bool nullToAbsent) {
     final map = <String, Expression>{};
+    if (accountKey.present) {
+      map['account_key'] = Variable<String>(accountKey.value);
+    }
     if (id.present) {
       map['id'] = Variable<int>(id.value);
     }
     if (name.present) {
       map['name'] = Variable<String>(name.value);
+    }
+    if (rowid.present) {
+      map['rowid'] = Variable<int>(rowid.value);
     }
     return map;
   }
@@ -179,8 +254,10 @@ class LiveCategoriesCompanion extends UpdateCompanion<LiveCategory> {
   @override
   String toString() {
     return (StringBuffer('LiveCategoriesCompanion(')
+          ..write('accountKey: $accountKey, ')
           ..write('id: $id, ')
-          ..write('name: $name')
+          ..write('name: $name, ')
+          ..write('rowid: $rowid')
           ..write(')'))
         .toString();
   }
@@ -192,6 +269,18 @@ class $LiveChannelsTable extends LiveChannels
   final GeneratedDatabase attachedDatabase;
   final String? _alias;
   $LiveChannelsTable(this.attachedDatabase, [this._alias]);
+  static const VerificationMeta _accountKeyMeta = const VerificationMeta(
+    'accountKey',
+  );
+  @override
+  late final GeneratedColumn<String> accountKey = GeneratedColumn<String>(
+    'account_key',
+    aliasedName,
+    false,
+    type: DriftSqlType.string,
+    requiredDuringInsert: false,
+    defaultValue: const Constant(''),
+  );
   static const VerificationMeta _idMeta = const VerificationMeta('id');
   @override
   late final GeneratedColumn<int> id = GeneratedColumn<int>(
@@ -215,7 +304,6 @@ class $LiveChannelsTable extends LiveChannels
     false,
     type: DriftSqlType.int,
     requiredDuringInsert: true,
-    defaultConstraints: GeneratedColumn.constraintIsAlways('UNIQUE'),
   );
   static const VerificationMeta _nameMeta = const VerificationMeta('name');
   @override
@@ -268,6 +356,7 @@ class $LiveChannelsTable extends LiveChannels
   );
   @override
   List<GeneratedColumn> get $columns => [
+    accountKey,
     id,
     streamId,
     name,
@@ -288,6 +377,12 @@ class $LiveChannelsTable extends LiveChannels
   }) {
     final context = VerificationContext();
     final data = instance.toColumns(true);
+    if (data.containsKey('account_key')) {
+      context.handle(
+        _accountKeyMeta,
+        accountKey.isAcceptableOrUnknown(data['account_key']!, _accountKeyMeta),
+      );
+    }
     if (data.containsKey('id')) {
       context.handle(_idMeta, id.isAcceptableOrUnknown(data['id']!, _idMeta));
     }
@@ -345,6 +440,10 @@ class $LiveChannelsTable extends LiveChannels
   LiveChannel map(Map<String, dynamic> data, {String? tablePrefix}) {
     final effectivePrefix = tablePrefix != null ? '$tablePrefix.' : '';
     return LiveChannel(
+      accountKey: attachedDatabase.typeMapping.read(
+        DriftSqlType.string,
+        data['${effectivePrefix}account_key'],
+      )!,
       id: attachedDatabase.typeMapping.read(
         DriftSqlType.int,
         data['${effectivePrefix}id'],
@@ -383,6 +482,8 @@ class $LiveChannelsTable extends LiveChannels
 }
 
 class LiveChannel extends DataClass implements Insertable<LiveChannel> {
+  /// Id de la cuenta (fingerprint) a la que pertenece la fila.
+  final String accountKey;
   final int id;
   final int streamId;
   final String name;
@@ -391,6 +492,7 @@ class LiveChannel extends DataClass implements Insertable<LiveChannel> {
   final String? logo;
   final String? epgChannelId;
   const LiveChannel({
+    required this.accountKey,
     required this.id,
     required this.streamId,
     required this.name,
@@ -402,6 +504,7 @@ class LiveChannel extends DataClass implements Insertable<LiveChannel> {
   @override
   Map<String, Expression> toColumns(bool nullToAbsent) {
     final map = <String, Expression>{};
+    map['account_key'] = Variable<String>(accountKey);
     map['id'] = Variable<int>(id);
     map['stream_id'] = Variable<int>(streamId);
     map['name'] = Variable<String>(name);
@@ -420,6 +523,7 @@ class LiveChannel extends DataClass implements Insertable<LiveChannel> {
 
   LiveChannelsCompanion toCompanion(bool nullToAbsent) {
     return LiveChannelsCompanion(
+      accountKey: Value(accountKey),
       id: Value(id),
       streamId: Value(streamId),
       name: Value(name),
@@ -440,6 +544,7 @@ class LiveChannel extends DataClass implements Insertable<LiveChannel> {
   }) {
     serializer ??= driftRuntimeOptions.defaultSerializer;
     return LiveChannel(
+      accountKey: serializer.fromJson<String>(json['accountKey']),
       id: serializer.fromJson<int>(json['id']),
       streamId: serializer.fromJson<int>(json['streamId']),
       name: serializer.fromJson<String>(json['name']),
@@ -453,6 +558,7 @@ class LiveChannel extends DataClass implements Insertable<LiveChannel> {
   Map<String, dynamic> toJson({ValueSerializer? serializer}) {
     serializer ??= driftRuntimeOptions.defaultSerializer;
     return <String, dynamic>{
+      'accountKey': serializer.toJson<String>(accountKey),
       'id': serializer.toJson<int>(id),
       'streamId': serializer.toJson<int>(streamId),
       'name': serializer.toJson<String>(name),
@@ -464,6 +570,7 @@ class LiveChannel extends DataClass implements Insertable<LiveChannel> {
   }
 
   LiveChannel copyWith({
+    String? accountKey,
     int? id,
     int? streamId,
     String? name,
@@ -472,6 +579,7 @@ class LiveChannel extends DataClass implements Insertable<LiveChannel> {
     Value<String?> logo = const Value.absent(),
     Value<String?> epgChannelId = const Value.absent(),
   }) => LiveChannel(
+    accountKey: accountKey ?? this.accountKey,
     id: id ?? this.id,
     streamId: streamId ?? this.streamId,
     name: name ?? this.name,
@@ -482,6 +590,9 @@ class LiveChannel extends DataClass implements Insertable<LiveChannel> {
   );
   LiveChannel copyWithCompanion(LiveChannelsCompanion data) {
     return LiveChannel(
+      accountKey: data.accountKey.present
+          ? data.accountKey.value
+          : this.accountKey,
       id: data.id.present ? data.id.value : this.id,
       streamId: data.streamId.present ? data.streamId.value : this.streamId,
       name: data.name.present ? data.name.value : this.name,
@@ -499,6 +610,7 @@ class LiveChannel extends DataClass implements Insertable<LiveChannel> {
   @override
   String toString() {
     return (StringBuffer('LiveChannel(')
+          ..write('accountKey: $accountKey, ')
           ..write('id: $id, ')
           ..write('streamId: $streamId, ')
           ..write('name: $name, ')
@@ -511,12 +623,21 @@ class LiveChannel extends DataClass implements Insertable<LiveChannel> {
   }
 
   @override
-  int get hashCode =>
-      Object.hash(id, streamId, name, categoryId, number, logo, epgChannelId);
+  int get hashCode => Object.hash(
+    accountKey,
+    id,
+    streamId,
+    name,
+    categoryId,
+    number,
+    logo,
+    epgChannelId,
+  );
   @override
   bool operator ==(Object other) =>
       identical(this, other) ||
       (other is LiveChannel &&
+          other.accountKey == this.accountKey &&
           other.id == this.id &&
           other.streamId == this.streamId &&
           other.name == this.name &&
@@ -527,6 +648,7 @@ class LiveChannel extends DataClass implements Insertable<LiveChannel> {
 }
 
 class LiveChannelsCompanion extends UpdateCompanion<LiveChannel> {
+  final Value<String> accountKey;
   final Value<int> id;
   final Value<int> streamId;
   final Value<String> name;
@@ -535,6 +657,7 @@ class LiveChannelsCompanion extends UpdateCompanion<LiveChannel> {
   final Value<String?> logo;
   final Value<String?> epgChannelId;
   const LiveChannelsCompanion({
+    this.accountKey = const Value.absent(),
     this.id = const Value.absent(),
     this.streamId = const Value.absent(),
     this.name = const Value.absent(),
@@ -544,6 +667,7 @@ class LiveChannelsCompanion extends UpdateCompanion<LiveChannel> {
     this.epgChannelId = const Value.absent(),
   });
   LiveChannelsCompanion.insert({
+    this.accountKey = const Value.absent(),
     this.id = const Value.absent(),
     required int streamId,
     required String name,
@@ -555,6 +679,7 @@ class LiveChannelsCompanion extends UpdateCompanion<LiveChannel> {
        name = Value(name),
        categoryId = Value(categoryId);
   static Insertable<LiveChannel> custom({
+    Expression<String>? accountKey,
     Expression<int>? id,
     Expression<int>? streamId,
     Expression<String>? name,
@@ -564,6 +689,7 @@ class LiveChannelsCompanion extends UpdateCompanion<LiveChannel> {
     Expression<String>? epgChannelId,
   }) {
     return RawValuesInsertable({
+      if (accountKey != null) 'account_key': accountKey,
       if (id != null) 'id': id,
       if (streamId != null) 'stream_id': streamId,
       if (name != null) 'name': name,
@@ -575,6 +701,7 @@ class LiveChannelsCompanion extends UpdateCompanion<LiveChannel> {
   }
 
   LiveChannelsCompanion copyWith({
+    Value<String>? accountKey,
     Value<int>? id,
     Value<int>? streamId,
     Value<String>? name,
@@ -584,6 +711,7 @@ class LiveChannelsCompanion extends UpdateCompanion<LiveChannel> {
     Value<String?>? epgChannelId,
   }) {
     return LiveChannelsCompanion(
+      accountKey: accountKey ?? this.accountKey,
       id: id ?? this.id,
       streamId: streamId ?? this.streamId,
       name: name ?? this.name,
@@ -597,6 +725,9 @@ class LiveChannelsCompanion extends UpdateCompanion<LiveChannel> {
   @override
   Map<String, Expression> toColumns(bool nullToAbsent) {
     final map = <String, Expression>{};
+    if (accountKey.present) {
+      map['account_key'] = Variable<String>(accountKey.value);
+    }
     if (id.present) {
       map['id'] = Variable<int>(id.value);
     }
@@ -624,6 +755,7 @@ class LiveChannelsCompanion extends UpdateCompanion<LiveChannel> {
   @override
   String toString() {
     return (StringBuffer('LiveChannelsCompanion(')
+          ..write('accountKey: $accountKey, ')
           ..write('id: $id, ')
           ..write('streamId: $streamId, ')
           ..write('name: $name, ')
@@ -642,6 +774,18 @@ class $FavoritesTable extends Favorites
   final GeneratedDatabase attachedDatabase;
   final String? _alias;
   $FavoritesTable(this.attachedDatabase, [this._alias]);
+  static const VerificationMeta _accountKeyMeta = const VerificationMeta(
+    'accountKey',
+  );
+  @override
+  late final GeneratedColumn<String> accountKey = GeneratedColumn<String>(
+    'account_key',
+    aliasedName,
+    false,
+    type: DriftSqlType.string,
+    requiredDuringInsert: false,
+    defaultValue: const Constant(''),
+  );
   static const VerificationMeta _idMeta = const VerificationMeta('id');
   @override
   late final GeneratedColumn<int> id = GeneratedColumn<int>(
@@ -708,6 +852,7 @@ class $FavoritesTable extends Favorites
   );
   @override
   List<GeneratedColumn> get $columns => [
+    accountKey,
     id,
     contentId,
     contentType,
@@ -727,6 +872,12 @@ class $FavoritesTable extends Favorites
   }) {
     final context = VerificationContext();
     final data = instance.toColumns(true);
+    if (data.containsKey('account_key')) {
+      context.handle(
+        _accountKeyMeta,
+        accountKey.isAcceptableOrUnknown(data['account_key']!, _accountKeyMeta),
+      );
+    }
     if (data.containsKey('id')) {
       context.handle(_idMeta, id.isAcceptableOrUnknown(data['id']!, _idMeta));
     }
@@ -780,6 +931,10 @@ class $FavoritesTable extends Favorites
   Favorite map(Map<String, dynamic> data, {String? tablePrefix}) {
     final effectivePrefix = tablePrefix != null ? '$tablePrefix.' : '';
     return Favorite(
+      accountKey: attachedDatabase.typeMapping.read(
+        DriftSqlType.string,
+        data['${effectivePrefix}account_key'],
+      )!,
       id: attachedDatabase.typeMapping.read(
         DriftSqlType.int,
         data['${effectivePrefix}id'],
@@ -814,6 +969,8 @@ class $FavoritesTable extends Favorites
 }
 
 class Favorite extends DataClass implements Insertable<Favorite> {
+  /// Id de la cuenta (fingerprint) a la que pertenece la fila.
+  final String accountKey;
   final int id;
   final int contentId;
   final String contentType;
@@ -821,6 +978,7 @@ class Favorite extends DataClass implements Insertable<Favorite> {
   final String? logo;
   final DateTime addedAt;
   const Favorite({
+    required this.accountKey,
     required this.id,
     required this.contentId,
     required this.contentType,
@@ -831,6 +989,7 @@ class Favorite extends DataClass implements Insertable<Favorite> {
   @override
   Map<String, Expression> toColumns(bool nullToAbsent) {
     final map = <String, Expression>{};
+    map['account_key'] = Variable<String>(accountKey);
     map['id'] = Variable<int>(id);
     map['content_id'] = Variable<int>(contentId);
     map['content_type'] = Variable<String>(contentType);
@@ -844,6 +1003,7 @@ class Favorite extends DataClass implements Insertable<Favorite> {
 
   FavoritesCompanion toCompanion(bool nullToAbsent) {
     return FavoritesCompanion(
+      accountKey: Value(accountKey),
       id: Value(id),
       contentId: Value(contentId),
       contentType: Value(contentType),
@@ -859,6 +1019,7 @@ class Favorite extends DataClass implements Insertable<Favorite> {
   }) {
     serializer ??= driftRuntimeOptions.defaultSerializer;
     return Favorite(
+      accountKey: serializer.fromJson<String>(json['accountKey']),
       id: serializer.fromJson<int>(json['id']),
       contentId: serializer.fromJson<int>(json['contentId']),
       contentType: serializer.fromJson<String>(json['contentType']),
@@ -871,6 +1032,7 @@ class Favorite extends DataClass implements Insertable<Favorite> {
   Map<String, dynamic> toJson({ValueSerializer? serializer}) {
     serializer ??= driftRuntimeOptions.defaultSerializer;
     return <String, dynamic>{
+      'accountKey': serializer.toJson<String>(accountKey),
       'id': serializer.toJson<int>(id),
       'contentId': serializer.toJson<int>(contentId),
       'contentType': serializer.toJson<String>(contentType),
@@ -881,6 +1043,7 @@ class Favorite extends DataClass implements Insertable<Favorite> {
   }
 
   Favorite copyWith({
+    String? accountKey,
     int? id,
     int? contentId,
     String? contentType,
@@ -888,6 +1051,7 @@ class Favorite extends DataClass implements Insertable<Favorite> {
     Value<String?> logo = const Value.absent(),
     DateTime? addedAt,
   }) => Favorite(
+    accountKey: accountKey ?? this.accountKey,
     id: id ?? this.id,
     contentId: contentId ?? this.contentId,
     contentType: contentType ?? this.contentType,
@@ -897,6 +1061,9 @@ class Favorite extends DataClass implements Insertable<Favorite> {
   );
   Favorite copyWithCompanion(FavoritesCompanion data) {
     return Favorite(
+      accountKey: data.accountKey.present
+          ? data.accountKey.value
+          : this.accountKey,
       id: data.id.present ? data.id.value : this.id,
       contentId: data.contentId.present ? data.contentId.value : this.contentId,
       contentType: data.contentType.present
@@ -911,6 +1078,7 @@ class Favorite extends DataClass implements Insertable<Favorite> {
   @override
   String toString() {
     return (StringBuffer('Favorite(')
+          ..write('accountKey: $accountKey, ')
           ..write('id: $id, ')
           ..write('contentId: $contentId, ')
           ..write('contentType: $contentType, ')
@@ -923,11 +1091,12 @@ class Favorite extends DataClass implements Insertable<Favorite> {
 
   @override
   int get hashCode =>
-      Object.hash(id, contentId, contentType, name, logo, addedAt);
+      Object.hash(accountKey, id, contentId, contentType, name, logo, addedAt);
   @override
   bool operator ==(Object other) =>
       identical(this, other) ||
       (other is Favorite &&
+          other.accountKey == this.accountKey &&
           other.id == this.id &&
           other.contentId == this.contentId &&
           other.contentType == this.contentType &&
@@ -937,6 +1106,7 @@ class Favorite extends DataClass implements Insertable<Favorite> {
 }
 
 class FavoritesCompanion extends UpdateCompanion<Favorite> {
+  final Value<String> accountKey;
   final Value<int> id;
   final Value<int> contentId;
   final Value<String> contentType;
@@ -944,6 +1114,7 @@ class FavoritesCompanion extends UpdateCompanion<Favorite> {
   final Value<String?> logo;
   final Value<DateTime> addedAt;
   const FavoritesCompanion({
+    this.accountKey = const Value.absent(),
     this.id = const Value.absent(),
     this.contentId = const Value.absent(),
     this.contentType = const Value.absent(),
@@ -952,6 +1123,7 @@ class FavoritesCompanion extends UpdateCompanion<Favorite> {
     this.addedAt = const Value.absent(),
   });
   FavoritesCompanion.insert({
+    this.accountKey = const Value.absent(),
     this.id = const Value.absent(),
     required int contentId,
     required String contentType,
@@ -963,6 +1135,7 @@ class FavoritesCompanion extends UpdateCompanion<Favorite> {
        name = Value(name),
        addedAt = Value(addedAt);
   static Insertable<Favorite> custom({
+    Expression<String>? accountKey,
     Expression<int>? id,
     Expression<int>? contentId,
     Expression<String>? contentType,
@@ -971,6 +1144,7 @@ class FavoritesCompanion extends UpdateCompanion<Favorite> {
     Expression<DateTime>? addedAt,
   }) {
     return RawValuesInsertable({
+      if (accountKey != null) 'account_key': accountKey,
       if (id != null) 'id': id,
       if (contentId != null) 'content_id': contentId,
       if (contentType != null) 'content_type': contentType,
@@ -981,6 +1155,7 @@ class FavoritesCompanion extends UpdateCompanion<Favorite> {
   }
 
   FavoritesCompanion copyWith({
+    Value<String>? accountKey,
     Value<int>? id,
     Value<int>? contentId,
     Value<String>? contentType,
@@ -989,6 +1164,7 @@ class FavoritesCompanion extends UpdateCompanion<Favorite> {
     Value<DateTime>? addedAt,
   }) {
     return FavoritesCompanion(
+      accountKey: accountKey ?? this.accountKey,
       id: id ?? this.id,
       contentId: contentId ?? this.contentId,
       contentType: contentType ?? this.contentType,
@@ -1001,6 +1177,9 @@ class FavoritesCompanion extends UpdateCompanion<Favorite> {
   @override
   Map<String, Expression> toColumns(bool nullToAbsent) {
     final map = <String, Expression>{};
+    if (accountKey.present) {
+      map['account_key'] = Variable<String>(accountKey.value);
+    }
     if (id.present) {
       map['id'] = Variable<int>(id.value);
     }
@@ -1025,6 +1204,7 @@ class FavoritesCompanion extends UpdateCompanion<Favorite> {
   @override
   String toString() {
     return (StringBuffer('FavoritesCompanion(')
+          ..write('accountKey: $accountKey, ')
           ..write('id: $id, ')
           ..write('contentId: $contentId, ')
           ..write('contentType: $contentType, ')
@@ -1041,6 +1221,18 @@ class $HistoryTable extends History with TableInfo<$HistoryTable, HistoryData> {
   final GeneratedDatabase attachedDatabase;
   final String? _alias;
   $HistoryTable(this.attachedDatabase, [this._alias]);
+  static const VerificationMeta _accountKeyMeta = const VerificationMeta(
+    'accountKey',
+  );
+  @override
+  late final GeneratedColumn<String> accountKey = GeneratedColumn<String>(
+    'account_key',
+    aliasedName,
+    false,
+    type: DriftSqlType.string,
+    requiredDuringInsert: false,
+    defaultValue: const Constant(''),
+  );
   static const VerificationMeta _idMeta = const VerificationMeta('id');
   @override
   late final GeneratedColumn<int> id = GeneratedColumn<int>(
@@ -1130,6 +1322,7 @@ class $HistoryTable extends History with TableInfo<$HistoryTable, HistoryData> {
   );
   @override
   List<GeneratedColumn> get $columns => [
+    accountKey,
     id,
     contentId,
     contentType,
@@ -1151,6 +1344,12 @@ class $HistoryTable extends History with TableInfo<$HistoryTable, HistoryData> {
   }) {
     final context = VerificationContext();
     final data = instance.toColumns(true);
+    if (data.containsKey('account_key')) {
+      context.handle(
+        _accountKeyMeta,
+        accountKey.isAcceptableOrUnknown(data['account_key']!, _accountKeyMeta),
+      );
+    }
     if (data.containsKey('id')) {
       context.handle(_idMeta, id.isAcceptableOrUnknown(data['id']!, _idMeta));
     }
@@ -1216,6 +1415,10 @@ class $HistoryTable extends History with TableInfo<$HistoryTable, HistoryData> {
   HistoryData map(Map<String, dynamic> data, {String? tablePrefix}) {
     final effectivePrefix = tablePrefix != null ? '$tablePrefix.' : '';
     return HistoryData(
+      accountKey: attachedDatabase.typeMapping.read(
+        DriftSqlType.string,
+        data['${effectivePrefix}account_key'],
+      )!,
       id: attachedDatabase.typeMapping.read(
         DriftSqlType.int,
         data['${effectivePrefix}id'],
@@ -1258,6 +1461,8 @@ class $HistoryTable extends History with TableInfo<$HistoryTable, HistoryData> {
 }
 
 class HistoryData extends DataClass implements Insertable<HistoryData> {
+  /// Id de la cuenta (fingerprint) a la que pertenece la fila.
+  final String accountKey;
   final int id;
   final int contentId;
   final String contentType;
@@ -1267,6 +1472,7 @@ class HistoryData extends DataClass implements Insertable<HistoryData> {
   final int position;
   final int? duration;
   const HistoryData({
+    required this.accountKey,
     required this.id,
     required this.contentId,
     required this.contentType,
@@ -1279,6 +1485,7 @@ class HistoryData extends DataClass implements Insertable<HistoryData> {
   @override
   Map<String, Expression> toColumns(bool nullToAbsent) {
     final map = <String, Expression>{};
+    map['account_key'] = Variable<String>(accountKey);
     map['id'] = Variable<int>(id);
     map['content_id'] = Variable<int>(contentId);
     map['content_type'] = Variable<String>(contentType);
@@ -1296,6 +1503,7 @@ class HistoryData extends DataClass implements Insertable<HistoryData> {
 
   HistoryCompanion toCompanion(bool nullToAbsent) {
     return HistoryCompanion(
+      accountKey: Value(accountKey),
       id: Value(id),
       contentId: Value(contentId),
       contentType: Value(contentType),
@@ -1315,6 +1523,7 @@ class HistoryData extends DataClass implements Insertable<HistoryData> {
   }) {
     serializer ??= driftRuntimeOptions.defaultSerializer;
     return HistoryData(
+      accountKey: serializer.fromJson<String>(json['accountKey']),
       id: serializer.fromJson<int>(json['id']),
       contentId: serializer.fromJson<int>(json['contentId']),
       contentType: serializer.fromJson<String>(json['contentType']),
@@ -1329,6 +1538,7 @@ class HistoryData extends DataClass implements Insertable<HistoryData> {
   Map<String, dynamic> toJson({ValueSerializer? serializer}) {
     serializer ??= driftRuntimeOptions.defaultSerializer;
     return <String, dynamic>{
+      'accountKey': serializer.toJson<String>(accountKey),
       'id': serializer.toJson<int>(id),
       'contentId': serializer.toJson<int>(contentId),
       'contentType': serializer.toJson<String>(contentType),
@@ -1341,6 +1551,7 @@ class HistoryData extends DataClass implements Insertable<HistoryData> {
   }
 
   HistoryData copyWith({
+    String? accountKey,
     int? id,
     int? contentId,
     String? contentType,
@@ -1350,6 +1561,7 @@ class HistoryData extends DataClass implements Insertable<HistoryData> {
     int? position,
     Value<int?> duration = const Value.absent(),
   }) => HistoryData(
+    accountKey: accountKey ?? this.accountKey,
     id: id ?? this.id,
     contentId: contentId ?? this.contentId,
     contentType: contentType ?? this.contentType,
@@ -1361,6 +1573,9 @@ class HistoryData extends DataClass implements Insertable<HistoryData> {
   );
   HistoryData copyWithCompanion(HistoryCompanion data) {
     return HistoryData(
+      accountKey: data.accountKey.present
+          ? data.accountKey.value
+          : this.accountKey,
       id: data.id.present ? data.id.value : this.id,
       contentId: data.contentId.present ? data.contentId.value : this.contentId,
       contentType: data.contentType.present
@@ -1377,6 +1592,7 @@ class HistoryData extends DataClass implements Insertable<HistoryData> {
   @override
   String toString() {
     return (StringBuffer('HistoryData(')
+          ..write('accountKey: $accountKey, ')
           ..write('id: $id, ')
           ..write('contentId: $contentId, ')
           ..write('contentType: $contentType, ')
@@ -1391,6 +1607,7 @@ class HistoryData extends DataClass implements Insertable<HistoryData> {
 
   @override
   int get hashCode => Object.hash(
+    accountKey,
     id,
     contentId,
     contentType,
@@ -1404,6 +1621,7 @@ class HistoryData extends DataClass implements Insertable<HistoryData> {
   bool operator ==(Object other) =>
       identical(this, other) ||
       (other is HistoryData &&
+          other.accountKey == this.accountKey &&
           other.id == this.id &&
           other.contentId == this.contentId &&
           other.contentType == this.contentType &&
@@ -1415,6 +1633,7 @@ class HistoryData extends DataClass implements Insertable<HistoryData> {
 }
 
 class HistoryCompanion extends UpdateCompanion<HistoryData> {
+  final Value<String> accountKey;
   final Value<int> id;
   final Value<int> contentId;
   final Value<String> contentType;
@@ -1424,6 +1643,7 @@ class HistoryCompanion extends UpdateCompanion<HistoryData> {
   final Value<int> position;
   final Value<int?> duration;
   const HistoryCompanion({
+    this.accountKey = const Value.absent(),
     this.id = const Value.absent(),
     this.contentId = const Value.absent(),
     this.contentType = const Value.absent(),
@@ -1434,6 +1654,7 @@ class HistoryCompanion extends UpdateCompanion<HistoryData> {
     this.duration = const Value.absent(),
   });
   HistoryCompanion.insert({
+    this.accountKey = const Value.absent(),
     this.id = const Value.absent(),
     required int contentId,
     required String contentType,
@@ -1447,6 +1668,7 @@ class HistoryCompanion extends UpdateCompanion<HistoryData> {
        name = Value(name),
        watchedAt = Value(watchedAt);
   static Insertable<HistoryData> custom({
+    Expression<String>? accountKey,
     Expression<int>? id,
     Expression<int>? contentId,
     Expression<String>? contentType,
@@ -1457,6 +1679,7 @@ class HistoryCompanion extends UpdateCompanion<HistoryData> {
     Expression<int>? duration,
   }) {
     return RawValuesInsertable({
+      if (accountKey != null) 'account_key': accountKey,
       if (id != null) 'id': id,
       if (contentId != null) 'content_id': contentId,
       if (contentType != null) 'content_type': contentType,
@@ -1469,6 +1692,7 @@ class HistoryCompanion extends UpdateCompanion<HistoryData> {
   }
 
   HistoryCompanion copyWith({
+    Value<String>? accountKey,
     Value<int>? id,
     Value<int>? contentId,
     Value<String>? contentType,
@@ -1479,6 +1703,7 @@ class HistoryCompanion extends UpdateCompanion<HistoryData> {
     Value<int?>? duration,
   }) {
     return HistoryCompanion(
+      accountKey: accountKey ?? this.accountKey,
       id: id ?? this.id,
       contentId: contentId ?? this.contentId,
       contentType: contentType ?? this.contentType,
@@ -1493,6 +1718,9 @@ class HistoryCompanion extends UpdateCompanion<HistoryData> {
   @override
   Map<String, Expression> toColumns(bool nullToAbsent) {
     final map = <String, Expression>{};
+    if (accountKey.present) {
+      map['account_key'] = Variable<String>(accountKey.value);
+    }
     if (id.present) {
       map['id'] = Variable<int>(id.value);
     }
@@ -1523,6 +1751,7 @@ class HistoryCompanion extends UpdateCompanion<HistoryData> {
   @override
   String toString() {
     return (StringBuffer('HistoryCompanion(')
+          ..write('accountKey: $accountKey, ')
           ..write('id: $id, ')
           ..write('contentId: $contentId, ')
           ..write('contentType: $contentType, ')
@@ -1780,9 +2009,19 @@ abstract class _$AppDatabase extends GeneratedDatabase {
 }
 
 typedef $$LiveCategoriesTableCreateCompanionBuilder =
-    LiveCategoriesCompanion Function({Value<int> id, required String name});
+    LiveCategoriesCompanion Function({
+      Value<String> accountKey,
+      required int id,
+      required String name,
+      Value<int> rowid,
+    });
 typedef $$LiveCategoriesTableUpdateCompanionBuilder =
-    LiveCategoriesCompanion Function({Value<int> id, Value<String> name});
+    LiveCategoriesCompanion Function({
+      Value<String> accountKey,
+      Value<int> id,
+      Value<String> name,
+      Value<int> rowid,
+    });
 
 class $$LiveCategoriesTableFilterComposer
     extends Composer<_$AppDatabase, $LiveCategoriesTable> {
@@ -1793,6 +2032,11 @@ class $$LiveCategoriesTableFilterComposer
     super.$addJoinBuilderToRootComposer,
     super.$removeJoinBuilderFromRootComposer,
   });
+  ColumnFilters<String> get accountKey => $composableBuilder(
+    column: $table.accountKey,
+    builder: (column) => ColumnFilters(column),
+  );
+
   ColumnFilters<int> get id => $composableBuilder(
     column: $table.id,
     builder: (column) => ColumnFilters(column),
@@ -1813,6 +2057,11 @@ class $$LiveCategoriesTableOrderingComposer
     super.$addJoinBuilderToRootComposer,
     super.$removeJoinBuilderFromRootComposer,
   });
+  ColumnOrderings<String> get accountKey => $composableBuilder(
+    column: $table.accountKey,
+    builder: (column) => ColumnOrderings(column),
+  );
+
   ColumnOrderings<int> get id => $composableBuilder(
     column: $table.id,
     builder: (column) => ColumnOrderings(column),
@@ -1833,6 +2082,11 @@ class $$LiveCategoriesTableAnnotationComposer
     super.$addJoinBuilderToRootComposer,
     super.$removeJoinBuilderFromRootComposer,
   });
+  GeneratedColumn<String> get accountKey => $composableBuilder(
+    column: $table.accountKey,
+    builder: (column) => column,
+  );
+
   GeneratedColumn<int> get id =>
       $composableBuilder(column: $table.id, builder: (column) => column);
 
@@ -1871,14 +2125,30 @@ class $$LiveCategoriesTableTableManager
               $$LiveCategoriesTableOrderingComposer($db: db, $table: table),
           createComputedFieldComposer: () =>
               $$LiveCategoriesTableAnnotationComposer($db: db, $table: table),
-          updateCompanionCallback: ({
-            Value<int> id = const Value.absent(),
-            Value<String> name = const Value.absent(),
-          }) => LiveCategoriesCompanion(id: id, name: name),
-          createCompanionCallback: ({
-            Value<int> id = const Value.absent(),
-            required String name,
-          }) => LiveCategoriesCompanion.insert(id: id, name: name),
+          updateCompanionCallback:
+              ({
+                Value<String> accountKey = const Value.absent(),
+                Value<int> id = const Value.absent(),
+                Value<String> name = const Value.absent(),
+                Value<int> rowid = const Value.absent(),
+              }) => LiveCategoriesCompanion(
+                accountKey: accountKey,
+                id: id,
+                name: name,
+                rowid: rowid,
+              ),
+          createCompanionCallback:
+              ({
+                Value<String> accountKey = const Value.absent(),
+                required int id,
+                required String name,
+                Value<int> rowid = const Value.absent(),
+              }) => LiveCategoriesCompanion.insert(
+                accountKey: accountKey,
+                id: id,
+                name: name,
+                rowid: rowid,
+              ),
           withReferenceMapper: (p0) => p0
               .map((e) => (e.readTable(table), BaseReferences(db, table, e)))
               .toList(),
@@ -1906,6 +2176,7 @@ typedef $$LiveCategoriesTableProcessedTableManager =
     >;
 typedef $$LiveChannelsTableCreateCompanionBuilder =
     LiveChannelsCompanion Function({
+      Value<String> accountKey,
       Value<int> id,
       required int streamId,
       required String name,
@@ -1916,6 +2187,7 @@ typedef $$LiveChannelsTableCreateCompanionBuilder =
     });
 typedef $$LiveChannelsTableUpdateCompanionBuilder =
     LiveChannelsCompanion Function({
+      Value<String> accountKey,
       Value<int> id,
       Value<int> streamId,
       Value<String> name,
@@ -1934,6 +2206,11 @@ class $$LiveChannelsTableFilterComposer
     super.$addJoinBuilderToRootComposer,
     super.$removeJoinBuilderFromRootComposer,
   });
+  ColumnFilters<String> get accountKey => $composableBuilder(
+    column: $table.accountKey,
+    builder: (column) => ColumnFilters(column),
+  );
+
   ColumnFilters<int> get id => $composableBuilder(
     column: $table.id,
     builder: (column) => ColumnFilters(column),
@@ -1979,6 +2256,11 @@ class $$LiveChannelsTableOrderingComposer
     super.$addJoinBuilderToRootComposer,
     super.$removeJoinBuilderFromRootComposer,
   });
+  ColumnOrderings<String> get accountKey => $composableBuilder(
+    column: $table.accountKey,
+    builder: (column) => ColumnOrderings(column),
+  );
+
   ColumnOrderings<int> get id => $composableBuilder(
     column: $table.id,
     builder: (column) => ColumnOrderings(column),
@@ -2024,6 +2306,11 @@ class $$LiveChannelsTableAnnotationComposer
     super.$addJoinBuilderToRootComposer,
     super.$removeJoinBuilderFromRootComposer,
   });
+  GeneratedColumn<String> get accountKey => $composableBuilder(
+    column: $table.accountKey,
+    builder: (column) => column,
+  );
+
   GeneratedColumn<int> get id =>
       $composableBuilder(column: $table.id, builder: (column) => column);
 
@@ -2081,6 +2368,7 @@ class $$LiveChannelsTableTableManager
               $$LiveChannelsTableAnnotationComposer($db: db, $table: table),
           updateCompanionCallback:
               ({
+                Value<String> accountKey = const Value.absent(),
                 Value<int> id = const Value.absent(),
                 Value<int> streamId = const Value.absent(),
                 Value<String> name = const Value.absent(),
@@ -2089,6 +2377,7 @@ class $$LiveChannelsTableTableManager
                 Value<String?> logo = const Value.absent(),
                 Value<String?> epgChannelId = const Value.absent(),
               }) => LiveChannelsCompanion(
+                accountKey: accountKey,
                 id: id,
                 streamId: streamId,
                 name: name,
@@ -2099,6 +2388,7 @@ class $$LiveChannelsTableTableManager
               ),
           createCompanionCallback:
               ({
+                Value<String> accountKey = const Value.absent(),
                 Value<int> id = const Value.absent(),
                 required int streamId,
                 required String name,
@@ -2107,6 +2397,7 @@ class $$LiveChannelsTableTableManager
                 Value<String?> logo = const Value.absent(),
                 Value<String?> epgChannelId = const Value.absent(),
               }) => LiveChannelsCompanion.insert(
+                accountKey: accountKey,
                 id: id,
                 streamId: streamId,
                 name: name,
@@ -2141,6 +2432,7 @@ typedef $$LiveChannelsTableProcessedTableManager =
       PrefetchHooks Function()
     >;
 typedef $$FavoritesTableCreateCompanionBuilder = FavoritesCompanion Function({
+  Value<String> accountKey,
   Value<int> id,
   required int contentId,
   required String contentType,
@@ -2149,6 +2441,7 @@ typedef $$FavoritesTableCreateCompanionBuilder = FavoritesCompanion Function({
   required DateTime addedAt,
 });
 typedef $$FavoritesTableUpdateCompanionBuilder = FavoritesCompanion Function({
+  Value<String> accountKey,
   Value<int> id,
   Value<int> contentId,
   Value<String> contentType,
@@ -2166,6 +2459,11 @@ class $$FavoritesTableFilterComposer
     super.$addJoinBuilderToRootComposer,
     super.$removeJoinBuilderFromRootComposer,
   });
+  ColumnFilters<String> get accountKey => $composableBuilder(
+    column: $table.accountKey,
+    builder: (column) => ColumnFilters(column),
+  );
+
   ColumnFilters<int> get id => $composableBuilder(
     column: $table.id,
     builder: (column) => ColumnFilters(column),
@@ -2206,6 +2504,11 @@ class $$FavoritesTableOrderingComposer
     super.$addJoinBuilderToRootComposer,
     super.$removeJoinBuilderFromRootComposer,
   });
+  ColumnOrderings<String> get accountKey => $composableBuilder(
+    column: $table.accountKey,
+    builder: (column) => ColumnOrderings(column),
+  );
+
   ColumnOrderings<int> get id => $composableBuilder(
     column: $table.id,
     builder: (column) => ColumnOrderings(column),
@@ -2246,6 +2549,11 @@ class $$FavoritesTableAnnotationComposer
     super.$addJoinBuilderToRootComposer,
     super.$removeJoinBuilderFromRootComposer,
   });
+  GeneratedColumn<String> get accountKey => $composableBuilder(
+    column: $table.accountKey,
+    builder: (column) => column,
+  );
+
   GeneratedColumn<int> get id =>
       $composableBuilder(column: $table.id, builder: (column) => column);
 
@@ -2295,6 +2603,7 @@ class $$FavoritesTableTableManager
               $$FavoritesTableAnnotationComposer($db: db, $table: table),
           updateCompanionCallback:
               ({
+                Value<String> accountKey = const Value.absent(),
                 Value<int> id = const Value.absent(),
                 Value<int> contentId = const Value.absent(),
                 Value<String> contentType = const Value.absent(),
@@ -2302,6 +2611,7 @@ class $$FavoritesTableTableManager
                 Value<String?> logo = const Value.absent(),
                 Value<DateTime> addedAt = const Value.absent(),
               }) => FavoritesCompanion(
+                accountKey: accountKey,
                 id: id,
                 contentId: contentId,
                 contentType: contentType,
@@ -2311,6 +2621,7 @@ class $$FavoritesTableTableManager
               ),
           createCompanionCallback:
               ({
+                Value<String> accountKey = const Value.absent(),
                 Value<int> id = const Value.absent(),
                 required int contentId,
                 required String contentType,
@@ -2318,6 +2629,7 @@ class $$FavoritesTableTableManager
                 Value<String?> logo = const Value.absent(),
                 required DateTime addedAt,
               }) => FavoritesCompanion.insert(
+                accountKey: accountKey,
                 id: id,
                 contentId: contentId,
                 contentType: contentType,
@@ -2348,6 +2660,7 @@ typedef $$FavoritesTableProcessedTableManager =
       PrefetchHooks Function()
     >;
 typedef $$HistoryTableCreateCompanionBuilder = HistoryCompanion Function({
+  Value<String> accountKey,
   Value<int> id,
   required int contentId,
   required String contentType,
@@ -2358,6 +2671,7 @@ typedef $$HistoryTableCreateCompanionBuilder = HistoryCompanion Function({
   Value<int?> duration,
 });
 typedef $$HistoryTableUpdateCompanionBuilder = HistoryCompanion Function({
+  Value<String> accountKey,
   Value<int> id,
   Value<int> contentId,
   Value<String> contentType,
@@ -2377,6 +2691,11 @@ class $$HistoryTableFilterComposer
     super.$addJoinBuilderToRootComposer,
     super.$removeJoinBuilderFromRootComposer,
   });
+  ColumnFilters<String> get accountKey => $composableBuilder(
+    column: $table.accountKey,
+    builder: (column) => ColumnFilters(column),
+  );
+
   ColumnFilters<int> get id => $composableBuilder(
     column: $table.id,
     builder: (column) => ColumnFilters(column),
@@ -2427,6 +2746,11 @@ class $$HistoryTableOrderingComposer
     super.$addJoinBuilderToRootComposer,
     super.$removeJoinBuilderFromRootComposer,
   });
+  ColumnOrderings<String> get accountKey => $composableBuilder(
+    column: $table.accountKey,
+    builder: (column) => ColumnOrderings(column),
+  );
+
   ColumnOrderings<int> get id => $composableBuilder(
     column: $table.id,
     builder: (column) => ColumnOrderings(column),
@@ -2477,6 +2801,11 @@ class $$HistoryTableAnnotationComposer
     super.$addJoinBuilderToRootComposer,
     super.$removeJoinBuilderFromRootComposer,
   });
+  GeneratedColumn<String> get accountKey => $composableBuilder(
+    column: $table.accountKey,
+    builder: (column) => column,
+  );
+
   GeneratedColumn<int> get id =>
       $composableBuilder(column: $table.id, builder: (column) => column);
 
@@ -2535,6 +2864,7 @@ class $$HistoryTableTableManager
               $$HistoryTableAnnotationComposer($db: db, $table: table),
           updateCompanionCallback:
               ({
+                Value<String> accountKey = const Value.absent(),
                 Value<int> id = const Value.absent(),
                 Value<int> contentId = const Value.absent(),
                 Value<String> contentType = const Value.absent(),
@@ -2544,6 +2874,7 @@ class $$HistoryTableTableManager
                 Value<int> position = const Value.absent(),
                 Value<int?> duration = const Value.absent(),
               }) => HistoryCompanion(
+                accountKey: accountKey,
                 id: id,
                 contentId: contentId,
                 contentType: contentType,
@@ -2555,6 +2886,7 @@ class $$HistoryTableTableManager
               ),
           createCompanionCallback:
               ({
+                Value<String> accountKey = const Value.absent(),
                 Value<int> id = const Value.absent(),
                 required int contentId,
                 required String contentType,
@@ -2564,6 +2896,7 @@ class $$HistoryTableTableManager
                 Value<int> position = const Value.absent(),
                 Value<int?> duration = const Value.absent(),
               }) => HistoryCompanion.insert(
+                accountKey: accountKey,
                 id: id,
                 contentId: contentId,
                 contentType: contentType,

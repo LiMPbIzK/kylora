@@ -1,0 +1,52 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 512 512" width="100%" height="100%">
+  <defs>
+    <radialGradient id="iconBg" cx="30%" cy="25%" r="90%">
+      <stop offset="0%" stop-color="#181e36"/>
+      <stop offset="65%" stop-color="#0c0e18"/>
+      <stop offset="100%" stop-color="#05060a"/>
+    </radialGradient>
+
+    <linearGradient id="cyanGrad" x1="0%" y1="0%" x2="0%" y2="100%">
+      <stop offset="0%" stop-color="#00f2fe"/>
+      <stop offset="100%" stop-color="#4facfe"/>
+    </linearGradient>
+
+    <linearGradient id="upperArm" x1="0%" y1="100%" x2="100%" y2="0%">
+      <stop offset="0%" stop-color="#00d2ff"/>
+      <stop offset="100%" stop-color="#3a7bd5"/>
+    </linearGradient>
+
+    <linearGradient id="playGrad" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" stop-color="#ff007a"/>
+      <stop offset="50%" stop-color="#ff3366"/>
+      <stop offset="100%" stop-color="#7928ca"/>
+    </linearGradient>
+
+    <linearGradient id="borderGrad" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" stop-color="#00f2fe" stop-opacity="0.6"/>
+      <stop offset="50%" stop-color="#7928ca" stop-opacity="0.3"/>
+      <stop offset="100%" stop-color="#ff007a" stop-opacity="0.2"/>
+    </linearGradient>
+
+    <filter id="neonGlow" x="-30%" y="-30%" width="160%" height="160%">
+      <feGaussianBlur stdDeviation="16" result="blur"/>
+      <feMerge>
+        <feMergeNode in="blur"/>
+        <feMergeNode in="SourceGraphic"/>
+      </feMerge>
+    </filter>
+  </defs>
+
+  <!-- Fondo Squircle -->
+  <rect x="16" y="16" width="480" height="480" rx="110" fill="url(#iconBg)" stroke="url(#borderGrad)" stroke-width="3"/>
+
+  <!-- Resplandores ambientales -->
+  <circle cx="210" cy="256" r="140" fill="#00f2fe" opacity="0.12" filter="url(#neonGlow)"/>
+  <circle cx="310" cy="290" r="130" fill="#ff007a" opacity="0.15" filter="url(#neonGlow)"/>
+
+  <!-- Símbolo 'K' + Streaming Play -->
+  <rect x="124" y="106" width="52" height="300" rx="26" fill="url(#cyanGrad)"/>
+  <path d="M 210 260 L 330 134 C 342 120, 366 128, 366 146 L 366 166 C 366 180, 358 194, 348 204 L 254 298 Z" fill="url(#upperArm)"/>
+  <path d="M 206 230 C 206 214, 224 204, 238 212 L 378 288 C 392 296, 392 316, 378 324 L 238 400 C 224 408, 206 398, 206 382 Z" fill="url(#playGrad)" filter="url(#neonGlow)"/>
+  <circle cx="248" cy="306" r="11" fill="#ffffff" filter="url(#neonGlow)"/>
+</svg>

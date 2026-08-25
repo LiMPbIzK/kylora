@@ -7,20 +7,25 @@ import 'package:path_provider/path_provider.dart';
 
 part 'app_database.g.dart';
 
-/// Categorías de canales en directo (caché local).
+/// Categorías de canales en directo (caché local, por cuenta).
 class LiveCategories extends Table {
+  /// Id de la cuenta (fingerprint) a la que pertenece la fila.
+  TextColumn get accountKey => text().withDefault(const Constant(''))();
   IntColumn get id => integer()();
   TextColumn get name => text()();
 
   @override
-  Set<Column<Object>> get primaryKey => {id};
+  Set<Column<Object>> get primaryKey => {accountKey, id};
 }
 
-/// Canales en directo (caché local). El stream_id es la clave natural de la fuente.
+/// Canales en directo (caché local). El stream_id es la clave natural de la fuente
+/// (no unique: puede repetirse entre cuentas distintas).
 @TableIndex(name: 'live_channels_name_idx', columns: {#name})
 class LiveChannels extends Table {
+  /// Id de la cuenta (fingerprint) a la que pertenece la fila.
+  TextColumn get accountKey => text().withDefault(const Constant(''))();
   IntColumn get id => integer().autoIncrement()();
-  IntColumn get streamId => integer().unique()();
+  IntColumn get streamId => integer()();
   TextColumn get name => text()();
   IntColumn get categoryId => integer()();
   IntColumn get number => integer().nullable()();
@@ -31,8 +36,10 @@ class LiveChannels extends Table {
 /// Tipo de contenido para favoritos e historial.
 enum ContentType { live, vod, series }
 
-/// Favoritos del usuario (persistente).
+/// Favoritos del usuario (persistente, por cuenta).
 class Favorites extends Table {
+  /// Id de la cuenta (fingerprint) a la que pertenece la fila.
+  TextColumn get accountKey => text().withDefault(const Constant(''))();
   IntColumn get id => integer().autoIncrement()();
   IntColumn get contentId => integer()();
   TextColumn get contentType => text()();
@@ -41,8 +48,10 @@ class Favorites extends Table {
   DateTimeColumn get addedAt => dateTime()();
 }
 
-/// Historial de reproducción (persistente).
+/// Historial de reproducción (persistente, por cuenta).
 class History extends Table {
+  /// Id de la cuenta (fingerprint) a la que pertenece la fila.
+  TextColumn get accountKey => text().withDefault(const Constant(''))();
   IntColumn get id => integer().autoIncrement()();
   IntColumn get contentId => integer()();
   TextColumn get contentType => text()();
@@ -83,12 +92,17 @@ class AppDatabase extends _$AppDatabase {
   }
 
   @override
-  int get schemaVersion => 3;
+  int get schemaVersion => 4;
 
   @override
   MigrationStrategy get migration {
     return MigrationStrategy(
       onCreate: (Migrator m) => m.createAll(),
+      beforeOpen: (details) async {
+        // Los datos huérfanos de la v3 (accountKey = '') se adoptan a la cuenta
+        // activa en el primer arranque tras la migración (ver AuthStore.getAll /
+        // repositorios). La caché de canales se re-descarga al cambiar de cuenta.
+      },
       onUpgrade: (Migrator m, int from, int to) async {
         if (from < 2) {
           await m.createTable(favorites);
@@ -96,6 +110,14 @@ class AppDatabase extends _$AppDatabase {
         }
         if (from < 3) {
           await m.createTable(appSettings);
+        }
+        if (from < 4) {
+          // V4: las tablas de datos del usuario pasan a estar particionadas por
+          // cuenta (accountKey). Las columnas nuevas se rellenan con ''.
+          await m.addColumn(liveCategories, liveCategories.accountKey);
+          await m.addColumn(liveChannels, liveChannels.accountKey);
+          await m.addColumn(favorites, favorites.accountKey);
+          await m.addColumn(history, history.accountKey);
         }
       },
     );

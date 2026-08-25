@@ -5,21 +5,25 @@ import '../../../domain/entities/channel.dart';
 import 'app_database.dart';
 
 /// Caché local del catálogo en directo usando Drift.
-/// Persiste categorías y canales para acceso sin conexión.
+/// Persiste categorías y canales por cuenta ([accountKey]) para acceso sin
+/// conexión y de modo que cada cuenta vea únicamente su propio catálogo.
 class LiveCacheStore {
   LiveCacheStore(this._db);
 
   final AppDatabase _db;
 
-  Future<List<Category>> getCategories() async {
-    final List<LiveCategory> rows = await _db.select(_db.liveCategories).get();
+  Future<List<Category>> getCategories(String accountKey) async {
+    final List<LiveCategory> rows = await (_db.select(_db.liveCategories)
+          ..where((t) => t.accountKey.equals(accountKey)))
+        .get();
     return rows
         .map((LiveCategory row) => Category(id: row.id, name: row.name))
         .toList();
   }
 
-  Future<List<Channel>> getChannels({int? categoryId}) async {
+  Future<List<Channel>> getChannels(String accountKey, {int? categoryId}) async {
     final query = _db.select(_db.liveChannels)
+      ..where((t) => t.accountKey.equals(accountKey))
       ..orderBy([(LiveChannels row) => OrderingTerm.asc(row.number)]);
     if (categoryId != null) {
       query.where((LiveChannels row) => row.categoryId.equals(categoryId));
@@ -29,30 +33,39 @@ class LiveCacheStore {
   }
 
   Future<void> replaceLiveContent({
+    required String accountKey,
     required List<Category> categories,
     required List<Channel> channels,
   }) async {
     await _db.transaction(() async {
-      await _db.delete(_db.liveCategories).go();
-      await _db.delete(_db.liveChannels).go();
+      await (_db.delete(_db.liveCategories)
+            ..where((LiveCategories t) => t.accountKey.equals(accountKey)))
+          .go();
+      await (_db.delete(_db.liveChannels)
+            ..where((LiveChannels t) => t.accountKey.equals(accountKey)))
+          .go();
       await _db.batch((Batch batch) {
         batch.insertAll(
           _db.liveCategories,
           categories
               .map(
                 (Category category) => LiveCategoriesCompanion.insert(
-                  id: Value<int>(category.id),
+                  accountKey: Value(accountKey),
+                  id: category.id,
                   name: category.name,
                 ),
               )
               .toList(),
         );
-        batch.insertAll(_db.liveChannels, channels.map(_toInsertable).toList());
+        batch.insertAll(
+          _db.liveChannels,
+          channels.map((Channel channel) => _toInsertable(accountKey, channel)),
+        );
       });
     });
   }
 
-  /// Vacía la caché local del catálogo en directo.
+  /// Vacía la caché local del catálogo en directo (todas las cuentas).
   Future<void> clear() async {
     await _db.transaction(() async {
       await _db.delete(_db.liveCategories).go();
@@ -69,8 +82,9 @@ class LiveCacheStore {
     epgChannelId: row.epgChannelId,
   );
 
-  LiveChannelsCompanion _toInsertable(Channel channel) =>
+  LiveChannelsCompanion _toInsertable(String accountKey, Channel channel) =>
       LiveChannelsCompanion.insert(
+        accountKey: Value(accountKey),
         streamId: channel.id,
         name: channel.name,
         categoryId: channel.categoryId,
