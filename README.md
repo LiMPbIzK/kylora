@@ -23,6 +23,7 @@
 * **Indexación local inteligente:** El análisis pesado de listas se ejecuta en isolates en segundo plano y se indexa con Drift (SQLite) para búsqueda y categorización instantáneas.
 * **Multidioma (i18n):** Soporte nativo de inglés, español, francés, alemán, italiano y portugués.
 * **Temas:** 4 temas de diseño desde el registro `AppThemes` — **Nocturne** (oscuro por defecto), **Expressive** (Material 3), **Pacotis** (teal/coral) y **Canvas** (claro editorial), con paleta `AppColors` por tema y aplicados en caliente desde Ajustes.
+* **Donaciones:** sección "Soporte" en Ajustes con botón "Donar con PayPal" que abre `https://paypal.me/franito` (vía `url_launcher`).
 
 ---
 
@@ -135,7 +136,7 @@ Construida sobre `flutter_localizations` + `intl` con archivos ARB generados y d
 | Italiano | ✅ |
 | Portugués | ✅ |
 
-El selector de idioma (sistema o manual) y el selector de temas (oscuro/claro) se configuran desde la pantalla de **Ajustes**.
+El selector de idioma (sistema o manual), el selector de temas (Nocturne, Expressive, Pacotis, Canvas), el refresco/borrado del catálogo y el botón de donaciones (PayPal) se configuran desde la pantalla de **Ajustes**.
 
 ---
 
