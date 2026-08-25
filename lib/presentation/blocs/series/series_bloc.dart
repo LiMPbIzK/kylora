@@ -1,6 +1,7 @@
 import 'package:flutter/foundation.dart' hide Category;
 import 'package:flutter_bloc/flutter_bloc.dart';
 
+import '../../../core/utils/xtream_date.dart';
 import '../../../domain/entities/category.dart';
 import '../../../domain/entities/series.dart';
 import '../../../domain/entities/series_info.dart';
@@ -17,6 +18,7 @@ class SeriesBloc extends Bloc<SeriesEvent, SeriesState> {
     on<SeriesDetailRequested>(_onDetailRequested);
     on<SeriesDetailClosed>(_onDetailClosed);
     on<SeriesRefreshRequested>(_onRefreshRequested);
+    on<SeriesRecentToggled>(_onRecentToggled);
   }
 
   final IptvRepository _repository;
@@ -24,6 +26,17 @@ class SeriesBloc extends Bloc<SeriesEvent, SeriesState> {
   List<Category> _categories = <Category>[];
   List<Series> _allSeries = <Series>[];
   String _query = '';
+  bool _recentOnly = false;
+
+  Future<void> _onRecentToggled(
+    SeriesRecentToggled event,
+    Emitter<SeriesState> emit,
+  ) async {
+    if (state is! SeriesLoaded) return;
+    _recentOnly = event.enabled;
+    final SeriesLoaded current = state as SeriesLoaded;
+    emit(_buildLoaded(selectedCategoryId: current.selectedCategoryId));
+  }
 
   Future<void> _onRefreshRequested(
     SeriesRefreshRequested event,
@@ -86,15 +99,18 @@ class SeriesBloc extends Bloc<SeriesEvent, SeriesState> {
     emit(_buildLoaded(selectedCategoryId: current.selectedCategoryId));
   }
 
-  /// Construye el estado cargado combinando categoría y búsqueda.
+  /// Construye el estado cargado combinando categoría, búsqueda y recientes.
   SeriesLoaded _buildLoaded({required int? selectedCategoryId}) {
     final String term = _query.trim().toLowerCase();
+    final DateTime cutoff = DateTime.now().subtract(const Duration(days: 7));
     final List<Series> seriesList = _allSeries.where((Series series) {
       final bool matchCategory =
           selectedCategoryId == null || series.categoryId == selectedCategoryId;
       final bool matchQuery =
           term.isEmpty || series.name.toLowerCase().contains(term);
-      return matchCategory && matchQuery;
+      final bool matchRecent =
+          !_recentOnly || _isWithin(series.lastModified, cutoff);
+      return matchCategory && matchQuery && matchRecent;
     }).toList();
 
     return SeriesLoaded(
@@ -102,7 +118,13 @@ class SeriesBloc extends Bloc<SeriesEvent, SeriesState> {
       selectedCategoryId: selectedCategoryId,
       query: _query,
       seriesList: seriesList,
+      recentOnly: _recentOnly,
     );
+  }
+
+  static bool _isWithin(String? lastModified, DateTime cutoff) {
+    final DateTime? date = parseXtreamDate(lastModified);
+    return date != null && date.isAfter(cutoff);
   }
 
   Future<void> _onDetailRequested(

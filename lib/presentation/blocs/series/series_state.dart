@@ -25,12 +25,17 @@ final class SeriesLoaded extends SeriesState {
     required this.selectedCategoryId,
     required this.query,
     required this.seriesList,
+    this.recentOnly = false,
   });
 
   final List<Category> categories;
   final int? selectedCategoryId;
   final String query;
   final List<Series> seriesList;
+
+  /// Si está activo, solo se muestran series añadidas/modificadas en los
+  /// últimos 7 días.
+  final bool recentOnly;
 
   bool get isAllSelected => selectedCategoryId == null;
   bool get isSearching => query.trim().isNotEmpty;
@@ -41,6 +46,7 @@ final class SeriesLoaded extends SeriesState {
     selectedCategoryId,
     query,
     seriesList,
+    recentOnly,
   ];
 }
 

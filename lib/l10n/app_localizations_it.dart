@@ -264,6 +264,9 @@ class AppLocalizationsIt extends AppLocalizations {
   String get searchPlaceholder => 'Cerca canali, film...';
 
   @override
+  String get recentlyAdded => 'Aggiunto di recente';
+
+  @override
   String get audioTrack => 'Traccia audio';
 
   @override

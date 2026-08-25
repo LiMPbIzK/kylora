@@ -37,3 +37,13 @@ final class VodSearchChanged extends VodEvent {
 final class VodRefreshRequested extends VodEvent {
   const VodRefreshRequested();
 }
+
+/// Alterna la vista "Añadido recientemente" (últimos 7 días).
+final class VodRecentToggled extends VodEvent {
+  const VodRecentToggled(this.enabled);
+
+  final bool enabled;
+
+  @override
+  List<Object?> get props => <Object?>[enabled];
+}

@@ -333,6 +333,10 @@
   "@searchPlaceholder": {
     "description": "Texte d'espace réservé du champ de recherche."
   },
+  "recentlyAdded": "Récemment ajouté",
+  "@recentlyAdded": {
+    "description": "Filtre qui montre uniquement le contenu ajouté au cours des 7 derniers jours."
+  },
   "audioTrack": "Piste audio",
   "@audioTrack": {
     "description": "Option du lecteur pour sélectionner la piste audio."

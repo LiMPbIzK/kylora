@@ -13,6 +13,7 @@ class XtreamSeriesDto {
     this.director,
     this.genre,
     this.releaseDate,
+    this.lastModified,
     this.rating,
     this.rating5Based,
     this.backdropPath,
@@ -31,6 +32,7 @@ class XtreamSeriesDto {
   final String? director;
   final String? genre;
   final String? releaseDate;
+  final String? lastModified;
   final String? rating;
   final String? rating5Based;
   final String? backdropPath;
@@ -50,6 +52,7 @@ class XtreamSeriesDto {
       director: json['director'] as String?,
       genre: json['genre'] as String?,
       releaseDate: _str(json['releaseDate']),
+      lastModified: _str(json['last_modified']),
       rating: _str(json['rating']),
       rating5Based: _str(json['rating_5based']),
       backdropPath: _str(json['backdrop_path']),
@@ -73,6 +76,7 @@ class XtreamSeriesDto {
     director: director,
     genre: genre,
     releaseDate: releaseDate,
+    lastModified: lastModified,
     rating: rating,
     rating5Based: rating5Based,
     backdropPath: backdropPath,

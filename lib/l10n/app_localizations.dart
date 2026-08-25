@@ -586,6 +586,12 @@ abstract class AppLocalizations {
   /// **'Search channels, movies...'**
   String get searchPlaceholder;
 
+  /// Filter that shows only content added in the last 7 days.
+  ///
+  /// In en, this message translates to:
+  /// **'Recently added'**
+  String get recentlyAdded;
+
   /// Player option to select the audio track.
   ///
   /// In en, this message translates to:

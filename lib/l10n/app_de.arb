@@ -333,6 +333,10 @@
   "@searchPlaceholder": {
     "description": "Platzhaltertext des Suchfelds."
   },
+  "recentlyAdded": "Kürzlich hinzugefügt",
+  "@recentlyAdded": {
+    "description": "Filter, der nur Inhalte anzeigt, die in den letzten 7 Tagen hinzugefügt wurden."
+  },
   "audioTrack": "Audiospur",
   "@audioTrack": {
     "description": "Player-Option zum Auswählen der Audiospur."

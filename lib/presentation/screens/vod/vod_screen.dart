@@ -4,8 +4,14 @@ import 'package:go_router/go_router.dart';
 
 import '../../../app.dart';
 import '../../../core/theme/app_theme.dart';
+import '../../../domain/entities/content_type.dart';
+import '../../../domain/entities/favorite_item.dart';
 import '../../../domain/entities/movie.dart';
+import '../../../domain/repositories/iptv_repository.dart';
 import '../../../l10n/app_localizations.dart';
+import '../../blocs/favorites/favorites_bloc.dart';
+import '../../blocs/favorites/favorites_event.dart';
+import '../../blocs/favorites/favorites_state.dart';
 import '../../blocs/vod/vod_bloc.dart';
 import '../../blocs/vod/vod_event.dart';
 import '../../blocs/vod/vod_state.dart';
@@ -74,31 +80,53 @@ class _VodContent extends StatelessWidget {
     return Column(
       children: <Widget>[
         Padding(
-          padding: const EdgeInsets.fromLTRB(12, 8, 12, 0),
-          child: TextField(
-            controller: controller,
-            onChanged: (String value) =>
-                context.read<VodBloc>().add(VodSearchChanged(value)),
-            decoration: InputDecoration(
-              hintText: l10n.searchPlaceholder,
-              prefixIcon: const Icon(Icons.search),
-              suffixIcon: state.isSearching
-                  ? IconButton(
-                      icon: const Icon(Icons.clear),
-                      onPressed: () {
-                        controller.clear();
-                        context
-                            .read<VodBloc>()
-                            .add(const VodSearchChanged(''));
-                      },
-                    )
-                  : null,
-              isDense: true,
-              border: OutlineInputBorder(
-                borderRadius: BorderRadius.circular(12),
-                borderSide: BorderSide(color: context.colors.surfaceVariant),
+          padding: const EdgeInsets.fromLTRB(12, 8, 12, 4),
+          child: Row(
+            children: <Widget>[
+              Expanded(
+                child: TextField(
+                  controller: controller,
+                  onChanged: (String value) =>
+                      context.read<VodBloc>().add(VodSearchChanged(value)),
+                  decoration: InputDecoration(
+                    hintText: l10n.searchPlaceholder,
+                    prefixIcon: const Icon(Icons.search),
+                    suffixIcon: state.isSearching
+                        ? IconButton(
+                            icon: const Icon(Icons.clear),
+                            onPressed: () {
+                              controller.clear();
+                              context
+                                  .read<VodBloc>()
+                                  .add(const VodSearchChanged(''));
+                            },
+                          )
+                        : null,
+                    isDense: true,
+                    border: OutlineInputBorder(
+                      borderRadius: BorderRadius.circular(12),
+                      borderSide: BorderSide(
+                        color: context.colors.surfaceVariant,
+                      ),
+                    ),
+                  ),
+                ),
               ),
-            ),
+              const SizedBox(width: 8),
+              FilterChip(
+                label: Text(l10n.recentlyAdded),
+                selected: state.recentOnly,
+                onSelected: (bool value) =>
+                    context.read<VodBloc>().add(VodRecentToggled(value)),
+                avatar: Icon(
+                  Icons.new_releases_outlined,
+                  size: 18,
+                  color: state.recentOnly
+                      ? context.colors.onPrimary
+                      : context.colors.onSurfaceVariant,
+                ),
+              ),
+            ],
           ),
         ),
         const Divider(height: 1),
@@ -123,20 +151,36 @@ class _VodContent extends StatelessWidget {
                           state.isSearching ? l10n.searchNoResults : l10n.noMovies,
                         ),
                       )
-                    : GridView.builder(
-                        padding: const EdgeInsets.all(12),
-                        gridDelegate:
-                            const SliverGridDelegateWithMaxCrossAxisExtent(
-                              maxCrossAxisExtent: 220,
-                              mainAxisSpacing: 12,
-                              crossAxisSpacing: 12,
-                              childAspectRatio: 0.62,
-                            ),
-                        itemCount: state.movies.length,
-                        itemBuilder: (context, index) {
-                          return _MovieCard(
-                            movie: state.movies[index],
-                            autofocus: index == 0,
+                    : BlocBuilder<FavoritesBloc, FavoritesState>(
+                        buildWhen: (previous, current) =>
+                            current is FavoritesLoaded,
+                        builder: (context, favoritesState) {
+                          final Set<int> favoriteIds = <int>{};
+                          if (favoritesState is FavoritesLoaded) {
+                            for (final FavoriteItem item in favoritesState.items) {
+                              if (item.contentType.name == ContentType.vod.name) {
+                                favoriteIds.add(item.contentId);
+                              }
+                            }
+                          }
+                          return GridView.builder(
+                            padding: const EdgeInsets.all(12),
+                            gridDelegate:
+                                const SliverGridDelegateWithMaxCrossAxisExtent(
+                                  maxCrossAxisExtent: 220,
+                                  mainAxisSpacing: 12,
+                                  crossAxisSpacing: 12,
+                                  childAspectRatio: 0.62,
+                                ),
+                            itemCount: state.movies.length,
+                            itemBuilder: (context, index) {
+                              final Movie movie = state.movies[index];
+                              return _MovieCard(
+                                movie: movie,
+                                isFavorite: favoriteIds.contains(movie.id),
+                                autofocus: index == 0,
+                              );
+                            },
                           );
                         },
                       ),
@@ -149,11 +193,16 @@ class _VodContent extends StatelessWidget {
   }
 }
 
-/// Tarjeta de película con póster y título.
+/// Tarjeta de película con póster, título y favorito.
 class _MovieCard extends StatelessWidget {
-  const _MovieCard({required this.movie, this.autofocus = false});
+  const _MovieCard({
+    required this.movie,
+    this.isFavorite = false,
+    this.autofocus = false,
+  });
 
   final Movie movie;
+  final bool isFavorite;
   final bool autofocus;
 
   @override
@@ -165,11 +214,34 @@ class _MovieCard extends StatelessWidget {
       child: InkWell(
         borderRadius: BorderRadius.circular(8),
         onTap: () => context.push(Routes.movieDetail, extra: movie),
+        onLongPress: () => _toggleFavorite(context),
+        onSecondaryTap: () => _toggleFavorite(context),
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: <Widget>[
             Expanded(
-              child: MediaPoster(url: movie.streamIcon, fallbackIcon: Icons.movie),
+              child: Stack(
+                fit: StackFit.expand,
+                children: <Widget>[
+                  MediaPoster(
+                    url: movie.streamIcon,
+                    fallbackIcon: Icons.movie,
+                  ),
+                  Positioned(
+                    top: 4,
+                    left: 4,
+                    child: Icon(
+                      Icons.favorite,
+                      size: 18,
+                      color: isFavorite
+                          ? context.colors.secondary
+                          : Colors.transparent,
+                      semanticLabel:
+                          AppLocalizations.of(context)!.favorites,
+                    ),
+                  ),
+                ],
+              ),
             ),
             const SizedBox(height: 6),
             Text(
@@ -180,6 +252,36 @@ class _MovieCard extends StatelessWidget {
             ),
           ],
         ),
+      ),
+    );
+  }
+
+  Future<void> _toggleFavorite(BuildContext context) async {
+    final IptvRepository repository = context.read<IptvRepository>();
+    final FavoritesBloc favoritesBloc = context.read<FavoritesBloc>();
+    final AppLocalizations l10n = AppLocalizations.of(context)!;
+    final ScaffoldMessengerState messenger = ScaffoldMessenger.of(context);
+
+    final bool isFav = await repository.isFavorite(
+      movie.id,
+      ContentType.vod,
+    );
+    favoritesBloc.add(
+      FavoritesToggled(
+        movie.id,
+        ContentType.vod.name,
+        movie.name,
+        movie.streamIcon,
+      ),
+    );
+    favoritesBloc.add(FavoritesStarted());
+
+    messenger.showSnackBar(
+      SnackBar(
+        content: Text(
+          isFav ? l10n.removedFromFavorites : l10n.addedToFavorites,
+        ),
+        duration: const Duration(seconds: 2),
       ),
     );
   }

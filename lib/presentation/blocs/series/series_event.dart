@@ -54,3 +54,13 @@ final class SeriesDetailClosed extends SeriesEvent {
 final class SeriesRefreshRequested extends SeriesEvent {
   const SeriesRefreshRequested();
 }
+
+/// Alterna la vista "Añadido recientemente" (últimos 7 días).
+final class SeriesRecentToggled extends SeriesEvent {
+  const SeriesRecentToggled(this.enabled);
+
+  final bool enabled;
+
+  @override
+  List<Object?> get props => <Object?>[enabled];
+}

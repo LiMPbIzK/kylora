@@ -333,6 +333,10 @@
   "@searchPlaceholder": {
     "description": "Testo segnaposto del campo di ricerca."
   },
+  "recentlyAdded": "Aggiunto di recente",
+  "@recentlyAdded": {
+    "description": "Filtro che mostra solo contenuti aggiunti negli ultimi 7 giorni."
+  },
   "audioTrack": "Traccia audio",
   "@audioTrack": {
     "description": "Opzione del player per selezionare la traccia audio."

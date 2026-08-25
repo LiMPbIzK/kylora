@@ -263,6 +263,9 @@ class AppLocalizationsEn extends AppLocalizations {
   String get searchPlaceholder => 'Search channels, movies...';
 
   @override
+  String get recentlyAdded => 'Recently added';
+
+  @override
   String get audioTrack => 'Audio Track';
 
   @override

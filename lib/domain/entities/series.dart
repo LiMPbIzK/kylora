@@ -13,6 +13,7 @@ class Series extends Equatable {
     this.director,
     this.genre,
     this.releaseDate,
+    this.lastModified,
     this.rating,
     this.rating5Based,
     this.backdropPath,
@@ -51,6 +52,9 @@ class Series extends Equatable {
   /// Fecha de estreno.
   final String? releaseDate;
 
+  /// Fecha de última modificación en la fuente (típicamente al añadir capítulos).
+  final String? lastModified;
+
   /// Calificación de la fuente (0-10).
   final String? rating;
 
@@ -81,6 +85,7 @@ class Series extends Equatable {
     director,
     genre,
     releaseDate,
+    lastModified,
     rating,
     rating5Based,
     backdropPath,

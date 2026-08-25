@@ -24,12 +24,16 @@ final class VodLoaded extends VodState {
     required this.selectedCategoryId,
     required this.query,
     required this.movies,
+    this.recentOnly = false,
   });
 
   final List<Category> categories;
   final int? selectedCategoryId;
   final String query;
   final List<Movie> movies;
+
+  /// Si está activo, solo se muestran películas añadidas en los últimos 7 días.
+  final bool recentOnly;
 
   bool get isAllSelected => selectedCategoryId == null;
   bool get isSearching => query.trim().isNotEmpty;
@@ -40,6 +44,7 @@ final class VodLoaded extends VodState {
     selectedCategoryId,
     query,
     movies,
+    recentOnly,
   ];
 }
 

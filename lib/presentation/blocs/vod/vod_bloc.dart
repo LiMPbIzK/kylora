@@ -1,6 +1,7 @@
 import 'package:flutter/foundation.dart' hide Category;
 import 'package:flutter_bloc/flutter_bloc.dart';
 
+import '../../../core/utils/xtream_date.dart';
 import '../../../domain/entities/category.dart';
 import '../../../domain/entities/movie.dart';
 import '../../../domain/repositories/iptv_repository.dart';
@@ -14,6 +15,7 @@ class VodBloc extends Bloc<VodEvent, VodState> {
     on<VodCategorySelected>(_onCategorySelected);
     on<VodSearchChanged>(_onSearchChanged);
     on<VodRefreshRequested>(_onRefreshRequested);
+    on<VodRecentToggled>(_onRecentToggled);
   }
 
   final IptvRepository _repository;
@@ -21,6 +23,17 @@ class VodBloc extends Bloc<VodEvent, VodState> {
   List<Category> _categories = <Category>[];
   List<Movie> _allMovies = <Movie>[];
   String _query = '';
+  bool _recentOnly = false;
+
+  Future<void> _onRecentToggled(
+    VodRecentToggled event,
+    Emitter<VodState> emit,
+  ) async {
+    if (state is! VodLoaded) return;
+    _recentOnly = event.enabled;
+    final VodLoaded current = state as VodLoaded;
+    emit(_buildLoaded(selectedCategoryId: current.selectedCategoryId));
+  }
 
   Future<void> _onRefreshRequested(
     VodRefreshRequested event,
@@ -85,15 +98,18 @@ class VodBloc extends Bloc<VodEvent, VodState> {
     );
   }
 
-  /// Construye el estado cargado combinando categoría y búsqueda.
+  /// Construye el estado cargado combinando categoría, búsqueda y recientes.
   VodLoaded _buildLoaded({required int? selectedCategoryId}) {
     final String term = _query.trim().toLowerCase();
+    final DateTime cutoff = DateTime.now().subtract(const Duration(days: 7));
     final List<Movie> movies = _allMovies.where((Movie movie) {
       final bool matchCategory =
           selectedCategoryId == null || movie.categoryId == selectedCategoryId;
       final bool matchQuery =
           term.isEmpty || movie.name.toLowerCase().contains(term);
-      return matchCategory && matchQuery;
+      final bool matchRecent =
+          !_recentOnly || _isWithin(movie.added, cutoff);
+      return matchCategory && matchQuery && matchRecent;
     }).toList();
 
     return VodLoaded(
@@ -101,6 +117,13 @@ class VodBloc extends Bloc<VodEvent, VodState> {
       selectedCategoryId: selectedCategoryId,
       query: _query,
       movies: movies,
+      recentOnly: _recentOnly,
     );
+  }
+
+  /// Comprueba si una fecha (formato libre de la fuente) está dentro de [cutoff].
+  static bool _isWithin(String? added, DateTime cutoff) {
+    final DateTime? date = parseXtreamDate(added);
+    return date != null && date.isAfter(cutoff);
   }
 }

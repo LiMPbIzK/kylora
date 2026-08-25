@@ -329,9 +329,13 @@
   "@close": {
     "description": "Botón para cerrar un panel o diálogo."
   },
-  "searchPlaceholder": "Buscar canales, películas...",
+"searchPlaceholder": "Buscar canales, películas...",
   "@searchPlaceholder": {
-    "description": "Texto de marcador de posición del campo de búsqueda."
+    "description": "Texto de espacio reservado del campo de búsqueda."
+  },
+  "recentlyAdded": "Añadido recientemente",
+  "@recentlyAdded": {
+    "description": "Filtro que muestra solo contenido añadido en los últimos 7 días."
   },
   "audioTrack": "Pista de Audio",
   "@audioTrack": {

@@ -333,6 +333,10 @@
   "@searchPlaceholder": {
     "description": "Placeholder text of the search field."
   },
+  "recentlyAdded": "Recently added",
+  "@recentlyAdded": {
+    "description": "Filter that shows only content added in the last 7 days."
+  },
   "audioTrack": "Audio Track",
   "@audioTrack": {
     "description": "Player option to select the audio track."
