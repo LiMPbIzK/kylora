@@ -273,6 +273,22 @@
   "@pinCode": {
     "description": "Sperroption der Anwendung mit PIN."
   },
+  "settingsSectionSupport": "Unterstützung",
+  "@settingsSectionSupport": {
+    "description": "Überschrift des Unterstützungsabschnitts in den Einstellungen."
+  },
+  "donation": "Mit PayPal spenden",
+  "@donation": {
+    "description": "Spenden-Schaltfläche, die die PayPal-Seite öffnet."
+  },
+  "donationDescription": "Unterstütze die Entwicklung von Kylora mit einer freiwilligen Spende.",
+  "@donationDescription": {
+    "description": "Beschreibung der Spenden-Schaltfläche."
+  },
+  "donationOpenError": "Der Spendenlink konnte nicht geöffnet werden",
+  "@donationOpenError": {
+    "description": "Meldung, wenn der PayPal-Link nicht geöffnet werden kann."
+  },
   "comingSoon": "Bald verfügbar",
   "@comingSoon": {
     "description": "Hinweis auf eine noch nicht verfügbare Funktion."

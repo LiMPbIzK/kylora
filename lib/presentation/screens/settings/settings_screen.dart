@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:intl/intl.dart';
+import 'package:url_launcher/url_launcher.dart';
 
 import '../../../core/theme/app_theme.dart';
 import '../../../domain/entities/iptv_source_type.dart';
@@ -50,6 +51,8 @@ class _SettingsScreenState extends State<SettingsScreen> {
           _appearanceSection(context, l10n),
           _SectionHeader(title: l10n.settingsSectionSecurity),
           _securitySection(l10n),
+          _SectionHeader(title: l10n.settingsSectionSupport),
+          _supportSection(context, l10n),
         ],
       ),
     );
@@ -357,6 +360,32 @@ class _SettingsScreenState extends State<SettingsScreen> {
       subtitle: Text(l10n.comingSoon),
       trailing: const Switch(value: false, onChanged: null),
     );
+  }
+
+  // ---------------------------------------------------------------------------
+  // Soporte
+  // ---------------------------------------------------------------------------
+
+  static const String _donationUrl = 'https://paypal.me/franito';
+
+  Widget _supportSection(BuildContext context, AppLocalizations l10n) {
+    return ListTile(
+      leading: Icon(Icons.favorite, color: context.colors.secondary),
+      title: Text(l10n.donation),
+      subtitle: Text(l10n.donationDescription),
+      onTap: () => _openDonation(l10n),
+    );
+  }
+
+  Future<void> _openDonation(AppLocalizations l10n) async {
+    final Uri uri = Uri.parse(_donationUrl);
+    final bool opened = await launchUrl(
+      uri,
+      mode: LaunchMode.externalApplication,
+    );
+    if (!opened && mounted) {
+      _showSnack(context, l10n.donationOpenError);
+    }
   }
 
   void _showSnack(BuildContext context, String message) {

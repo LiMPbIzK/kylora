@@ -496,6 +496,30 @@ abstract class AppLocalizations {
   /// **'PIN code'**
   String get pinCode;
 
+  /// Header of the support section in settings.
+  ///
+  /// In en, this message translates to:
+  /// **'Support'**
+  String get settingsSectionSupport;
+
+  /// Donation button that opens the PayPal page.
+  ///
+  /// In en, this message translates to:
+  /// **'Donate via PayPal'**
+  String get donation;
+
+  /// Description of the donation button.
+  ///
+  /// In en, this message translates to:
+  /// **'Support Kylora development with a voluntary donation.'**
+  String get donationDescription;
+
+  /// Message shown when the PayPal link cannot be opened.
+  ///
+  /// In en, this message translates to:
+  /// **'Could not open the donation link'**
+  String get donationOpenError;
+
   /// Indicator of a feature not yet available.
   ///
   /// In en, this message translates to:

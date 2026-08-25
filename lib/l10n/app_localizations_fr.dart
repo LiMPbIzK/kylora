@@ -216,6 +216,19 @@ class AppLocalizationsFr extends AppLocalizations {
   String get pinCode => 'Code PIN';
 
   @override
+  String get settingsSectionSupport => 'Assistance';
+
+  @override
+  String get donation => 'Faire un don via PayPal';
+
+  @override
+  String get donationDescription =>
+      'Soutiens le développement de Kylora avec un don volontaire.';
+
+  @override
+  String get donationOpenError => 'Impossible d\'ouvrir le lien de don';
+
+  @override
   String get comingSoon => 'Bientôt disponible';
 
   @override

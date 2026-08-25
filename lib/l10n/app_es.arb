@@ -273,6 +273,22 @@
   "@pinCode": {
     "description": "Opción de bloqueo de la aplicación con PIN."
   },
+  "settingsSectionSupport": "Soporte",
+  "@settingsSectionSupport": {
+    "description": "Encabezado de la sección de soporte en los ajustes."
+  },
+  "donation": "Donar con PayPal",
+  "@donation": {
+    "description": "Botón de donación que abre la página de PayPal."
+  },
+  "donationDescription": "Apoya el desarrollo de Kylora con una donación voluntaria.",
+  "@donationDescription": {
+    "description": "Descripción del botón de donación."
+  },
+  "donationOpenError": "No se pudo abrir el enlace de donación",
+  "@donationOpenError": {
+    "description": "Mensaje cuando no se puede abrir el enlace de PayPal."
+  },
   "comingSoon": "Próximamente",
   "@comingSoon": {
     "description": "Indicador de una funcionalidad aún no disponible."
