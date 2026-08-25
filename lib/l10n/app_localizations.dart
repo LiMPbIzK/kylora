@@ -520,6 +520,24 @@ abstract class AppLocalizations {
   /// **'Could not open the donation link'**
   String get donationOpenError;
 
+  /// Contact option that opens an email to the developer.
+  ///
+  /// In en, this message translates to:
+  /// **'Contact by email'**
+  String get contact;
+
+  /// Description of the contact option.
+  ///
+  /// In en, this message translates to:
+  /// **'Send a message to contact@fmartinezgarcia.com.'**
+  String get contactDescription;
+
+  /// Message shown when the email cannot be opened.
+  ///
+  /// In en, this message translates to:
+  /// **'Could not open the email client'**
+  String get contactOpenError;
+
   /// Indicator of a feature not yet available.
   ///
   /// In en, this message translates to:

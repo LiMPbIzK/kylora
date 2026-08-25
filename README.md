@@ -23,7 +23,7 @@
 * **Indexación local inteligente:** El análisis pesado de listas se ejecuta en isolates en segundo plano y se indexa con Drift (SQLite) para búsqueda y categorización instantáneas.
 * **Multidioma (i18n):** Soporte nativo de inglés, español, francés, alemán, italiano y portugués.
 * **Temas:** 4 temas de diseño desde el registro `AppThemes` — **Nocturne** (oscuro por defecto), **Expressive** (Material 3), **Pacotis** (teal/coral) y **Canvas** (claro editorial), con paleta `AppColors` por tema y aplicados en caliente desde Ajustes.
-* **Donaciones:** sección "Soporte" en Ajustes con botón "Donar con PayPal" que abre `https://paypal.me/franito` (vía `url_launcher`).
+* **Donaciones/contacto:** sección "Soporte" en Ajustes con botón "Donar con PayPal" (`https://paypal.me/franito`) y "Contactar por email" (`mailto:contact@fmartinezgarcia.com?subject=Kylora`), ambos vía `url_launcher`.
 
 ---
 

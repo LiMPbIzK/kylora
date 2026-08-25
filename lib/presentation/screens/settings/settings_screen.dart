@@ -367,13 +367,25 @@ class _SettingsScreenState extends State<SettingsScreen> {
   // ---------------------------------------------------------------------------
 
   static const String _donationUrl = 'https://paypal.me/franito';
+  static const String _contactEmail = 'contact@fmartinezgarcia.com';
+  static const String _contactSubject = 'Kylora';
 
   Widget _supportSection(BuildContext context, AppLocalizations l10n) {
-    return ListTile(
-      leading: Icon(Icons.favorite, color: context.colors.secondary),
-      title: Text(l10n.donation),
-      subtitle: Text(l10n.donationDescription),
-      onTap: () => _openDonation(l10n),
+    return Column(
+      children: <Widget>[
+        ListTile(
+          leading: Icon(Icons.favorite, color: context.colors.secondary),
+          title: Text(l10n.donation),
+          subtitle: Text(l10n.donationDescription),
+          onTap: () => _openDonation(l10n),
+        ),
+        ListTile(
+          leading: const Icon(Icons.mail_outline),
+          title: Text(l10n.contact),
+          subtitle: Text(l10n.contactDescription),
+          onTap: () => _openContact(l10n),
+        ),
+      ],
     );
   }
 
@@ -385,6 +397,21 @@ class _SettingsScreenState extends State<SettingsScreen> {
     );
     if (!opened && mounted) {
       _showSnack(context, l10n.donationOpenError);
+    }
+  }
+
+  Future<void> _openContact(AppLocalizations l10n) async {
+    final Uri uri = Uri(
+      scheme: 'mailto',
+      path: _contactEmail,
+      queryParameters: <String, String>{'subject': _contactSubject},
+    );
+    final bool opened = await launchUrl(
+      uri,
+      mode: LaunchMode.externalApplication,
+    );
+    if (!opened && mounted) {
+      _showSnack(context, l10n.contactOpenError);
     }
   }
 

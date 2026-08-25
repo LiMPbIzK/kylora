@@ -289,6 +289,18 @@
   "@donationOpenError": {
     "description": "Mensaje cuando no se puede abrir el enlace de PayPal."
   },
+  "contact": "Contactar por email",
+  "@contact": {
+    "description": "Opción de contacto que abre un correo al desarrollador."
+  },
+  "contactDescription": "Envía un mensaje a contact@fmartinezgarcia.com.",
+  "@contactDescription": {
+    "description": "Descripción de la opción de contacto."
+  },
+  "contactOpenError": "No se pudo abrir el cliente de correo",
+  "@contactOpenError": {
+    "description": "Mensaje cuando no se puede abrir el correo."
+  },
   "comingSoon": "Próximamente",
   "@comingSoon": {
     "description": "Indicador de una funcionalidad aún no disponible."

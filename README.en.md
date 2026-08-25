@@ -23,7 +23,7 @@
 * **Smart Local Indexing:** Heavy playlist parsing executed in background isolates and indexed with Drift (SQLite) for instant search and categorization.
 * **Multi-Language (i18n):** Native support for English, Spanish, French, German, Italian, and Portuguese.
 * **Themes:** 4 design themes from the `AppThemes` registry — **Nocturne** (default dark), **Expressive** (Material 3), **Pacotis** (teal/coral) and **Canvas** (light editorial), each with its own `AppColors` palette, applied live from Settings.
-* **Donations:** a "Support" section in Settings with a "Donate via PayPal" button that opens `https://paypal.me/franito` (via `url_launcher`).
+* **Donations/contact:** a "Support" section in Settings with a "Donate via PayPal" button (`https://paypal.me/franito`) and a "Contact by email" option (`mailto:contact@fmartinezgarcia.com?subject=Kylora`), both via `url_launcher`.
 
 ---
 

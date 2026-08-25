@@ -230,6 +230,17 @@ class AppLocalizationsDe extends AppLocalizations {
       'Der Spendenlink konnte nicht geöffnet werden';
 
   @override
+  String get contact => 'Per E-Mail kontaktieren';
+
+  @override
+  String get contactDescription =>
+      'Sende eine Nachricht an contact@fmartinezgarcia.com.';
+
+  @override
+  String get contactOpenError =>
+      'Der E-Mail-Client konnte nicht geöffnet werden';
+
+  @override
   String get comingSoon => 'Bald verfügbar';
 
   @override

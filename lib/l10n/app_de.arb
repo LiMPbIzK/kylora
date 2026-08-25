@@ -289,6 +289,18 @@
   "@donationOpenError": {
     "description": "Meldung, wenn der PayPal-Link nicht geöffnet werden kann."
   },
+  "contact": "Per E-Mail kontaktieren",
+  "@contact": {
+    "description": "Kontaktoption, die eine E-Mail an den Entwickler öffnet."
+  },
+  "contactDescription": "Sende eine Nachricht an contact@fmartinezgarcia.com.",
+  "@contactDescription": {
+    "description": "Beschreibung der Kontaktoption."
+  },
+  "contactOpenError": "Der E-Mail-Client konnte nicht geöffnet werden",
+  "@contactOpenError": {
+    "description": "Meldung, wenn die E-Mail nicht geöffnet werden kann."
+  },
   "comingSoon": "Bald verfügbar",
   "@comingSoon": {
     "description": "Hinweis auf eine noch nicht verfügbare Funktion."

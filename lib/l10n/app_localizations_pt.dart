@@ -229,6 +229,16 @@ class AppLocalizationsPt extends AppLocalizations {
   String get donationOpenError => 'Não foi possível abrir o link de doação';
 
   @override
+  String get contact => 'Contatar por e-mail';
+
+  @override
+  String get contactDescription =>
+      'Envie uma mensagem para contact@fmartinezgarcia.com.';
+
+  @override
+  String get contactOpenError => 'Não foi possível abrir o cliente de e-mail';
+
+  @override
   String get comingSoon => 'Em breve';
 
   @override
