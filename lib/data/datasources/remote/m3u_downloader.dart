@@ -1,3 +1,4 @@
+import 'dart:convert';
 import 'dart:io';
 
 import 'package:dio/dio.dart';
@@ -49,10 +50,10 @@ class M3uDownloader {
     }
 
     try {
-      final Response<String> response = await _dio.get<String>(
+      final Response<List<int>> response = await _dio.get<List<int>>(
         uri.toString(),
         options: Options(
-          responseType: ResponseType.plain,
+          responseType: ResponseType.bytes,
           headers: <String, dynamic>{
             if (userAgent != null && userAgent.isNotEmpty)
               'User-Agent': userAgent,
@@ -62,10 +63,28 @@ class M3uDownloader {
       if (response.statusCode != 200) {
         throw M3uNetworkException('HTTP ${response.statusCode} al descargar $url');
       }
-      return response.data ?? '';
+      final List<int> data = response.data ?? const <int>[];
+      return _decodeBody(data);
     } on DioException catch (e) {
       throw M3uNetworkException(e.message ?? 'Fallo de red', cause: e);
     }
+  }
+
+  /// Convierte el body a texto. Detecta y descomprime GZIP por su firma
+  /// (`1F 8B`), usada por ficheros `.gz` (p. ej. XMLTV) que algunos servidores
+  /// sirven como `application/octet-stream` sin `Content-Encoding: gzip`.
+  String _decodeBody(List<int> data) {
+    if (data.length >= 2 && data[0] == 0x1F && data[1] == 0x8B) {
+      final List<int> plain = _gunzip(data);
+      return utf8.decode(plain, allowMalformed: true);
+    }
+    return utf8.decode(data, allowMalformed: true);
+  }
+
+  /// Descomprime un payload gzip.
+  List<int> _gunzip(List<int> data) {
+    final gzip = GZipCodec();
+    return gzip.decode(data);
   }
 
   Future<String> _readLocalFile(String path) async {

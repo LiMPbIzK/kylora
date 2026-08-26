@@ -3,6 +3,7 @@ import 'dart:async';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:media_kit/media_kit.dart' hide PlayerState;
 
+import '../../../core/constants/app_constants.dart';
 import 'player_event.dart';
 import 'player_state.dart';
 
@@ -80,7 +81,16 @@ class PlayerBloc extends Bloc<PlayerEvent, PlayerState> {
     try {
       final String url = await _urlBuilder();
       _streamUrl = url;
-      final Media media = Media(url);
+      // Reenvía el User-Agent de la app al reproducir: algunos CDNs de listas
+      // M3U (p. ej. muchas señales de tdtchannels) exigen un UA al pedir el
+      // manifest HLS. Mandarlo siempre es inofensivo para los que no lo piden
+      // y desbloquea los que sí lo requieren.
+      final Media media = Media(
+        url,
+        httpHeaders: <String, String>{
+          'User-Agent': AppConstants.userAgent,
+        },
+      );
       _pendingOpen = _player.open(media);
       await _pendingOpen;
       // Los subtítulos se desactivan por defecto; el usuario los activa

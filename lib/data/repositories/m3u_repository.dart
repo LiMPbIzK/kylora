@@ -1,8 +1,8 @@
 import 'package:drift/drift.dart';
 
 import '../../core/constants/app_constants.dart';
+import '../../core/utils/epg_json_parser.dart';
 import '../../core/utils/m3u_parser.dart';
-import '../../core/utils/xmltv_parser.dart';
 import '../../domain/entities/category.dart';
 import '../../domain/entities/channel.dart';
 import '../../domain/entities/content_type.dart' as domain;
@@ -336,11 +336,11 @@ class M3uRepository implements IptvRepository {
 
     if (xmltvUrl != null && xmltvUrl.isNotEmpty) {
       try {
-        final String xml = await _downloader.download(
+        final String epgContent = await _downloader.download(
           xmltvUrl,
           userAgent: AppConstants.userAgent,
         );
-        _epgByChannel = await parseXmltvGroupedInIsolate(xml);
+        _epgByChannel = await parseEpgGroupedInIsolate(epgContent);
       } on M3uNetworkException {
         _epgByChannel = <String, List<EpgEntry>>{};
       } on M3uParseException {
