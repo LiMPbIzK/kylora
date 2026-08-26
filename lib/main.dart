@@ -14,8 +14,8 @@ import 'data/datasources/local/settings_store.dart';
 import 'data/datasources/remote/m3u_downloader.dart';
 import 'data/datasources/remote/xtream_api_client.dart';
 import 'data/repositories/m3u_repository.dart';
+import 'data/repositories/multi_source_repository.dart';
 import 'data/repositories/xtream_repository.dart';
-import 'domain/entities/iptv_source_type.dart';
 import 'domain/repositories/iptv_repository.dart';
 import 'presentation/blocs/auth/auth_bloc.dart';
 import 'presentation/blocs/auth/auth_event.dart';
@@ -71,18 +71,19 @@ Future<void> main() async {
   );
 }
 
-/// Construye el repositorio adecuado según la fuente de la sesión guardada.
+/// Construye el repositorio multi-fuente (Xtream y M3U) para que el login
+/// pueda cambiar de fuente sin reiniciar. Cada fuente comparte la caché local.
 Future<IptvRepository> _buildRepository(
   Dio dio,
   AuthStore authStore,
   AppDatabase database,
 ) async {
-  final StoredCredentials? stored = await authStore.read();
   final LiveCacheStore cache = LiveCacheStore(database);
-  if (stored?.sourceType == IptvSourceType.m3u) {
-    return M3uRepository(M3uDownloader(dio), authStore, database, cache: cache);
-  }
-  return XtreamRepository(XtreamApiClient(dio), authStore, database, cache: cache);
+  return MultiSourceRepository(
+    xtream: XtreamRepository(XtreamApiClient(dio), authStore, database, cache: cache),
+    m3u: M3uRepository(M3uDownloader(dio), authStore, database, cache: cache),
+    authStore: authStore,
+  );
 }
 
 /// Observador global de Bloc para trazabilidad de eventos en desarrollo.
