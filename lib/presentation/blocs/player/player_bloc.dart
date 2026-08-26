@@ -98,6 +98,12 @@ class PlayerBloc extends Bloc<PlayerEvent, PlayerState> {
       );
       _pendingOpen = _player.open(media);
       await _pendingOpen;
+      // Refuerza el inicio en la posición guardada: algunos demuxers ignoran
+      // `Media.start`, así que se hace un seek explícito tras abrir.
+      final Duration? start = _startPosition;
+      if (start != null && start > Duration.zero) {
+        await _player.seek(start);
+      }
       // En masters HLS con varias variantes, libmpv puede quedarse sin
       // seleccionar una pista de vídeo (pantalla negra). Se fuerza la primera
       // pista de vídeo disponible un instante después de abrir.

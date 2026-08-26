@@ -8,6 +8,7 @@ class PlaybackRequest {
     this.contentId,
     this.openGuide = false,
     this.startPosition,
+    this.logo,
   });
 
   /// Título del contenido que se reproduce.
@@ -28,4 +29,7 @@ class PlaybackRequest {
 
   /// Posición en la que iniciar la reproducción (para "Continuar visualización").
   final Duration? startPosition;
+
+  /// URL del póster/logo para el historial y la vista de reanudación.
+  final String? logo;
 }

@@ -79,6 +79,7 @@ class MovieDetailScreen extends StatelessWidget {
                   urlBuilder: () => repository.buildVodStreamUrl(movie),
                   contentType: 'vod',
                   contentId: movie.id,
+                  logo: movie.streamIcon,
                 ),
               );
             },

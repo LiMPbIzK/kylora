@@ -54,20 +54,22 @@ class _PlayerScreenState extends State<PlayerScreen> {
   bool _audioPreferenceBlocked = false;
   Timer? _historyTimer;
   PlaybackRequest? _historyRequest;
+  final Map<String, String> _streamUrlCache = <String, String>{};
 
   /// Intervalo de persistencia del progreso de reproducción.
   static const Duration _historyInterval = Duration(seconds: 15);
 
   /// Códigos de idioma (ISO-639-1/2 y nombres) aceptados por pista de audio,
   /// agrupados por el idioma de la aplicación.
-  static const Map<String, List<String>> _audioLanguageCodes = <String, List<String>>{
-    'es': <String>['es', 'spa', 'esp', 'cast', 'castellano', 'español'],
-    'en': <String>['en', 'eng', 'ing', 'ingles', 'inglés', 'english'],
-    'fr': <String>['fr', 'fra', 'fre', 'frances', 'francés', 'french'],
-    'de': <String>['de', 'ger', 'deu', 'aleman', 'alemán', 'german'],
-    'it': <String>['it', 'ita', 'ital', 'italian'],
-    'pt': <String>['pt', 'por', 'portug', 'portugués'],
-  };
+  static const Map<String, List<String>> _audioLanguageCodes =
+      <String, List<String>>{
+        'es': <String>['es', 'spa', 'esp', 'cast', 'castellano', 'español'],
+        'en': <String>['en', 'eng', 'ing', 'ingles', 'inglés', 'english'],
+        'fr': <String>['fr', 'fra', 'fre', 'frances', 'francés', 'french'],
+        'de': <String>['de', 'ger', 'deu', 'aleman', 'alemán', 'german'],
+        'it': <String>['it', 'ita', 'ital', 'italian'],
+        'pt': <String>['pt', 'por', 'portug', 'portugués'],
+      };
 
   @override
   void initState() {
@@ -99,7 +101,8 @@ class _PlayerScreenState extends State<PlayerScreen> {
   }
 
   AudioTrack? _matchAudioTrack(List<AudioTrack> audio, String appLang) {
-    final List<String> codes = _audioLanguageCodes[appLang] ?? <String>[appLang];
+    final List<String> codes =
+        _audioLanguageCodes[appLang] ?? <String>[appLang];
     for (final AudioTrack track in audio) {
       final String lang = (track.language ?? '').toLowerCase();
       final String title = (track.title ?? '').toLowerCase();
@@ -121,7 +124,9 @@ class _PlayerScreenState extends State<PlayerScreen> {
       return;
     }
     final bool needsPlay = _title != request.title || _bloc.streamUrl == null;
-    final int? liveId = request.contentType == 'live' ? request.contentId : null;
+    final int? liveId = request.contentType == 'live'
+        ? request.contentId
+        : null;
     final bool wantsGuide = request.openGuide;
     if (needsPlay || _liveContentId != liveId || _guideOpen != wantsGuide) {
       // En directo, pide el EPG corto (ahora/siguiente) del canal reproducido
@@ -149,12 +154,15 @@ class _PlayerScreenState extends State<PlayerScreen> {
     }
   }
 
-void _recordHistory(PlaybackRequest request) {
+  void _recordHistory(PlaybackRequest request) {
     if (request.contentType == null || request.contentId == null) return;
     // El directo en vivo no tiene sentido de progreso.
     if (request.contentType == 'live') return;
     _historyRequest = request;
     _updateHistory(request);
+    // Resuelve la URL del stream cuanto antes (la primera escritura sale con
+    // streamUrl nulo) para poder reanudar.
+    _primeStreamUrl(request);
     // Persistencia periódica del progreso (si la app se cierra de golpe, el
     // último tick queda guardado). Se cancela al cerrar/reproducir otro.
     _historyTimer?.cancel();
@@ -164,21 +172,43 @@ void _recordHistory(PlaybackRequest request) {
   }
 
   /// Persiste (upsert) el estado de reproducción actual del contenido en curso.
+  ///
+  /// La URL del stream se resuelve con [PlaybackRequest.urlBuilder] (no del
+  /// player, que aún está a null durante la apertura asíncrona) para que el
+  /// historial guarde siempre una URL reanudable.
   void _updateHistory(PlaybackRequest request) {
     final IptvRepository repository = context.read<IptvRepository>();
     final int positionSeconds = _bloc.player.state.position.inSeconds;
     final int durationSeconds = _bloc.player.state.duration.inSeconds;
+    final String? url = _streamUrlCache[request.title] ?? _bloc.streamUrl;
     repository.addToHistory(
       HistoryItem(
         contentId: request.contentId!,
         contentType: ContentType.values.byName(request.contentType!),
         name: request.title,
+        logo: request.logo,
         watchedAt: DateTime.now(),
         position: positionSeconds,
         duration: durationSeconds > 0 ? durationSeconds : null,
-        streamUrl: _bloc.streamUrl,
+        streamUrl: url,
       ),
     );
+    // Guarda la URL resuelta para los ticks siguientes sin volver a resolverla.
+    if (url != null) _streamUrlCache[request.title] = url;
+  }
+
+  /// Resuelve y cachea la URL del stream actual para el guardado de progreso.
+  Future<void> _primeStreamUrl(PlaybackRequest request) async {
+    if (_streamUrlCache.containsKey(request.title)) return;
+    try {
+      final String url = await request.urlBuilder();
+      if (mounted) {
+        _streamUrlCache[request.title] = url;
+        if (_historyRequest == request) _updateHistory(request);
+      }
+    } catch (_) {
+      // Sin URL no se puede reanudar; se reintentará en el siguiente tick.
+    }
   }
 
   /// Guarda el progreso final y detiene la persistencia periódica.
@@ -297,8 +327,7 @@ void _recordHistory(PlaybackRequest request) {
                     if (state is PlayerError && state.retriesLeft == 0) {
                       return _ErrorOverlay(
                         message: AppLocalizations.of(context)!.streamError,
-                        onRetry: () =>
-                            _bloc.add(const PlayerRetryRequested()),
+                        onRetry: () => _bloc.add(const PlayerRetryRequested()),
                       );
                     }
                     return const SizedBox.shrink();
@@ -333,47 +362,47 @@ void _recordHistory(PlaybackRequest request) {
           ),
         ),
         child: SafeArea(
-child: Column(
+          child: Column(
+            children: <Widget>[
+              Row(
                 children: <Widget>[
-                  Row(
-                    children: <Widget>[
-                      IconButton(
-                        tooltip: l10n.settings,
-                        icon: const Icon(Icons.arrow_back),
-                        color: Colors.white,
-                        onPressed: _closePlayer,
-                      ),
-                      Expanded(
-                        child: Column(
-                          crossAxisAlignment: CrossAxisAlignment.start,
-                          children: <Widget>[
-                            Text(
-                              l10n.nowPlaying,
-                              style: Theme.of(context).textTheme.labelSmall
-                                  ?.copyWith(color: Colors.white70),
-                            ),
-                            Text(
-                              _title,
-                              maxLines: 1,
-                              overflow: TextOverflow.ellipsis,
-                              style: const TextStyle(
-                                color: Colors.white,
-                                fontWeight: FontWeight.bold,
-                              ),
-                            ),
-                          ],
-                        ),
-                      ),
-                    ],
+                  IconButton(
+                    tooltip: l10n.settings,
+                    icon: const Icon(Icons.arrow_back),
+                    color: Colors.white,
+                    onPressed: _closePlayer,
                   ),
-                  const Spacer(),
-                  if (_liveContentId != null)
-                    _buildLiveEpgBar(l10n, _liveContentId!)
-                  else
-                    _buildProgressBar(l10n),
-                  _buildControlBar(l10n),
+                  Expanded(
+                    child: Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: <Widget>[
+                        Text(
+                          l10n.nowPlaying,
+                          style: Theme.of(context).textTheme.labelSmall
+                              ?.copyWith(color: Colors.white70),
+                        ),
+                        Text(
+                          _title,
+                          maxLines: 1,
+                          overflow: TextOverflow.ellipsis,
+                          style: const TextStyle(
+                            color: Colors.white,
+                            fontWeight: FontWeight.bold,
+                          ),
+                        ),
+                      ],
+                    ),
+                  ),
                 ],
               ),
+              const Spacer(),
+              if (_liveContentId != null)
+                _buildLiveEpgBar(l10n, _liveContentId!)
+              else
+                _buildProgressBar(l10n),
+              _buildControlBar(l10n),
+            ],
+          ),
         ),
       ),
     );
@@ -466,9 +495,7 @@ child: Column(
                     onChangeStart: (_) => _cancelHide(),
                     onChangeEnd: (_) => _scheduleHide(),
                     onChanged: (double v) {
-                      _bloc.player.seek(
-                        Duration(milliseconds: v.round()),
-                      );
+                      _bloc.player.seek(Duration(milliseconds: v.round()));
                     },
                   ),
                 ),
@@ -568,9 +595,7 @@ child: Column(
           IconButton(
             tooltip: _isFullscreen ? l10n.exitFullscreen : l10n.fullscreen,
             icon: Icon(
-              _isFullscreen
-                  ? Icons.fullscreen_exit
-                  : Icons.fullscreen,
+              _isFullscreen ? Icons.fullscreen_exit : Icons.fullscreen,
               color: Colors.white,
             ),
             onPressed: _toggleFullscreen,
@@ -686,10 +711,7 @@ child: Column(
       itemCount: entries.length,
       itemBuilder: (context, index) {
         final EpgEntry entry = entries[index];
-        return _GuideTile(
-          entry: entry,
-          isOnAir: entry.isOnAir(DateTime.now()),
-        );
+        return _GuideTile(entry: entry, isOnAir: entry.isOnAir(DateTime.now()));
       },
     );
   }
@@ -720,10 +742,7 @@ child: Column(
             borderRadius: BorderRadius.circular(16),
             clipBehavior: Clip.antiAlias,
             child: ConstrainedBox(
-              constraints: const BoxConstraints(
-                maxWidth: 300,
-                maxHeight: 340,
-              ),
+              constraints: const BoxConstraints(maxWidth: 300, maxHeight: 340),
               child: ListView(
                 shrinkWrap: true,
                 padding: const EdgeInsets.symmetric(vertical: 8),
@@ -773,12 +792,11 @@ child: Column(
                           onTap: () {
                             setState(() => _picker = null);
                             _scheduleHide();
-                            final SubtitleTrack? found = _firstOrNull<
-                              SubtitleTrack
-                            >(
-                              tracks.subtitle,
-                              (SubtitleTrack t) => t.id == track.id,
-                            );
+                            final SubtitleTrack? found =
+                                _firstOrNull<SubtitleTrack>(
+                                  tracks.subtitle,
+                                  (SubtitleTrack t) => t.id == track.id,
+                                );
                             if (found != null) {
                               _bloc.player.setSubtitleTrack(found);
                             }
@@ -871,7 +889,8 @@ class _GuideTile extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final String time = '${_two(entry.start.hour)}:${_two(entry.start.minute)}'
+    final String time =
+        '${_two(entry.start.hour)}:${_two(entry.start.minute)}'
         ' - ${_two(entry.end.hour)}:${_two(entry.end.minute)}';
     final AppColors colors = context.colors;
 
@@ -904,9 +923,7 @@ class _GuideTile extends StatelessWidget {
                   maxLines: 2,
                   overflow: TextOverflow.ellipsis,
                   style: TextStyle(
-                    fontWeight: isOnAir
-                        ? FontWeight.bold
-                        : FontWeight.normal,
+                    fontWeight: isOnAir ? FontWeight.bold : FontWeight.normal,
                   ),
                 ),
                 if (entry.description?.isNotEmpty == true) ...<Widget>[

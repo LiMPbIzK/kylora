@@ -89,6 +89,7 @@ class _ResumeCard extends StatelessWidget {
             contentType: item.contentType.name,
             contentId: item.contentId,
             startPosition: Duration(seconds: item.position),
+            logo: item.logo,
           ),
         );
       },

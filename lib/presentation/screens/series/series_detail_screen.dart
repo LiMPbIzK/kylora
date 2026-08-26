@@ -263,6 +263,7 @@ class _EpisodeTile extends StatelessWidget {
         urlBuilder: () => repository.buildEpisodeStreamUrl(episode),
         contentType: 'series',
         contentId: episode.id,
+        logo: series.cover,
       ),
     );
   }
