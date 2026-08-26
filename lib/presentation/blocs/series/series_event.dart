@@ -64,3 +64,13 @@ final class SeriesRecentToggled extends SeriesEvent {
   @override
   List<Object?> get props => <Object?>[enabled];
 }
+
+/// Alterna la vista "Continuar visualización" (contenido a medias).
+final class SeriesResumeToggled extends SeriesEvent {
+  const SeriesResumeToggled(this.enabled);
+
+  final bool enabled;
+
+  @override
+  List<Object?> get props => <Object?>[enabled];
+}

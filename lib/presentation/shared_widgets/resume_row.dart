@@ -11,63 +11,45 @@ import '../screens/player/playback_scope.dart';
 import 'media_poster.dart';
 import 'tv_focusable.dart';
 
-/// Fila dinámica "Continuar visualización".
+/// Vista "Continuar visualización": rejilla de contenido en progreso.
 ///
-/// Muestra el contenido VOD/Series en progreso (posición guardada) con una
-/// barra de progreso por tarjeta. Al pulsar, reanuda la reproducción en el
-/// punto donde quedó.
-class ResumeRow extends StatelessWidget {
-  const ResumeRow({super.key, required this.contentType});
+/// Se selecciona desde la barra lateral (donde antes estaba "Todas"). Cada
+/// tarjeta muestra póster, título, barra de progreso y tiempo. Al pulsar,
+/// reanuda la reproducción donde quedó.
+class ResumeGrid extends StatelessWidget {
+  const ResumeGrid({super.key, required this.contentType});
 
-  /// Qué tipo de contenido se filtra ('vod' o 'series').
+  /// Tipo de contenido a filtrar ('vod' o 'series').
   final String contentType;
 
-  /// Fracción mínima de duración consumida para considerarlo "en curso"
-  /// (evita mostrar segundos con lo apenas iniciado).
+  /// Fracción mínima/máxima de progreso para considerar contenido "a medias".
   static const double _minProgress = 0.02;
-
-  /// Fracción máxima: si ya se vio casi todo, no merece reanudar.
   static const double _maxProgress = 0.95;
 
   @override
   Widget build(BuildContext context) {
-    final AppLocalizations l10n = AppLocalizations.of(context)!;
     return FutureBuilder<List<HistoryItem>>(
       future: context.read<IptvRepository>().getHistory(),
       builder: (context, snapshot) {
         if (snapshot.connectionState != ConnectionState.done) {
-          return const SizedBox.shrink();
+          return const Center(child: CircularProgressIndicator());
         }
         final List<HistoryItem> items = (snapshot.data ?? <HistoryItem>[])
-            .where((HistoryItem item) => _shouldResume(item))
+            .where(_shouldResume)
             .toList();
-        if (items.isEmpty) return const SizedBox.shrink();
-
-        return Padding(
-          padding: const EdgeInsets.fromLTRB(12, 12, 12, 4),
-          child: Column(
-            crossAxisAlignment: CrossAxisAlignment.start,
-            children: <Widget>[
-              Text(
-                l10n.continueWatchingSection,
-                style: Theme.of(context).textTheme.titleMedium?.copyWith(
-                  color: context.colors.primary,
-                  fontWeight: FontWeight.bold,
-                ),
-              ),
-              const SizedBox(height: 10),
-              SizedBox(
-                height: 168,
-                child: ListView.separated(
-                  scrollDirection: Axis.horizontal,
-                  itemCount: items.length,
-                  separatorBuilder: (_, _) => const SizedBox(width: 10),
-                  itemBuilder: (context, index) =>
-                      _ResumeCard(item: items[index]),
-                ),
-              ),
-            ],
+        if (items.isEmpty) {
+          return Center(child: Text(AppLocalizations.of(context)!.noHistory));
+        }
+        return GridView.builder(
+          padding: const EdgeInsets.all(12),
+          gridDelegate: const SliverGridDelegateWithMaxCrossAxisExtent(
+            maxCrossAxisExtent: 220,
+            mainAxisSpacing: 12,
+            crossAxisSpacing: 12,
+            childAspectRatio: 0.62,
           ),
+          itemCount: items.length,
+          itemBuilder: (context, index) => _ResumeCard(item: items[index]),
         );
       },
     );
@@ -110,48 +92,45 @@ class _ResumeCard extends StatelessWidget {
           ),
         );
       },
-      child: SizedBox(
-        width: 128,
-        child: Column(
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: <Widget>[
-            AspectRatio(
-              aspectRatio: 2 / 3,
-              child: ClipRRect(
-                borderRadius: BorderRadius.circular(8),
-                child: MediaPoster(
-                  url: item.logo,
-                  fallbackIcon: type == ContentType.vod
-                      ? Icons.movie
-                      : Icons.theaters,
-                ),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: <Widget>[
+          Expanded(
+            child: ClipRRect(
+              borderRadius: BorderRadius.circular(8),
+              child: MediaPoster(
+                url: item.logo,
+                fallbackIcon: type == ContentType.vod
+                    ? Icons.movie
+                    : Icons.theaters,
               ),
             ),
-            const SizedBox(height: 6),
-            Text(
-              item.name,
-              maxLines: 1,
-              overflow: TextOverflow.ellipsis,
-              style: Theme.of(context).textTheme.bodySmall,
+          ),
+          const SizedBox(height: 6),
+          Text(
+            item.name,
+            maxLines: 2,
+            overflow: TextOverflow.ellipsis,
+            style: Theme.of(context).textTheme.bodySmall,
+          ),
+          const SizedBox(height: 6),
+          LinearProgressIndicator(
+            value: progress,
+            minHeight: 4,
+            borderRadius: BorderRadius.circular(2),
+            backgroundColor: context.colors.surfaceVariant,
+            valueColor: AlwaysStoppedAnimation<Color>(context.colors.primary),
+          ),
+          const SizedBox(height: 4),
+          Text(
+            '${_fmt(item.position)} / ${_fmt(duration)}',
+            maxLines: 1,
+            style: TextStyle(
+              fontSize: 11,
+              color: context.colors.onSurfaceVariant,
             ),
-            const SizedBox(height: 4),
-            LinearProgressIndicator(
-              value: progress,
-              minHeight: 4,
-              backgroundColor: context.colors.surfaceVariant,
-              valueColor: AlwaysStoppedAnimation<Color>(context.colors.primary),
-            ),
-            const SizedBox(height: 2),
-            Text(
-              '${_fmt(item.position)} / ${_fmt(duration)}',
-              maxLines: 1,
-              style: TextStyle(
-                fontSize: 11,
-                color: context.colors.onSurfaceVariant,
-              ),
-            ),
-          ],
-        ),
+          ),
+        ],
       ),
     );
   }

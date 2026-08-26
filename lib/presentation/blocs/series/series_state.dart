@@ -26,6 +26,7 @@ final class SeriesLoaded extends SeriesState {
     required this.query,
     required this.seriesList,
     this.recentOnly = false,
+    this.resumeMode = false,
   });
 
   final List<Category> categories;
@@ -37,6 +38,9 @@ final class SeriesLoaded extends SeriesState {
   /// últimos 7 días.
   final bool recentOnly;
 
+  /// Vista "Continuar visualización": muestra en rejilla el contenido a medias.
+  final bool resumeMode;
+
   bool get isAllSelected => selectedCategoryId == null;
   bool get isSearching => query.trim().isNotEmpty;
 
@@ -47,6 +51,7 @@ final class SeriesLoaded extends SeriesState {
     query,
     seriesList,
     recentOnly,
+    resumeMode,
   ];
 }
 

@@ -25,6 +25,7 @@ final class VodLoaded extends VodState {
     required this.query,
     required this.movies,
     this.recentOnly = false,
+    this.resumeMode = false,
   });
 
   final List<Category> categories;
@@ -34,6 +35,9 @@ final class VodLoaded extends VodState {
 
   /// Si está activo, solo se muestran películas añadidas en los últimos 7 días.
   final bool recentOnly;
+
+  /// Vista "Continuar visualización": muestra en rejilla el contenido a medias.
+  final bool resumeMode;
 
   bool get isAllSelected => selectedCategoryId == null;
   bool get isSearching => query.trim().isNotEmpty;
@@ -45,6 +49,7 @@ final class VodLoaded extends VodState {
     query,
     movies,
     recentOnly,
+    resumeMode,
   ];
 }
 

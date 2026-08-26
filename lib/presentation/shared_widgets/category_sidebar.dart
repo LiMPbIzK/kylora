@@ -9,6 +9,10 @@ import 'tv_focusable.dart';
 /// Diseñada para Android TV/mando: una columna a la izquierda con todos los
 /// filtros, reemplazando a los chips horizontales. El icono de cada entrada
 /// se parametriza ([icon]) y la anchura de la columna es [width].
+///
+/// Si se proporcionan [resumeLabel] y [onResumeSelected], se muestra la opción
+/// "Continuar visualización" en la **primera posición** (donde antes estaba
+/// "Todas").
 class CategorySidebar extends StatelessWidget {
   const CategorySidebar({
     super.key,
@@ -17,6 +21,9 @@ class CategorySidebar extends StatelessWidget {
     required this.onCategorySelected,
     this.icon = Icons.live_tv,
     this.width = 200,
+    this.resumeLabel,
+    this.isResumeSelected = false,
+    this.onResumeSelected,
   });
 
   final List<Category> categories;
@@ -25,13 +32,31 @@ class CategorySidebar extends StatelessWidget {
   final IconData icon;
   final double width;
 
+  /// Etiqueta de la opción "Continuar visualización" (null la oculta).
+  final String? resumeLabel;
+
+  /// Si está activa la vista de reanudación.
+  final bool isResumeSelected;
+
+  /// Añade la opción de reanudación (al pulsar).
+  final VoidCallback? onResumeSelected;
+
   @override
   Widget build(BuildContext context) {
+    final bool hasResume =
+        resumeLabel != null && onResumeSelected != null;
     return SizedBox(
       width: width,
       child: ListView(
         padding: const EdgeInsets.symmetric(vertical: 8),
         children: <Widget>[
+          if (hasResume)
+            _SidebarButton(
+              label: resumeLabel!,
+              icon: Icons.play_circle_outline,
+              selected: isResumeSelected,
+              onTap: onResumeSelected!,
+            ),
           for (final Category category in categories)
             _SidebarButton(
               label: category.name,

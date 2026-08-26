@@ -16,6 +16,7 @@ class VodBloc extends Bloc<VodEvent, VodState> {
     on<VodSearchChanged>(_onSearchChanged);
     on<VodRefreshRequested>(_onRefreshRequested);
     on<VodRecentToggled>(_onRecentToggled);
+    on<VodResumeToggled>(_onResumeToggled);
   }
 
   final IptvRepository _repository;
@@ -23,6 +24,20 @@ class VodBloc extends Bloc<VodEvent, VodState> {
   /// Categoría inicial tras cargar: la primera disponible (ya no existe "Todas").
   int? get _initialCategoryId =>
       _categories.isNotEmpty ? _categories.first.id : null;
+
+  Future<void> _onResumeToggled(
+    VodResumeToggled event,
+    Emitter<VodState> emit,
+  ) async {
+    if (state is! VodLoaded) return;
+    final VodLoaded current = state as VodLoaded;
+    emit(
+      _buildLoaded(
+        selectedCategoryId: current.selectedCategoryId,
+        resumeMode: event.enabled,
+      ),
+    );
+  }
 
   List<Category> _categories = <Category>[];
   List<Movie> _allMovies = <Movie>[];
@@ -103,7 +118,7 @@ class VodBloc extends Bloc<VodEvent, VodState> {
   }
 
   /// Construye el estado cargado combinando categoría, búsqueda y recientes.
-  VodLoaded _buildLoaded({required int? selectedCategoryId}) {
+  VodLoaded _buildLoaded({required int? selectedCategoryId, bool resumeMode = false}) {
     final String term = _query.trim().toLowerCase();
     final DateTime cutoff = DateTime.now().subtract(const Duration(days: 7));
     final List<Movie> movies = _allMovies.where((Movie movie) {
@@ -122,6 +137,7 @@ class VodBloc extends Bloc<VodEvent, VodState> {
       query: _query,
       movies: movies,
       recentOnly: _recentOnly,
+      resumeMode: resumeMode,
     );
   }
 

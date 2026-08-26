@@ -60,7 +60,10 @@ class _VodScreenState extends State<VodScreen> {
         return switch (state) {
           VodLoading() => const Center(child: CircularProgressIndicator()),
           VodFailure() => _ErrorView(message: l10n.vodLoadError),
-          VodLoaded() => _VodContent(state: state, controller: _searchController),
+          VodLoaded() => _VodContent(
+            state: state,
+            controller: _searchController,
+          ),
         };
       },
     );
@@ -97,9 +100,9 @@ class _VodContent extends StatelessWidget {
                             icon: const Icon(Icons.clear),
                             onPressed: () {
                               controller.clear();
-                              context
-                                  .read<VodBloc>()
-                                  .add(const VodSearchChanged(''));
+                              context.read<VodBloc>().add(
+                                const VodSearchChanged(''),
+                              );
                             },
                           )
                         : null,
@@ -131,24 +134,35 @@ class _VodContent extends StatelessWidget {
           ),
         ),
         const Divider(height: 1),
-        ResumeRow(contentType: ContentType.vod.name),
         Expanded(
           child: Row(
             crossAxisAlignment: CrossAxisAlignment.stretch,
             children: <Widget>[
               CategorySidebar(
                 categories: state.categories,
-                selectedCategoryId: state.selectedCategoryId,
-                onCategorySelected: (int? id) =>
-                    context.read<VodBloc>().add(VodCategorySelected(id)),
+                selectedCategoryId: state.resumeMode
+                    ? null
+                    : state.selectedCategoryId,
+                onCategorySelected: (int? id) {
+                  context.read<VodBloc>().add(VodCategorySelected(id));
+                },
+                resumeLabel: l10n.continueWatchingSection,
+                isResumeSelected: state.resumeMode,
+                onResumeSelected: () => context.read<VodBloc>().add(
+                  VodResumeToggled(!state.resumeMode),
+                ),
                 icon: Icons.movie,
               ),
               const VerticalDivider(width: 1),
               Expanded(
-                child: state.movies.isEmpty
+                child: state.resumeMode
+                    ? ResumeGrid(contentType: ContentType.vod.name)
+                    : state.movies.isEmpty
                     ? Center(
                         child: Text(
-                          state.isSearching ? l10n.searchNoResults : l10n.noMovies,
+                          state.isSearching
+                              ? l10n.searchNoResults
+                              : l10n.noMovies,
                         ),
                       )
                     : BlocBuilder<FavoritesBloc, FavoritesState>(
@@ -157,8 +171,10 @@ class _VodContent extends StatelessWidget {
                         builder: (context, favoritesState) {
                           final Set<int> favoriteIds = <int>{};
                           if (favoritesState is FavoritesLoaded) {
-                            for (final FavoriteItem item in favoritesState.items) {
-                              if (item.contentType.name == ContentType.vod.name) {
+                            for (final FavoriteItem item
+                                in favoritesState.items) {
+                              if (item.contentType.name ==
+                                  ContentType.vod.name) {
                                 favoriteIds.add(item.contentId);
                               }
                             }
@@ -223,10 +239,7 @@ class _MovieCard extends StatelessWidget {
               child: Stack(
                 fit: StackFit.expand,
                 children: <Widget>[
-                  MediaPoster(
-                    url: movie.streamIcon,
-                    fallbackIcon: Icons.movie,
-                  ),
+                  MediaPoster(url: movie.streamIcon, fallbackIcon: Icons.movie),
                   Positioned(
                     top: 4,
                     left: 4,
@@ -236,8 +249,7 @@ class _MovieCard extends StatelessWidget {
                       color: isFavorite
                           ? context.colors.secondary
                           : Colors.transparent,
-                      semanticLabel:
-                          AppLocalizations.of(context)!.favorites,
+                      semanticLabel: AppLocalizations.of(context)!.favorites,
                     ),
                   ),
                 ],
@@ -262,10 +274,7 @@ class _MovieCard extends StatelessWidget {
     final AppLocalizations l10n = AppLocalizations.of(context)!;
     final ScaffoldMessengerState messenger = ScaffoldMessenger.of(context);
 
-    final bool isFav = await repository.isFavorite(
-      movie.id,
-      ContentType.vod,
-    );
+    final bool isFav = await repository.isFavorite(movie.id, ContentType.vod);
     favoritesBloc.add(
       FavoritesToggled(
         movie.id,

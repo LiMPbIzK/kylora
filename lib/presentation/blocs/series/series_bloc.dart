@@ -19,6 +19,7 @@ class SeriesBloc extends Bloc<SeriesEvent, SeriesState> {
     on<SeriesDetailClosed>(_onDetailClosed);
     on<SeriesRefreshRequested>(_onRefreshRequested);
     on<SeriesRecentToggled>(_onRecentToggled);
+    on<SeriesResumeToggled>(_onResumeToggled);
   }
 
   final IptvRepository _repository;
@@ -26,6 +27,20 @@ class SeriesBloc extends Bloc<SeriesEvent, SeriesState> {
   /// Categoría inicial tras cargar: la primera disponible (ya no existe "Todas").
   int? get _initialCategoryId =>
       _categories.isNotEmpty ? _categories.first.id : null;
+
+  Future<void> _onResumeToggled(
+    SeriesResumeToggled event,
+    Emitter<SeriesState> emit,
+  ) async {
+    if (state is! SeriesLoaded) return;
+    final SeriesLoaded current = state as SeriesLoaded;
+    emit(
+      _buildLoaded(
+        selectedCategoryId: current.selectedCategoryId,
+        resumeMode: event.enabled,
+      ),
+    );
+  }
 
   List<Category> _categories = <Category>[];
   List<Series> _allSeries = <Series>[];
@@ -104,7 +119,7 @@ class SeriesBloc extends Bloc<SeriesEvent, SeriesState> {
   }
 
   /// Construye el estado cargado combinando categoría, búsqueda y recientes.
-  SeriesLoaded _buildLoaded({required int? selectedCategoryId}) {
+  SeriesLoaded _buildLoaded({required int? selectedCategoryId, bool resumeMode = false}) {
     final String term = _query.trim().toLowerCase();
     final DateTime cutoff = DateTime.now().subtract(const Duration(days: 7));
     final List<Series> seriesList = _allSeries.where((Series series) {
@@ -123,6 +138,7 @@ class SeriesBloc extends Bloc<SeriesEvent, SeriesState> {
       query: _query,
       seriesList: seriesList,
       recentOnly: _recentOnly,
+      resumeMode: resumeMode,
     );
   }
 

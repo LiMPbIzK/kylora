@@ -60,12 +60,13 @@ class _SeriesScreenState extends State<SeriesScreen> {
         return switch (state) {
           SeriesLoading() => const Center(child: CircularProgressIndicator()),
           SeriesFailure() => _ErrorView(message: l10n.seriesLoadError),
-          SeriesLoaded() =>
-            _SeriesContent(state: state, controller: _searchController),
+          SeriesLoaded() => _SeriesContent(
+            state: state,
+            controller: _searchController,
+          ),
           SeriesDetailLoading() ||
           SeriesDetailLoaded() ||
-          SeriesDetailFailure() =>
-            const SizedBox.shrink(),
+          SeriesDetailFailure() => const SizedBox.shrink(),
         };
       },
     );
@@ -92,8 +93,9 @@ class _SeriesContent extends StatelessWidget {
               Expanded(
                 child: TextField(
                   controller: controller,
-                  onChanged: (String value) =>
-                      context.read<SeriesBloc>().add(SeriesSearchChanged(value)),
+                  onChanged: (String value) => context.read<SeriesBloc>().add(
+                    SeriesSearchChanged(value),
+                  ),
                   decoration: InputDecoration(
                     hintText: l10n.searchPlaceholder,
                     prefixIcon: const Icon(Icons.search),
@@ -102,9 +104,9 @@ class _SeriesContent extends StatelessWidget {
                             icon: const Icon(Icons.clear),
                             onPressed: () {
                               controller.clear();
-                              context
-                                  .read<SeriesBloc>()
-                                  .add(const SeriesSearchChanged(''));
+                              context.read<SeriesBloc>().add(
+                                const SeriesSearchChanged(''),
+                              );
                             },
                           )
                         : null,
@@ -122,9 +124,8 @@ class _SeriesContent extends StatelessWidget {
               FilterChip(
                 label: Text(l10n.recentlyAdded),
                 selected: state.recentOnly,
-                onSelected: (bool value) => context
-                    .read<SeriesBloc>()
-                    .add(SeriesRecentToggled(value)),
+                onSelected: (bool value) =>
+                    context.read<SeriesBloc>().add(SeriesRecentToggled(value)),
                 avatar: Icon(
                   Icons.new_releases_outlined,
                   size: 18,
@@ -137,22 +138,29 @@ class _SeriesContent extends StatelessWidget {
           ),
         ),
         const Divider(height: 1),
-        ResumeRow(contentType: ContentType.series.name),
         Expanded(
           child: Row(
             crossAxisAlignment: CrossAxisAlignment.stretch,
             children: <Widget>[
               CategorySidebar(
                 categories: state.categories,
-                selectedCategoryId: state.selectedCategoryId,
-                onCategorySelected: (int? id) => context
-                    .read<SeriesBloc>()
-                    .add(SeriesCategorySelected(id)),
+                selectedCategoryId: state.resumeMode
+                    ? null
+                    : state.selectedCategoryId,
+                onCategorySelected: (int? id) =>
+                    context.read<SeriesBloc>().add(SeriesCategorySelected(id)),
+                resumeLabel: l10n.continueWatchingSection,
+                isResumeSelected: state.resumeMode,
+                onResumeSelected: () => context.read<SeriesBloc>().add(
+                  SeriesResumeToggled(!state.resumeMode),
+                ),
                 icon: Icons.theaters,
               ),
               const VerticalDivider(width: 1),
               Expanded(
-                child: state.seriesList.isEmpty
+                child: state.resumeMode
+                    ? ResumeGrid(contentType: ContentType.series.name)
+                    : state.seriesList.isEmpty
                     ? Center(
                         child: Text(
                           state.isSearching
@@ -166,7 +174,8 @@ class _SeriesContent extends StatelessWidget {
                         builder: (context, favoritesState) {
                           final Set<int> favoriteIds = <int>{};
                           if (favoritesState is FavoritesLoaded) {
-                            for (final FavoriteItem item in favoritesState.items) {
+                            for (final FavoriteItem item
+                                in favoritesState.items) {
                               if (item.contentType.name ==
                                   ContentType.series.name) {
                                 favoriteIds.add(item.contentId);
@@ -243,8 +252,7 @@ class _SeriesCard extends StatelessWidget {
                       color: isFavorite
                           ? context.colors.secondary
                           : Colors.transparent,
-                      semanticLabel:
-                          AppLocalizations.of(context)!.favorites,
+                      semanticLabel: AppLocalizations.of(context)!.favorites,
                     ),
                   ),
                 ],
@@ -312,7 +320,8 @@ class _ErrorView extends StatelessWidget {
           Text(message, textAlign: TextAlign.center),
           const SizedBox(height: 12),
           FilledButton.tonal(
-            onPressed: () => context.read<SeriesBloc>().add(const SeriesStarted()),
+            onPressed: () =>
+                context.read<SeriesBloc>().add(const SeriesStarted()),
             child: Text(l10n.retry),
           ),
         ],

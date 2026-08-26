@@ -47,3 +47,13 @@ final class VodRecentToggled extends VodEvent {
   @override
   List<Object?> get props => <Object?>[enabled];
 }
+
+/// Alterna la vista "Continuar visualización" (contenido a medias).
+final class VodResumeToggled extends VodEvent {
+  const VodResumeToggled(this.enabled);
+
+  final bool enabled;
+
+  @override
+  List<Object?> get props => <Object?>[enabled];
+}
