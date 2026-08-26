@@ -1,5 +1,6 @@
 import 'dart:async';
 
+import 'package:flutter/widgets.dart' show WidgetsBinding;
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:media_kit/media_kit.dart' hide PlayerState;
 
@@ -93,12 +94,33 @@ class PlayerBloc extends Bloc<PlayerEvent, PlayerState> {
       );
       _pendingOpen = _player.open(media);
       await _pendingOpen;
+      // En masters HLS con varias variantes, libmpv puede quedarse sin
+      // seleccionar una pista de vídeo (pantalla negra). Se fuerza la primera
+      // pista de vídeo disponible un instante después de abrir.
+      WidgetsBinding.instance.addPostFrameCallback((_) {
+        _forceVideoTrack();
+      });
       // Los subtítulos se desactivan por defecto; el usuario los activa
       // manualmente desde el menú de pistas.
       await _player.setSubtitleTrack(SubtitleTrack.no());
       emit(PlayerPlaying(streamUrl: url));
     } catch (_) {
       emit(const PlayerError(message: 'streamError'));
+    }
+  }
+
+  /// Fuerza la pista de vídeo activa si libmpv no ha elegido ninguna.
+  ///
+  /// Algunos HLS en vivo (RTVE, TV3, señales locales con audio en grupos
+  /// `#EXT-X-MEDIA` alternos) dejan `videoParams` sin resolver al abrir y
+  /// muestran pantalla negra. Seleccionar explícitamente la primera pista de
+  /// vídeo disponible obliga al demuxer a resolver sus parámetros.
+  void _forceVideoTrack() {
+    final List<VideoTrack> videos = _player.state.tracks.video;
+    final VideoTrack active = _player.state.track.video;
+    final bool hasActive = active.id != VideoTrack.no().id;
+    if (!hasActive && videos.isNotEmpty) {
+      _player.setVideoTrack(videos.first);
     }
   }
 
