@@ -286,6 +286,28 @@ class XtreamRepository implements IptvRepository {
   @override
   Future<void> addToHistory(HistoryItem item) async {
     final StoredCredentials credentials = await _requireCredentials();
+    // Upsert por contenido: una única entrada por (cuenta, contentId, tipo),
+    // actualizada con la última posición (necesario para "Continuar visualización").
+    final List<HistoryData> existing = await (_db.select(_db.history)
+          ..where((t) => t.accountKey.equals(credentials.fingerprint))
+          ..where((t) => t.contentId.equals(item.contentId))
+          ..where((t) => t.contentType.equals(item.contentType.name)))
+        .get();
+    if (existing.isNotEmpty) {
+      final HistoryData row = existing.first;
+      final bool furtherProgress = item.position > row.position;
+      await (_db.update(_db.history)..where((t) => t.id.equals(row.id))).write(
+        HistoryCompanion(
+          name: Value(item.name),
+          logo: Value(item.logo),
+          watchedAt: Value(item.watchedAt),
+          position: Value(furtherProgress ? item.position : row.position),
+          duration: Value(item.duration ?? row.duration),
+          streamUrl: Value(item.streamUrl ?? row.streamUrl),
+        ),
+      );
+      return;
+    }
     await _db.into(_db.history).insert(
       HistoryCompanion.insert(
         accountKey: Value(credentials.fingerprint),
@@ -296,6 +318,7 @@ class XtreamRepository implements IptvRepository {
         watchedAt: item.watchedAt,
         position: Value(item.position),
         duration: Value(item.duration),
+        streamUrl: Value(item.streamUrl),
       ),
     );
   }
@@ -316,6 +339,7 @@ class XtreamRepository implements IptvRepository {
               watchedAt: row.watchedAt,
               position: row.position,
               duration: row.duration,
+              streamUrl: row.streamUrl,
             ))
         .toList();
   }

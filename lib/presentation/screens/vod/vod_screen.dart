@@ -17,6 +17,7 @@ import '../../blocs/vod/vod_event.dart';
 import '../../blocs/vod/vod_state.dart';
 import '../../shared_widgets/category_sidebar.dart';
 import '../../shared_widgets/media_poster.dart';
+import '../../shared_widgets/resume_row.dart';
 import '../../shared_widgets/tv_focusable.dart';
 
 /// Catálogo de películas (VOD) con rejilla de pósters y categorías.
@@ -130,14 +131,13 @@ class _VodContent extends StatelessWidget {
           ),
         ),
         const Divider(height: 1),
+        ResumeRow(contentType: ContentType.vod.name),
         Expanded(
           child: Row(
             crossAxisAlignment: CrossAxisAlignment.stretch,
             children: <Widget>[
               CategorySidebar(
                 categories: state.categories,
-                allLabel: l10n.allCategories,
-                isAllSelected: state.isAllSelected,
                 selectedCategoryId: state.selectedCategoryId,
                 onCategorySelected: (int? id) =>
                     context.read<VodBloc>().add(VodCategorySelected(id)),

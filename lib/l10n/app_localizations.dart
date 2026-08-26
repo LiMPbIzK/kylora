@@ -592,6 +592,12 @@ abstract class AppLocalizations {
   /// **'Recently added'**
   String get recentlyAdded;
 
+  /// Section with in-progress content to resume playback.
+  ///
+  /// In en, this message translates to:
+  /// **'Continue watching'**
+  String get continueWatchingSection;
+
   /// Player option to select the audio track.
   ///
   /// In en, this message translates to:

@@ -342,9 +342,14 @@ void main() {
 
     expect(find.byType(LiveScreen), findsOneWidget);
     await tester.pump(const Duration(seconds: 1));
+    // Sin "Todas": arranca en la primera categoría (Deportes).
     expect(find.text('Sports 1'), findsOneWidget);
-    expect(find.text('News 24'), findsOneWidget);
     expect(find.text('Deportes'), findsOneWidget);
+    expect(find.text('News 24'), findsNothing);
+    // Cambiar a otra categoría muestra sus canales.
+    await tester.tap(find.text('Noticias'));
+    await tester.pumpAndSettle();
+    expect(find.text('News 24'), findsOneWidget);
   });
 
   testWidgets('Desde el dashboard se abre el catálogo de películas', (
@@ -366,9 +371,14 @@ void main() {
 
     expect(find.byType(VodScreen), findsOneWidget);
     await tester.pump(const Duration(seconds: 1));
+    // Sin "Todas": arranca en la primera categoría (Acción).
     expect(find.text('Matrix'), findsOneWidget);
-    expect(find.text('Titanic'), findsOneWidget);
     expect(find.text('Acción'), findsOneWidget);
+    expect(find.text('Titanic'), findsNothing);
+    // Cambiar a otra categoría muestra sus películas.
+    await tester.tap(find.text('Drama'));
+    await tester.pumpAndSettle();
+    expect(find.text('Titanic'), findsOneWidget);
   });
 
   testWidgets('Desde el dashboard se abre el catálogo de series', (

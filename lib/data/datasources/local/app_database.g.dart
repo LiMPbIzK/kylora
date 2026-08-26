@@ -1320,6 +1320,17 @@ class $HistoryTable extends History with TableInfo<$HistoryTable, HistoryData> {
     type: DriftSqlType.int,
     requiredDuringInsert: false,
   );
+  static const VerificationMeta _streamUrlMeta = const VerificationMeta(
+    'streamUrl',
+  );
+  @override
+  late final GeneratedColumn<String> streamUrl = GeneratedColumn<String>(
+    'stream_url',
+    aliasedName,
+    true,
+    type: DriftSqlType.string,
+    requiredDuringInsert: false,
+  );
   @override
   List<GeneratedColumn> get $columns => [
     accountKey,
@@ -1331,6 +1342,7 @@ class $HistoryTable extends History with TableInfo<$HistoryTable, HistoryData> {
     watchedAt,
     position,
     duration,
+    streamUrl,
   ];
   @override
   String get aliasedName => _alias ?? actualTableName;
@@ -1406,6 +1418,12 @@ class $HistoryTable extends History with TableInfo<$HistoryTable, HistoryData> {
         duration.isAcceptableOrUnknown(data['duration']!, _durationMeta),
       );
     }
+    if (data.containsKey('stream_url')) {
+      context.handle(
+        _streamUrlMeta,
+        streamUrl.isAcceptableOrUnknown(data['stream_url']!, _streamUrlMeta),
+      );
+    }
     return context;
   }
 
@@ -1451,6 +1469,10 @@ class $HistoryTable extends History with TableInfo<$HistoryTable, HistoryData> {
         DriftSqlType.int,
         data['${effectivePrefix}duration'],
       ),
+      streamUrl: attachedDatabase.typeMapping.read(
+        DriftSqlType.string,
+        data['${effectivePrefix}stream_url'],
+      ),
     );
   }
 
@@ -1471,6 +1493,10 @@ class HistoryData extends DataClass implements Insertable<HistoryData> {
   final DateTime watchedAt;
   final int position;
   final int? duration;
+
+  /// URL del stream en el momento de la reproducción (para "Continuar
+  /// visualización" sin depender de estado de sesión/catálogo al reanudar).
+  final String? streamUrl;
   const HistoryData({
     required this.accountKey,
     required this.id,
@@ -1481,6 +1507,7 @@ class HistoryData extends DataClass implements Insertable<HistoryData> {
     required this.watchedAt,
     required this.position,
     this.duration,
+    this.streamUrl,
   });
   @override
   Map<String, Expression> toColumns(bool nullToAbsent) {
@@ -1498,6 +1525,9 @@ class HistoryData extends DataClass implements Insertable<HistoryData> {
     if (!nullToAbsent || duration != null) {
       map['duration'] = Variable<int>(duration);
     }
+    if (!nullToAbsent || streamUrl != null) {
+      map['stream_url'] = Variable<String>(streamUrl);
+    }
     return map;
   }
 
@@ -1514,6 +1544,9 @@ class HistoryData extends DataClass implements Insertable<HistoryData> {
       duration: duration == null && nullToAbsent
           ? const Value.absent()
           : Value(duration),
+      streamUrl: streamUrl == null && nullToAbsent
+          ? const Value.absent()
+          : Value(streamUrl),
     );
   }
 
@@ -1532,6 +1565,7 @@ class HistoryData extends DataClass implements Insertable<HistoryData> {
       watchedAt: serializer.fromJson<DateTime>(json['watchedAt']),
       position: serializer.fromJson<int>(json['position']),
       duration: serializer.fromJson<int?>(json['duration']),
+      streamUrl: serializer.fromJson<String?>(json['streamUrl']),
     );
   }
   @override
@@ -1547,6 +1581,7 @@ class HistoryData extends DataClass implements Insertable<HistoryData> {
       'watchedAt': serializer.toJson<DateTime>(watchedAt),
       'position': serializer.toJson<int>(position),
       'duration': serializer.toJson<int?>(duration),
+      'streamUrl': serializer.toJson<String?>(streamUrl),
     };
   }
 
@@ -1560,6 +1595,7 @@ class HistoryData extends DataClass implements Insertable<HistoryData> {
     DateTime? watchedAt,
     int? position,
     Value<int?> duration = const Value.absent(),
+    Value<String?> streamUrl = const Value.absent(),
   }) => HistoryData(
     accountKey: accountKey ?? this.accountKey,
     id: id ?? this.id,
@@ -1570,6 +1606,7 @@ class HistoryData extends DataClass implements Insertable<HistoryData> {
     watchedAt: watchedAt ?? this.watchedAt,
     position: position ?? this.position,
     duration: duration.present ? duration.value : this.duration,
+    streamUrl: streamUrl.present ? streamUrl.value : this.streamUrl,
   );
   HistoryData copyWithCompanion(HistoryCompanion data) {
     return HistoryData(
@@ -1586,6 +1623,7 @@ class HistoryData extends DataClass implements Insertable<HistoryData> {
       watchedAt: data.watchedAt.present ? data.watchedAt.value : this.watchedAt,
       position: data.position.present ? data.position.value : this.position,
       duration: data.duration.present ? data.duration.value : this.duration,
+      streamUrl: data.streamUrl.present ? data.streamUrl.value : this.streamUrl,
     );
   }
 
@@ -1600,7 +1638,8 @@ class HistoryData extends DataClass implements Insertable<HistoryData> {
           ..write('logo: $logo, ')
           ..write('watchedAt: $watchedAt, ')
           ..write('position: $position, ')
-          ..write('duration: $duration')
+          ..write('duration: $duration, ')
+          ..write('streamUrl: $streamUrl')
           ..write(')'))
         .toString();
   }
@@ -1616,6 +1655,7 @@ class HistoryData extends DataClass implements Insertable<HistoryData> {
     watchedAt,
     position,
     duration,
+    streamUrl,
   );
   @override
   bool operator ==(Object other) =>
@@ -1629,7 +1669,8 @@ class HistoryData extends DataClass implements Insertable<HistoryData> {
           other.logo == this.logo &&
           other.watchedAt == this.watchedAt &&
           other.position == this.position &&
-          other.duration == this.duration);
+          other.duration == this.duration &&
+          other.streamUrl == this.streamUrl);
 }
 
 class HistoryCompanion extends UpdateCompanion<HistoryData> {
@@ -1642,6 +1683,7 @@ class HistoryCompanion extends UpdateCompanion<HistoryData> {
   final Value<DateTime> watchedAt;
   final Value<int> position;
   final Value<int?> duration;
+  final Value<String?> streamUrl;
   const HistoryCompanion({
     this.accountKey = const Value.absent(),
     this.id = const Value.absent(),
@@ -1652,6 +1694,7 @@ class HistoryCompanion extends UpdateCompanion<HistoryData> {
     this.watchedAt = const Value.absent(),
     this.position = const Value.absent(),
     this.duration = const Value.absent(),
+    this.streamUrl = const Value.absent(),
   });
   HistoryCompanion.insert({
     this.accountKey = const Value.absent(),
@@ -1663,6 +1706,7 @@ class HistoryCompanion extends UpdateCompanion<HistoryData> {
     required DateTime watchedAt,
     this.position = const Value.absent(),
     this.duration = const Value.absent(),
+    this.streamUrl = const Value.absent(),
   }) : contentId = Value(contentId),
        contentType = Value(contentType),
        name = Value(name),
@@ -1677,6 +1721,7 @@ class HistoryCompanion extends UpdateCompanion<HistoryData> {
     Expression<DateTime>? watchedAt,
     Expression<int>? position,
     Expression<int>? duration,
+    Expression<String>? streamUrl,
   }) {
     return RawValuesInsertable({
       if (accountKey != null) 'account_key': accountKey,
@@ -1688,6 +1733,7 @@ class HistoryCompanion extends UpdateCompanion<HistoryData> {
       if (watchedAt != null) 'watched_at': watchedAt,
       if (position != null) 'position': position,
       if (duration != null) 'duration': duration,
+      if (streamUrl != null) 'stream_url': streamUrl,
     });
   }
 
@@ -1701,6 +1747,7 @@ class HistoryCompanion extends UpdateCompanion<HistoryData> {
     Value<DateTime>? watchedAt,
     Value<int>? position,
     Value<int?>? duration,
+    Value<String?>? streamUrl,
   }) {
     return HistoryCompanion(
       accountKey: accountKey ?? this.accountKey,
@@ -1712,6 +1759,7 @@ class HistoryCompanion extends UpdateCompanion<HistoryData> {
       watchedAt: watchedAt ?? this.watchedAt,
       position: position ?? this.position,
       duration: duration ?? this.duration,
+      streamUrl: streamUrl ?? this.streamUrl,
     );
   }
 
@@ -1745,6 +1793,9 @@ class HistoryCompanion extends UpdateCompanion<HistoryData> {
     if (duration.present) {
       map['duration'] = Variable<int>(duration.value);
     }
+    if (streamUrl.present) {
+      map['stream_url'] = Variable<String>(streamUrl.value);
+    }
     return map;
   }
 
@@ -1759,7 +1810,8 @@ class HistoryCompanion extends UpdateCompanion<HistoryData> {
           ..write('logo: $logo, ')
           ..write('watchedAt: $watchedAt, ')
           ..write('position: $position, ')
-          ..write('duration: $duration')
+          ..write('duration: $duration, ')
+          ..write('streamUrl: $streamUrl')
           ..write(')'))
         .toString();
   }
@@ -2669,6 +2721,7 @@ typedef $$HistoryTableCreateCompanionBuilder = HistoryCompanion Function({
   required DateTime watchedAt,
   Value<int> position,
   Value<int?> duration,
+  Value<String?> streamUrl,
 });
 typedef $$HistoryTableUpdateCompanionBuilder = HistoryCompanion Function({
   Value<String> accountKey,
@@ -2680,6 +2733,7 @@ typedef $$HistoryTableUpdateCompanionBuilder = HistoryCompanion Function({
   Value<DateTime> watchedAt,
   Value<int> position,
   Value<int?> duration,
+  Value<String?> streamUrl,
 });
 
 class $$HistoryTableFilterComposer
@@ -2733,6 +2787,11 @@ class $$HistoryTableFilterComposer
 
   ColumnFilters<int> get duration => $composableBuilder(
     column: $table.duration,
+    builder: (column) => ColumnFilters(column),
+  );
+
+  ColumnFilters<String> get streamUrl => $composableBuilder(
+    column: $table.streamUrl,
     builder: (column) => ColumnFilters(column),
   );
 }
@@ -2790,6 +2849,11 @@ class $$HistoryTableOrderingComposer
     column: $table.duration,
     builder: (column) => ColumnOrderings(column),
   );
+
+  ColumnOrderings<String> get streamUrl => $composableBuilder(
+    column: $table.streamUrl,
+    builder: (column) => ColumnOrderings(column),
+  );
 }
 
 class $$HistoryTableAnnotationComposer
@@ -2831,6 +2895,9 @@ class $$HistoryTableAnnotationComposer
 
   GeneratedColumn<int> get duration =>
       $composableBuilder(column: $table.duration, builder: (column) => column);
+
+  GeneratedColumn<String> get streamUrl =>
+      $composableBuilder(column: $table.streamUrl, builder: (column) => column);
 }
 
 class $$HistoryTableTableManager
@@ -2873,6 +2940,7 @@ class $$HistoryTableTableManager
                 Value<DateTime> watchedAt = const Value.absent(),
                 Value<int> position = const Value.absent(),
                 Value<int?> duration = const Value.absent(),
+                Value<String?> streamUrl = const Value.absent(),
               }) => HistoryCompanion(
                 accountKey: accountKey,
                 id: id,
@@ -2883,6 +2951,7 @@ class $$HistoryTableTableManager
                 watchedAt: watchedAt,
                 position: position,
                 duration: duration,
+                streamUrl: streamUrl,
               ),
           createCompanionCallback:
               ({
@@ -2895,6 +2964,7 @@ class $$HistoryTableTableManager
                 required DateTime watchedAt,
                 Value<int> position = const Value.absent(),
                 Value<int?> duration = const Value.absent(),
+                Value<String?> streamUrl = const Value.absent(),
               }) => HistoryCompanion.insert(
                 accountKey: accountKey,
                 id: id,
@@ -2905,6 +2975,7 @@ class $$HistoryTableTableManager
                 watchedAt: watchedAt,
                 position: position,
                 duration: duration,
+                streamUrl: streamUrl,
               ),
           withReferenceMapper: (p0) => p0
               .map((e) => (e.readTable(table), BaseReferences(db, table, e)))

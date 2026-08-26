@@ -52,6 +52,11 @@ class _PlayerScreenState extends State<PlayerScreen> {
   StreamSubscription<Tracks>? _tracksSubscription;
   bool _audioPreferenceApplied = false;
   bool _audioPreferenceBlocked = false;
+  Timer? _historyTimer;
+  PlaybackRequest? _historyRequest;
+
+  /// Intervalo de persistencia del progreso de reproducción.
+  static const Duration _historyInterval = Duration(seconds: 15);
 
   /// Códigos de idioma (ISO-639-1/2 y nombres) aceptados por pista de audio,
   /// agrupados por el idioma de la aplicación.
@@ -133,23 +138,58 @@ class _PlayerScreenState extends State<PlayerScreen> {
       if (needsPlay) {
         _audioPreferenceApplied = false;
         _audioPreferenceBlocked = false;
-        _bloc.add(PlayerPlayRequested(request.urlBuilder));
+        _bloc.add(
+          PlayerPlayRequested(
+            request.urlBuilder,
+            startPosition: request.startPosition,
+          ),
+        );
         _recordHistory(request);
       }
     }
   }
 
-  void _recordHistory(PlaybackRequest request) {
+void _recordHistory(PlaybackRequest request) {
     if (request.contentType == null || request.contentId == null) return;
+    // El directo en vivo no tiene sentido de progreso.
+    if (request.contentType == 'live') return;
+    _historyRequest = request;
+    _updateHistory(request);
+    // Persistencia periódica del progreso (si la app se cierra de golpe, el
+    // último tick queda guardado). Se cancela al cerrar/reproducir otro.
+    _historyTimer?.cancel();
+    _historyTimer = Timer.periodic(_historyInterval, (_) {
+      if (mounted) _updateHistory(request);
+    });
+  }
+
+  /// Persiste (upsert) el estado de reproducción actual del contenido en curso.
+  void _updateHistory(PlaybackRequest request) {
     final IptvRepository repository = context.read<IptvRepository>();
+    final int positionSeconds = _bloc.player.state.position.inSeconds;
+    final int durationSeconds = _bloc.player.state.duration.inSeconds;
     repository.addToHistory(
       HistoryItem(
         contentId: request.contentId!,
         contentType: ContentType.values.byName(request.contentType!),
         name: request.title,
         watchedAt: DateTime.now(),
+        position: positionSeconds,
+        duration: durationSeconds > 0 ? durationSeconds : null,
+        streamUrl: _bloc.streamUrl,
       ),
     );
+  }
+
+  /// Guarda el progreso final y detiene la persistencia periódica.
+  void _stopHistoryTracking() {
+    _historyTimer?.cancel();
+    _historyTimer = null;
+    final PlaybackRequest? request = _historyRequest;
+    if (request != null) {
+      _updateHistory(request);
+    }
+    _historyRequest = null;
   }
 
   void _scheduleHide() {
@@ -181,6 +221,7 @@ class _PlayerScreenState extends State<PlayerScreen> {
   }
 
   void _closePlayer() {
+    _stopHistoryTracking();
     _bloc.player.stop();
     _bloc.resetContent();
     setState(() {
@@ -213,6 +254,7 @@ class _PlayerScreenState extends State<PlayerScreen> {
     widget.controller.removeListener(_onControllerChanged);
     _tracksSubscription?.cancel();
     _hideTimer?.cancel();
+    _stopHistoryTracking();
     _bloc.close();
     super.dispose();
   }

@@ -268,6 +268,9 @@ class AppLocalizationsDe extends AppLocalizations {
   String get recentlyAdded => 'Kürzlich hinzugefügt';
 
   @override
+  String get continueWatchingSection => 'Weiter ansehen';
+
+  @override
   String get audioTrack => 'Audiospur';
 
   @override

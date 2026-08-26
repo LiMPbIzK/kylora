@@ -122,8 +122,6 @@ class _LiveContent extends StatelessWidget {
             children: <Widget>[
               CategorySidebar(
                 categories: state.categories,
-                allLabel: l10n.allCategories,
-                isAllSelected: state.isAllSelected,
                 selectedCategoryId: state.selectedCategoryId,
                 onCategorySelected: (int? id) => context
                     .read<LiveBloc>()

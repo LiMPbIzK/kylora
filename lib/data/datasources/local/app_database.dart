@@ -60,6 +60,10 @@ class History extends Table {
   DateTimeColumn get watchedAt => dateTime()();
   IntColumn get position => integer().withDefault(const Constant(0))();
   IntColumn get duration => integer().nullable()();
+
+  /// URL del stream en el momento de la reproducción (para "Continuar
+  /// visualización" sin depender de estado de sesión/catálogo al reanudar).
+  TextColumn get streamUrl => text().nullable()();
 }
 
 /// Preferencias de la aplicación (pares clave-valor: locale, tema, PIN, ...).
@@ -92,7 +96,7 @@ class AppDatabase extends _$AppDatabase {
   }
 
   @override
-  int get schemaVersion => 4;
+  int get schemaVersion => 5;
 
   @override
   MigrationStrategy get migration {
@@ -118,6 +122,11 @@ class AppDatabase extends _$AppDatabase {
           await m.addColumn(liveChannels, liveChannels.accountKey);
           await m.addColumn(favorites, favorites.accountKey);
           await m.addColumn(history, history.accountKey);
+        }
+        if (from < 5) {
+          // V5: guarda la URL del stream en el historial para poder reanudar
+          // ("Continuar visualización") sin depender del catálogo.
+          await m.addColumn(history, history.streamUrl);
         }
       },
     );

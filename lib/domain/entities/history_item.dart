@@ -12,6 +12,7 @@ class HistoryItem extends Equatable {
     this.logo,
     this.position = 0,
     this.duration,
+    this.streamUrl,
   });
 
   final int contentId;
@@ -26,6 +27,10 @@ class HistoryItem extends Equatable {
   /// Duración total del contenido en segundos (null para directo).
   final int? duration;
 
+  /// URL del stream reproducido (para "Continuar visualización" sin depender
+  /// del catálogo al reanudar).
+  final String? streamUrl;
+
   @override
   List<Object?> get props => <Object?>[
     contentId,
@@ -35,5 +40,6 @@ class HistoryItem extends Equatable {
     watchedAt,
     position,
     duration,
+    streamUrl,
   ];
 }

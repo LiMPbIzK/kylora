@@ -18,6 +18,10 @@ class LiveBloc extends Bloc<LiveEvent, LiveState> {
 
   final IptvRepository _repository;
 
+  /// Categoría inicial tras cargar: la primera disponible (ya no existe "Todas").
+  int? get _initialCategoryId =>
+      _categories.isNotEmpty ? _categories.first.id : null;
+
   List<Category> _categories = <Category>[];
   List<Channel> _allChannels = <Channel>[];
   String _query = '';
@@ -33,7 +37,7 @@ class LiveBloc extends Bloc<LiveEvent, LiveState> {
       _categories = categories;
       _allChannels = channels;
       _query = '';
-      emit(_buildLoaded(selectedCategoryId: null));
+      emit(_buildLoaded(selectedCategoryId: _initialCategoryId));
     } catch (e, stack) {
       if (kDebugMode) {
         debugPrint('LiveBloc refresh error: ${e.runtimeType}: $e');
@@ -52,7 +56,7 @@ class LiveBloc extends Bloc<LiveEvent, LiveState> {
       _allChannels = channels;
       _query = '';
       emit(
-        _buildLoaded(selectedCategoryId: null),
+        _buildLoaded(selectedCategoryId: _initialCategoryId),
       );
     } catch (e, stack) {
       if (kDebugMode) {

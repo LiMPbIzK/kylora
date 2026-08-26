@@ -266,6 +266,9 @@ class AppLocalizationsFr extends AppLocalizations {
   String get recentlyAdded => 'Récemment ajouté';
 
   @override
+  String get continueWatchingSection => 'Reprendre la lecture';
+
+  @override
   String get audioTrack => 'Piste audio';
 
   @override

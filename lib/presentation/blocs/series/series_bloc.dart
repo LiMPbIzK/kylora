@@ -23,6 +23,10 @@ class SeriesBloc extends Bloc<SeriesEvent, SeriesState> {
 
   final IptvRepository _repository;
 
+  /// Categoría inicial tras cargar: la primera disponible (ya no existe "Todas").
+  int? get _initialCategoryId =>
+      _categories.isNotEmpty ? _categories.first.id : null;
+
   List<Category> _categories = <Category>[];
   List<Series> _allSeries = <Series>[];
   String _query = '';
@@ -50,7 +54,7 @@ class SeriesBloc extends Bloc<SeriesEvent, SeriesState> {
       _categories = categories;
       _allSeries = seriesList;
       _query = '';
-      emit(_buildLoaded(selectedCategoryId: null));
+      emit(_buildLoaded(selectedCategoryId: _initialCategoryId));
     } catch (e, stack) {
       if (kDebugMode) {
         debugPrint('SeriesBloc refresh error: ${e.runtimeType}: $e');
@@ -69,7 +73,7 @@ class SeriesBloc extends Bloc<SeriesEvent, SeriesState> {
       _categories = categories;
       _allSeries = seriesList;
       _query = '';
-      emit(_buildLoaded(selectedCategoryId: null));
+      emit(_buildLoaded(selectedCategoryId: _initialCategoryId));
     } catch (e, stack) {
       if (kDebugMode) {
         debugPrint('SeriesBloc error: ${e.runtimeType}: $e');
@@ -152,7 +156,7 @@ class SeriesBloc extends Bloc<SeriesEvent, SeriesState> {
   ) async {
     emit(const SeriesLoading());
     try {
-      emit(_buildLoaded(selectedCategoryId: null));
+      emit(_buildLoaded(selectedCategoryId: _initialCategoryId));
     } catch (_) {
       emit(const SeriesFailure('seriesLoadError'));
     }

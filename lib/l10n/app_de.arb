@@ -337,6 +337,10 @@
   "@recentlyAdded": {
     "description": "Filter, der nur Inhalte anzeigt, die in den letzten 7 Tagen hinzugefügt wurden."
   },
+  "continueWatchingSection": "Weiter ansehen",
+  "@continueWatchingSection": {
+    "description": "Abschnitt mit unterbrochenen Inhalten, um die Wiedergabe fortzusetzen."
+  },
   "audioTrack": "Audiospur",
   "@audioTrack": {
     "description": "Player-Option zum Auswählen der Audiospur."

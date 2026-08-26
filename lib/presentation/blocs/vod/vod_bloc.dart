@@ -20,6 +20,10 @@ class VodBloc extends Bloc<VodEvent, VodState> {
 
   final IptvRepository _repository;
 
+  /// Categoría inicial tras cargar: la primera disponible (ya no existe "Todas").
+  int? get _initialCategoryId =>
+      _categories.isNotEmpty ? _categories.first.id : null;
+
   List<Category> _categories = <Category>[];
   List<Movie> _allMovies = <Movie>[];
   String _query = '';
@@ -46,7 +50,7 @@ class VodBloc extends Bloc<VodEvent, VodState> {
       _categories = categories;
       _allMovies = movies;
       _query = '';
-      emit(_buildLoaded(selectedCategoryId: null));
+      emit(_buildLoaded(selectedCategoryId: _initialCategoryId));
     } catch (e, stack) {
       if (kDebugMode) {
         debugPrint('VodBloc refresh error: ${e.runtimeType}: $e');
@@ -65,7 +69,7 @@ class VodBloc extends Bloc<VodEvent, VodState> {
       _allMovies = movies;
       _query = '';
       emit(
-        _buildLoaded(selectedCategoryId: null),
+        _buildLoaded(selectedCategoryId: _initialCategoryId),
       );
     } catch (e, stack) {
       if (kDebugMode) {

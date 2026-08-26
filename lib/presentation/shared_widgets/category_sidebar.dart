@@ -8,14 +8,11 @@ import 'tv_focusable.dart';
 ///
 /// Diseñada para Android TV/mando: una columna a la izquierda con todos los
 /// filtros, reemplazando a los chips horizontales. El icono de cada entrada
-/// se parametriza ([icon]) y la etiqueta de la opción "Todas" se pasa desde
-/// cada pantalla ([allLabel]).
+/// se parametriza ([icon]) y la anchura de la columna es [width].
 class CategorySidebar extends StatelessWidget {
   const CategorySidebar({
     super.key,
     required this.categories,
-    required this.allLabel,
-    required this.isAllSelected,
     required this.selectedCategoryId,
     required this.onCategorySelected,
     this.icon = Icons.live_tv,
@@ -23,8 +20,6 @@ class CategorySidebar extends StatelessWidget {
   });
 
   final List<Category> categories;
-  final String allLabel;
-  final bool isAllSelected;
   final int? selectedCategoryId;
   final ValueChanged<int?> onCategorySelected;
   final IconData icon;
@@ -37,12 +32,6 @@ class CategorySidebar extends StatelessWidget {
       child: ListView(
         padding: const EdgeInsets.symmetric(vertical: 8),
         children: <Widget>[
-          _SidebarButton(
-            label: allLabel,
-            icon: icon,
-            selected: isAllSelected,
-            onTap: () => onCategorySelected(null),
-          ),
           for (final Category category in categories)
             _SidebarButton(
               label: category.name,

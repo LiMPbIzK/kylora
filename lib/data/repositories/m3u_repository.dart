@@ -246,6 +246,28 @@ class M3uRepository implements IptvRepository {
   Future<void> addToHistory(HistoryItem item) async {
     final StoredCredentials? stored = await _authStore.read();
     if (stored == null) return;
+    // Upsert por contenido: una única entrada por (cuenta, contentId, tipo),
+    // actualizada con la última posición ("Continuar visualización").
+    final List<HistoryData> existing = await (_db.select(_db.history)
+          ..where((t) => t.accountKey.equals(stored.fingerprint))
+          ..where((t) => t.contentId.equals(item.contentId))
+          ..where((t) => t.contentType.equals(item.contentType.name)))
+        .get();
+    if (existing.isNotEmpty) {
+      final HistoryData row = existing.first;
+      final bool furtherProgress = item.position > row.position;
+      await (_db.update(_db.history)..where((t) => t.id.equals(row.id))).write(
+        HistoryCompanion(
+          name: Value(item.name),
+          logo: Value(item.logo),
+          watchedAt: Value(item.watchedAt),
+          position: Value(furtherProgress ? item.position : row.position),
+          duration: Value(item.duration ?? row.duration),
+          streamUrl: Value(item.streamUrl ?? row.streamUrl),
+        ),
+      );
+      return;
+    }
     await _db.into(_db.history).insert(
       HistoryCompanion.insert(
         accountKey: Value(stored.fingerprint),
@@ -256,6 +278,7 @@ class M3uRepository implements IptvRepository {
         watchedAt: item.watchedAt,
         position: Value(item.position),
         duration: Value(item.duration),
+        streamUrl: Value(item.streamUrl),
       ),
     );
   }
@@ -277,6 +300,7 @@ class M3uRepository implements IptvRepository {
               watchedAt: row.watchedAt,
               position: row.position,
               duration: row.duration,
+              streamUrl: row.streamUrl,
             ))
         .toList();
   }

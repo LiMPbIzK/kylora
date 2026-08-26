@@ -10,12 +10,15 @@ sealed class PlayerEvent extends Equatable {
 
 /// Carga y reproduce el contenido cuya URL construye [urlBuilder].
 final class PlayerPlayRequested extends PlayerEvent {
-  const PlayerPlayRequested(this.urlBuilder);
+  const PlayerPlayRequested(this.urlBuilder, {this.startPosition});
 
   final Future<String> Function() urlBuilder;
 
+  /// Posición de inicio (para "Continuar visualización").
+  final Duration? startPosition;
+
   @override
-  List<Object?> get props => <Object?>[];
+  List<Object?> get props => <Object?>[startPosition];
 }
 
 /// Reintenta la reproducción tras un error.

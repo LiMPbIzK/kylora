@@ -337,6 +337,10 @@
   "@recentlyAdded": {
     "description": "Filter that shows only content added in the last 7 days."
   },
+  "continueWatchingSection": "Continue watching",
+  "@continueWatchingSection": {
+    "description": "Section with in-progress content to resume playback."
+  },
   "audioTrack": "Audio Track",
   "@audioTrack": {
     "description": "Player option to select the audio track."

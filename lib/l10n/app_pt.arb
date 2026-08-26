@@ -337,6 +337,10 @@
   "@recentlyAdded": {
     "description": "Filtro que mostra apenas conteúdo adicionado nos últimos 7 dias."
   },
+  "continueWatchingSection": "Continuar a assistir",
+  "@continueWatchingSection": {
+    "description": "Seção com o conteúdo interrompido para retomar a reprodução."
+  },
   "audioTrack": "Faixa de áudio",
   "@audioTrack": {
     "description": "Opção do reprodutor para selecionar a faixa de áudio."

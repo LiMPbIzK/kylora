@@ -7,6 +7,7 @@ class PlaybackRequest {
     this.contentType,
     this.contentId,
     this.openGuide = false,
+    this.startPosition,
   });
 
   /// Título del contenido que se reproduce.
@@ -24,4 +25,7 @@ class PlaybackRequest {
   /// Si es true, al iniciar la reproducción se abre la guía embebida del canal
   /// dentro del reproductor (vista de programación overlay, sin detener el stream).
   final bool openGuide;
+
+  /// Posición en la que iniciar la reproducción (para "Continuar visualización").
+  final Duration? startPosition;
 }

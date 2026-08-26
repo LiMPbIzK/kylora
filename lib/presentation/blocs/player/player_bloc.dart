@@ -34,6 +34,7 @@ class PlayerBloc extends Bloc<PlayerEvent, PlayerState> {
 
   int _retriesLeft = 0;
   String? _streamUrl;
+  Duration? _startPosition;
   Timer? _retryTimer;
   Future<void>? _pendingOpen;
   Future<String> Function() _urlBuilder = _noContent;
@@ -53,6 +54,7 @@ class PlayerBloc extends Bloc<PlayerEvent, PlayerState> {
     _retryTimer?.cancel();
     _retriesLeft = 0;
     _streamUrl = null;
+    _startPosition = null;
     _pendingOpen = null;
   }
 
@@ -65,6 +67,7 @@ class PlayerBloc extends Bloc<PlayerEvent, PlayerState> {
   ) async {
     _retryTimer?.cancel();
     _urlBuilder = event.urlBuilder;
+    _startPosition = event.startPosition;
     _retriesLeft = 0;
     emit(const PlayerLoading());
     await _open(emit);
@@ -91,6 +94,7 @@ class PlayerBloc extends Bloc<PlayerEvent, PlayerState> {
         httpHeaders: <String, String>{
           'User-Agent': AppConstants.userAgent,
         },
+        start: _startPosition,
       );
       _pendingOpen = _player.open(media);
       await _pendingOpen;
