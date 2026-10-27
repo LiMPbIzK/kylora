@@ -121,6 +121,10 @@
   "@liveTv": {
     "description": "Panel-Abschnitt für Live-Kanäle."
   },
+  "radio": "Radio",
+  "@radio": {
+    "description": "Panel-Abschnitt für Radiosender."
+  },
   "allCategories": "Alle",
   "@allCategories": {
     "description": "Beschriftung des Chips zum Anzeigen aller Kanäle ohne Filter."
@@ -160,6 +164,27 @@
   "settings": "Einstellungen",
   "@settings": {
     "description": "Panel-Abschnitt für Anwendungseinstellungen."
+  },
+  "clock": "Uhr",
+  "@clock": {
+    "description": "Einstellungsbereich für die Uhr in der oberen Leiste."
+  },
+  "clockFormat24h": "24 Stunden",
+  "@clockFormat24h": {
+    "description": "24-Stunden-Uhrformat."
+  },
+  "clockFormat12h": "12 Stunden",
+  "@clockFormat12h": {
+    "description": "12-Stunden-Uhrformat mit AM/PM."
+  },
+  "endsAt": "Endet um {time}",
+  "@endsAt": {
+    "description": "Uhrzeit, zu der die aktuelle Wiedergabe endet.",
+    "placeholders": {
+      "time": {
+        "type": "String"
+      }
+    }
   },
   "settingsSectionAccount": "Konto",
   "@settingsSectionAccount": {
@@ -329,9 +354,25 @@
   "@close": {
     "description": "Schaltfläche zum Schließen eines Panels oder Dialogs."
   },
+  "exitAppTitle": "Kylora beenden?",
+  "@exitAppTitle": {
+    "description": "Titel des Dialogs, der fragt, ob die Anwendung beendet werden soll."
+  },
+  "exitAppConfirm": "Möchtest du Kylora wirklich beenden?",
+  "@exitAppConfirm": {
+    "description": "Bestätigungsmeldung vor dem Schließen der Anwendung."
+  },
+  "exitApp": "Beenden",
+  "@exitApp": {
+    "description": "Schaltfläche, die das Beenden der Anwendung bestätigt."
+  },
   "searchPlaceholder": "Kanäle, Filme suchen...",
   "@searchPlaceholder": {
     "description": "Platzhaltertext des Suchfelds."
+  },
+  "clearSearch": "Suche löschen",
+  "@clearSearch": {
+    "description": "Tooltip der Schaltfläche, die die aktive Suche löscht und wieder alle Inhalte anzeigt."
   },
   "recentlyAdded": "Kürzlich hinzugefügt",
   "@recentlyAdded": {
@@ -340,6 +381,18 @@
   "continueWatchingSection": "Weiter ansehen",
   "@continueWatchingSection": {
     "description": "Abschnitt mit unterbrochenen Inhalten, um die Wiedergabe fortzusetzen."
+  },
+  "removeResumeTitle": "Wiedergabe entfernen",
+  "@removeResumeTitle": {
+    "description": "Titel des Dialogs zum Löschen eines Fortsetzen-Eintrags."
+  },
+  "removeResumeConfirm": "Möchtest du diese aktuelle Wiedergabe entfernen? Du kannst sie von hier nicht fortsetzen.",
+  "@removeResumeConfirm": {
+    "description": "Bestätigungsmeldung vor dem Löschen einer ausstehenden Wiedergabe."
+  },
+  "removeResumeConfirmButton": "Entfernen",
+  "@removeResumeConfirmButton": {
+    "description": "Schaltfläche, die das Löschen der ausstehenden Wiedergabe bestätigt."
   },
   "audioTrack": "Audiospur",
   "@audioTrack": {

@@ -121,6 +121,10 @@
   "@liveTv": {
     "description": "Sección del panel para canales en directo."
   },
+  "radio": "Radio",
+  "@radio": {
+    "description": "Sección del panel para cadenas de radio."
+  },
   "allCategories": "Todas",
   "@allCategories": {
     "description": "Etiqueta del chip para mostrar todos los canales sin filtrar."
@@ -160,6 +164,27 @@
   "settings": "Ajustes",
   "@settings": {
     "description": "Sección del panel para ajustes de la aplicación."
+  },
+  "clock": "Reloj",
+  "@clock": {
+    "description": "Sección de ajustes del reloj de la barra superior."
+  },
+  "clockFormat24h": "24 horas",
+  "@clockFormat24h": {
+    "description": "Formato de reloj de 24 horas."
+  },
+  "clockFormat12h": "12 horas",
+  "@clockFormat12h": {
+    "description": "Formato de reloj de 12 horas con AM/PM."
+  },
+  "endsAt": "Termina a las {time}",
+  "@endsAt": {
+    "description": "Hora a la que termina la reproducción actual.",
+    "placeholders": {
+      "time": {
+        "type": "String"
+      }
+    }
   },
   "settingsSectionAccount": "Cuenta",
   "@settingsSectionAccount": {
@@ -325,13 +350,29 @@
   "@nextEpg": {
     "description": "Etiqueta del siguiente programa en la lista de canales."
   },
-  "close": "Cerrar",
+"close": "Cerrar",
   "@close": {
-    "description": "Botón para cerrar un panel o diálogo."
+    "description": "Botón para cerrar un panel o una ventana de diálogo."
+  },
+  "exitAppTitle": "Salir de Kylora",
+  "@exitAppTitle": {
+    "description": "Título del diálogo que pregunta si se desea salir de la aplicación."
+  },
+  "exitAppConfirm": "¿Seguro que quieres salir de Kylora?",
+  "@exitAppConfirm": {
+    "description": "Mensaje de confirmación antes de cerrar la aplicación."
+  },
+  "exitApp": "Salir",
+  "@exitApp": {
+    "description": "Botón que confirma el cierre de la aplicación."
   },
 "searchPlaceholder": "Buscar canales, películas...",
   "@searchPlaceholder": {
     "description": "Texto de espacio reservado del campo de búsqueda."
+  },
+  "clearSearch": "Limpiar búsqueda",
+  "@clearSearch": {
+    "description": "Tooltip del botón que limpia la búsqueda activa y vuelve a mostrar todo el contenido."
   },
   "recentlyAdded": "Añadido recientemente",
   "@recentlyAdded": {
@@ -340,6 +381,18 @@
   "continueWatchingSection": "Continuar visualización",
   "@continueWatchingSection": {
     "description": "Sección con el contenido que quedó a medias para reanudarlo."
+  },
+  "removeResumeTitle": "Eliminar visualización",
+  "@removeResumeTitle": {
+    "description": "Título del diálogo que confirma borrar una entrada de continuar visualización."
+  },
+  "removeResumeConfirm": "¿Deseas eliminar esta visualización reciente? No podrás reanudarla desde aquí.",
+  "@removeResumeConfirm": {
+    "description": "Mensaje de confirmación antes de eliminar una visualización pendiente."
+  },
+  "removeResumeConfirmButton": "Eliminar",
+  "@removeResumeConfirmButton": {
+    "description": "Botón que confirma la eliminación de la visualización pendiente."
   },
   "audioTrack": "Pista de Audio",
   "@audioTrack": {

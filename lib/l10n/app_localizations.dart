@@ -268,6 +268,12 @@ abstract class AppLocalizations {
   /// **'Live TV'**
   String get liveTv;
 
+  /// Dashboard section for radio stations.
+  ///
+  /// In en, this message translates to:
+  /// **'Radio'**
+  String get radio;
+
   /// Label of the chip that shows all channels without filtering.
   ///
   /// In en, this message translates to:
@@ -327,6 +333,30 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'Settings'**
   String get settings;
+
+  /// Settings section for the top-bar clock.
+  ///
+  /// In en, this message translates to:
+  /// **'Clock'**
+  String get clock;
+
+  /// Clock format using 24 hours.
+  ///
+  /// In en, this message translates to:
+  /// **'24-hour'**
+  String get clockFormat24h;
+
+  /// Clock format using 12 hours with AM/PM.
+  ///
+  /// In en, this message translates to:
+  /// **'12-hour'**
+  String get clockFormat12h;
+
+  /// Time at which the current playback will end.
+  ///
+  /// In en, this message translates to:
+  /// **'Ends at {time}'**
+  String endsAt(String time);
 
   /// Header of the account section in settings.
   ///
@@ -580,11 +610,35 @@ abstract class AppLocalizations {
   /// **'Close'**
   String get close;
 
+  /// Title of the dialog asking whether to exit the application.
+  ///
+  /// In en, this message translates to:
+  /// **'Exit Kylora?'**
+  String get exitAppTitle;
+
+  /// Confirmation message before closing the application.
+  ///
+  /// In en, this message translates to:
+  /// **'Are you sure you want to exit Kylora?'**
+  String get exitAppConfirm;
+
+  /// Button that confirms closing the application.
+  ///
+  /// In en, this message translates to:
+  /// **'Exit'**
+  String get exitApp;
+
   /// Placeholder text of the search field.
   ///
   /// In en, this message translates to:
   /// **'Search channels, movies...'**
   String get searchPlaceholder;
+
+  /// Tooltip of the button that clears the active search and shows all content again.
+  ///
+  /// In en, this message translates to:
+  /// **'Clear search'**
+  String get clearSearch;
 
   /// Filter that shows only content added in the last 7 days.
   ///
@@ -597,6 +651,24 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'Continue watching'**
   String get continueWatchingSection;
+
+  /// Title of the dialog confirming deletion of a continue-watching entry.
+  ///
+  /// In en, this message translates to:
+  /// **'Remove viewing'**
+  String get removeResumeTitle;
+
+  /// Confirmation message before deleting a pending viewing.
+  ///
+  /// In en, this message translates to:
+  /// **'Do you want to remove this recent viewing? You will not be able to resume it from here.'**
+  String get removeResumeConfirm;
+
+  /// Button that confirms the deletion of the pending viewing.
+  ///
+  /// In en, this message translates to:
+  /// **'Remove'**
+  String get removeResumeConfirmButton;
 
   /// Player option to select the audio track.
   ///

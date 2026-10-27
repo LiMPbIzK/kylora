@@ -121,6 +121,10 @@
   "@liveTv": {
     "description": "Sezione del pannello per i canali in diretta."
   },
+  "radio": "Radio",
+  "@radio": {
+    "description": "Sezione del pannello per le stazioni radio."
+  },
   "allCategories": "Tutte",
   "@allCategories": {
     "description": "Etichetta del chip per mostrare tutti i canali senza filtro."
@@ -160,6 +164,27 @@
   "settings": "Impostazioni",
   "@settings": {
     "description": "Sezione del pannello per le impostazioni dell'applicazione."
+  },
+  "clock": "Orologio",
+  "@clock": {
+    "description": "Sezione impostazioni dell'orologio nella barra superiore."
+  },
+  "clockFormat24h": "24 ore",
+  "@clockFormat24h": {
+    "description": "Formato orologio a 24 ore."
+  },
+  "clockFormat12h": "12 ore",
+  "@clockFormat12h": {
+    "description": "Formato orologio a 12 ore con AM/PM."
+  },
+  "endsAt": "Termina alle {time}",
+  "@endsAt": {
+    "description": "Ora in cui termina la riproduzione corrente.",
+    "placeholders": {
+      "time": {
+        "type": "String"
+      }
+    }
   },
   "settingsSectionAccount": "Account",
   "@settingsSectionAccount": {
@@ -329,9 +354,25 @@
   "@close": {
     "description": "Pulsante per chiudere un pannello o una finestra di dialogo."
   },
+  "exitAppTitle": "Uscire da Kylora?",
+  "@exitAppTitle": {
+    "description": "Titolo del dialogo che chiede se uscire dall'applicazione."
+  },
+  "exitAppConfirm": "Vuoi davvero uscire da Kylora?",
+  "@exitAppConfirm": {
+    "description": "Messaggio di conferma prima di chiudere l'applicazione."
+  },
+  "exitApp": "Esci",
+  "@exitApp": {
+    "description": "Pulsante che conferma la chiusura dell'applicazione."
+  },
   "searchPlaceholder": "Cerca canali, film...",
   "@searchPlaceholder": {
     "description": "Testo segnaposto del campo di ricerca."
+  },
+  "clearSearch": "Cancella ricerca",
+  "@clearSearch": {
+    "description": "Suggerimento del pulsante che cancella la ricerca attiva e mostra di nuovo tutti i contenuti."
   },
   "recentlyAdded": "Aggiunto di recente",
   "@recentlyAdded": {
@@ -340,6 +381,18 @@
   "continueWatchingSection": "Continua a guardare",
   "@continueWatchingSection": {
     "description": "Sezione con il contenuto interrotto per riprendere la riproduzione."
+  },
+  "removeResumeTitle": "Rimuovi visualizzazione",
+  "@removeResumeTitle": {
+    "description": "Titolo del dialogo che conferma l'eliminazione di una voce da riprendere."
+  },
+  "removeResumeConfirm": "Vuoi rimuovere questa visualizzazione recente? Non potrai riprenderla da qui.",
+  "@removeResumeConfirm": {
+    "description": "Messaggio di conferma prima di eliminare una visualizzazione in corso."
+  },
+  "removeResumeConfirmButton": "Rimuovi",
+  "@removeResumeConfirmButton": {
+    "description": "Pulsante che conferma l'eliminazione della visualizzazione in corso."
   },
   "audioTrack": "Traccia audio",
   "@audioTrack": {

@@ -121,6 +121,10 @@
   "@liveTv": {
     "description": "Section du panneau pour les chaînes en direct."
   },
+  "radio": "Radio",
+  "@radio": {
+    "description": "Section du panneau pour les stations de radio."
+  },
   "allCategories": "Toutes",
   "@allCategories": {
     "description": "Libellé de la puce pour afficher toutes les chaînes sans filtre."
@@ -160,6 +164,27 @@
   "settings": "Réglages",
   "@settings": {
     "description": "Section du panneau pour les réglages de l'application."
+  },
+  "clock": "Horloge",
+  "@clock": {
+    "description": "Section de réglages de l'horloge de la barre supérieure."
+  },
+  "clockFormat24h": "24 heures",
+  "@clockFormat24h": {
+    "description": "Format d'horloge sur 24 heures."
+  },
+  "clockFormat12h": "12 heures",
+  "@clockFormat12h": {
+    "description": "Format d'horloge sur 12 heures avec AM/PM."
+  },
+  "endsAt": "Se termine à {time}",
+  "@endsAt": {
+    "description": "Heure à laquelle la lecture actuelle se termine.",
+    "placeholders": {
+      "time": {
+        "type": "String"
+      }
+    }
   },
   "settingsSectionAccount": "Compte",
   "@settingsSectionAccount": {
@@ -329,9 +354,25 @@
   "@close": {
     "description": "Bouton pour fermer un panneau ou une boîte de dialogue."
   },
+  "exitAppTitle": "Quitter Kylora ?",
+  "@exitAppTitle": {
+    "description": "Titre du dialogue demandant si l'on souhaite quitter l'application."
+  },
+  "exitAppConfirm": "Êtes-vous sûr de vouloir quitter Kylora ?",
+  "@exitAppConfirm": {
+    "description": "Message de confirmation avant de fermer l'application."
+  },
+  "exitApp": "Quitter",
+  "@exitApp": {
+    "description": "Bouton qui confirme la fermeture de l'application."
+  },
   "searchPlaceholder": "Rechercher chaînes, films...",
   "@searchPlaceholder": {
     "description": "Texte d'espace réservé du champ de recherche."
+  },
+  "clearSearch": "Effacer la recherche",
+  "@clearSearch": {
+    "description": "Infobulle du bouton qui efface la recherche active et réaffiche tout le contenu."
   },
   "recentlyAdded": "Récemment ajouté",
   "@recentlyAdded": {
@@ -340,6 +381,18 @@
   "continueWatchingSection": "Reprendre la lecture",
   "@continueWatchingSection": {
     "description": "Section avec le contenu interrompu pour reprendre la lecture."
+  },
+  "removeResumeTitle": "Supprimer la visualisation",
+  "@removeResumeTitle": {
+    "description": "Titre du dialogue confirmant la suppression d'une entrée à reprendre."
+  },
+  "removeResumeConfirm": "Voulez-vous supprimer cette visualisation récente ? Vous ne pourrez plus la reprendre d'ici.",
+  "@removeResumeConfirm": {
+    "description": "Message de confirmation avant de supprimer une visualisation en cours."
+  },
+  "removeResumeConfirmButton": "Supprimer",
+  "@removeResumeConfirmButton": {
+    "description": "Bouton qui confirme la suppression de la visualisation en cours."
   },
   "audioTrack": "Piste audio",
   "@audioTrack": {

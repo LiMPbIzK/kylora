@@ -16,6 +16,7 @@ import 'data/datasources/remote/xtream_api_client.dart';
 import 'data/repositories/m3u_repository.dart';
 import 'data/repositories/multi_source_repository.dart';
 import 'data/repositories/xtream_repository.dart';
+import 'domain/entities/iptv_source_type.dart';
 import 'domain/repositories/iptv_repository.dart';
 import 'presentation/blocs/auth/auth_bloc.dart';
 import 'presentation/blocs/auth/auth_event.dart';
@@ -43,6 +44,9 @@ Future<void> main() async {
 
   final AppDatabase database = AppDatabase();
   final AuthStore authStore = AuthStore();
+  // TEMPORAL (desarrollo): deja una sesión sembrada para entrar solo al
+  // arrancar. ELIMINAR este bloque cuando no se necesite.
+  await _seedDefaultSession(authStore);
   final IptvRepository repository = await _buildRepository(dio, authStore, database);
 
   final AuthBloc authBloc = AuthBloc(repository)..add(const AuthStarted());
@@ -67,6 +71,27 @@ Future<void> main() async {
       settingsBloc: settingsBloc,
       repository: repository,
       playbackController: PlaybackController(),
+    ),
+  );
+}
+
+// TEMPORAL (desarrollo): credenciales sembradas para entrar solo al arrancar.
+// ELIMINAR este bloque y la llamada a `_seedDefaultSession` cuando no se use.
+const String _devServerUrl = 'https://example.invalid';
+const String _devUsername = 'REDACTED';
+const String _devPassword = 'REDACTED';
+
+/// Si no hay una sesión guardada, escribe las credenciales de desarrollo para
+/// que `AuthStarted` restaure la sesión automáticamente al arrancar.
+Future<void> _seedDefaultSession(AuthStore authStore) async {
+  final StoredCredentials? existing = await authStore.read();
+  if (existing != null) return;
+  await authStore.write(
+    const StoredCredentials(
+      serverUrl: _devServerUrl,
+      username: _devUsername,
+      password: _devPassword,
+      sourceType: IptvSourceType.xtream,
     ),
   );
 }

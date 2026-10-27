@@ -21,6 +21,7 @@ import 'presentation/blocs/live/live_bloc.dart';
 import 'presentation/blocs/series/series_bloc.dart';
 import 'presentation/blocs/settings/settings_bloc.dart';
 import 'presentation/blocs/settings/settings_state.dart';
+import 'presentation/blocs/search/search_visibility_cubit.dart';
 import 'presentation/blocs/vod/vod_bloc.dart';
 import 'presentation/screens/auth/login_screen.dart';
 import 'presentation/screens/dashboard/home_shell_screen.dart';
@@ -163,6 +164,12 @@ class KyloraApp extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    // El router se crea UNA sola vez aquí (no dentro del BlocBuilder de
+    // Ajustes): así cambiar idioma o tema no reconstruye el GoRouter, que de lo
+    // contrario reiniciaría en la ruta inicial y "cerraría" la pantalla actual
+    // (p. ej. los Ajustes al seleccionar idioma) volviendo al dashboard.
+    final GoRouter router = AppRouter.router(authBloc);
+
     return MultiBlocProvider(
       providers: <BlocProvider<StateStreamableSource<Object?>>>[
         BlocProvider<AuthBloc>(create: (_) => authBloc),
@@ -173,6 +180,7 @@ class KyloraApp extends StatelessWidget {
         BlocProvider<FavoritesBloc>(create: (_) => favoritesBloc),
         BlocProvider<HistoryBloc>(create: (_) => historyBloc),
         BlocProvider<SettingsBloc>(create: (_) => settingsBloc),
+        BlocProvider<SearchVisibilityCubit>(create: (_) => SearchVisibilityCubit()),
       ],
       child: RepositoryProvider<IptvRepository>.value(
         value: repository,
@@ -191,7 +199,7 @@ class KyloraApp extends StatelessWidget {
                 title: 'Kylora',
                 debugShowCheckedModeBanner: false,
                 theme: theme,
-                routerConfig: AppRouter.router(authBloc),
+                routerConfig: router,
                 localizationsDelegates: const <
                     LocalizationsDelegate<Object>>[
                   AppLocalizations.delegate,
@@ -201,6 +209,20 @@ class KyloraApp extends StatelessWidget {
                 ],
                 supportedLocales: AppLocalizations.supportedLocales,
                 locale: locale,
+                localeResolutionCallback: (Locale? systemLocale, Iterable<Locale> supported) {
+                  // Si el usuario eligió un idioma manualmente, se respeta tal
+                  // cual (ya viene en `locale` y Flutter lo aplica).
+                  if (locale != null) return locale;
+                  // Sin idioma manual: resuelve el idioma del sistema.
+                  // Match por código de idioma (Android TV suele reportar
+                  // es_ES/es_419/etc.), con español como respaldo.
+                  if (systemLocale == null) return const Locale('es');
+                  final String code = systemLocale.languageCode;
+                  for (final Locale candidate in supported) {
+                    if (candidate.languageCode == code) return candidate;
+                  }
+                  return const Locale('es');
+                },
                 builder: (context, child) => PlaybackOverlay(
                   controller: playbackController,
                   child: child ?? const SizedBox.shrink(),

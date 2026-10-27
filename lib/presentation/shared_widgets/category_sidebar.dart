@@ -24,6 +24,7 @@ class CategorySidebar extends StatelessWidget {
     this.resumeLabel,
     this.isResumeSelected = false,
     this.onResumeSelected,
+    this.firstCategoryFocus,
   });
 
   final List<Category> categories;
@@ -41,6 +42,10 @@ class CategorySidebar extends StatelessWidget {
   /// Añade la opción de reanudación (al pulsar).
   final VoidCallback? onResumeSelected;
 
+  /// FocusNode opcional que se asigna a la primera sección (para volver desde
+  /// el buscador con `ArrowUp` en TV).
+  final FocusNode? firstCategoryFocus;
+
   @override
   Widget build(BuildContext context) {
     final bool hasResume =
@@ -57,12 +62,13 @@ class CategorySidebar extends StatelessWidget {
               selected: isResumeSelected,
               onTap: onResumeSelected!,
             ),
-          for (final Category category in categories)
+          for (int i = 0; i < categories.length; i++)
             _SidebarButton(
-              label: category.name,
+              label: categories[i].name,
               icon: icon,
-              selected: selectedCategoryId == category.id,
-              onTap: () => onCategorySelected(category.id),
+              selected: selectedCategoryId == categories[i].id,
+              onTap: () => onCategorySelected(categories[i].id),
+              focusNode: i == 0 ? firstCategoryFocus : null,
             ),
         ],
       ),
@@ -77,17 +83,20 @@ class _SidebarButton extends StatelessWidget {
     required this.icon,
     required this.selected,
     required this.onTap,
+    this.focusNode,
   });
 
   final String label;
   final IconData icon;
   final bool selected;
   final VoidCallback onTap;
+  final FocusNode? focusNode;
 
   @override
   Widget build(BuildContext context) {
     final AppColors colors = context.colors;
     return TvFocusable(
+      focusNode: focusNode,
       borderRadius: BorderRadius.circular(8),
       child: Material(
         color: selected ? colors.primary : Colors.transparent,

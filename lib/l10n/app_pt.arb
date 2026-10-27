@@ -121,6 +121,10 @@
   "@liveTv": {
     "description": "Seção do painel para canais ao vivo."
   },
+  "radio": "Rádio",
+  "@radio": {
+    "description": "Seção do painel para estações de rádio."
+  },
   "allCategories": "Todas",
   "@allCategories": {
     "description": "Rótulo do chip para mostrar todos os canais sem filtrar."
@@ -160,6 +164,27 @@
   "settings": "Ajustes",
   "@settings": {
     "description": "Seção do painel para ajustes do aplicativo."
+  },
+  "clock": "Relógio",
+  "@clock": {
+    "description": "Secção de definições do relógio da barra superior."
+  },
+  "clockFormat24h": "24 horas",
+  "@clockFormat24h": {
+    "description": "Formato de relógio de 24 horas."
+  },
+  "clockFormat12h": "12 horas",
+  "@clockFormat12h": {
+    "description": "Formato de relógio de 12 horas com AM/PM."
+  },
+  "endsAt": "Termina às {time}",
+  "@endsAt": {
+    "description": "Hora a que termina a reprodução atual.",
+    "placeholders": {
+      "time": {
+        "type": "String"
+      }
+    }
   },
   "settingsSectionAccount": "Conta",
   "@settingsSectionAccount": {
@@ -329,9 +354,25 @@
   "@close": {
     "description": "Botão para fechar um painel ou diálogo."
   },
+  "exitAppTitle": "Sair do Kylora?",
+  "@exitAppTitle": {
+    "description": "Título do diálogo que pergunta se deseja sair do aplicativo."
+  },
+  "exitAppConfirm": "Tem certeza de que deseja sair do Kylora?",
+  "@exitAppConfirm": {
+    "description": "Mensagem de confirmação antes de fechar o aplicativo."
+  },
+  "exitApp": "Sair",
+  "@exitApp": {
+    "description": "Botão que confirma o fechamento do aplicativo."
+  },
   "searchPlaceholder": "Buscar canais, filmes...",
   "@searchPlaceholder": {
     "description": "Texto de espaço reservado do campo de busca."
+  },
+  "clearSearch": "Limpar pesquisa",
+  "@clearSearch": {
+    "description": "Dica do botão que limpa a pesquisa ativa e mostra novamente todo o conteúdo."
   },
   "recentlyAdded": "Adicionado recentemente",
   "@recentlyAdded": {
@@ -340,6 +381,18 @@
   "continueWatchingSection": "Continuar a assistir",
   "@continueWatchingSection": {
     "description": "Seção com o conteúdo interrompido para retomar a reprodução."
+  },
+  "removeResumeTitle": "Remover visualização",
+  "@removeResumeTitle": {
+    "description": "Título do diálogo que confirma a exclusão de uma entrada para retomar."
+  },
+  "removeResumeConfirm": "Deseja remover esta visualização recente? Você não poderá retomá-la daqui.",
+  "@removeResumeConfirm": {
+    "description": "Mensagem de confirmação antes de excluir uma visualização pendente."
+  },
+  "removeResumeConfirmButton": "Remover",
+  "@removeResumeConfirmButton": {
+    "description": "Botão que confirma a exclusão da visualização pendente."
   },
   "audioTrack": "Faixa de áudio",
   "@audioTrack": {

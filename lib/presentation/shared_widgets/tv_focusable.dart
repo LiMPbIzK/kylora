@@ -18,6 +18,7 @@ class TvFocusable extends StatefulWidget {
     this.autofocus = false,
     this.borderRadius = const BorderRadius.all(Radius.circular(12)),
     this.focusScale = 1.05,
+    this.focusNode,
   });
 
   final Widget child;
@@ -26,6 +27,10 @@ class TvFocusable extends StatefulWidget {
   final BorderRadius borderRadius;
   final double focusScale;
 
+  /// FocusNode externo opcional (p. ej. para mover el foco al primer resultado
+  /// de una búsqueda al confirmarla).
+  final FocusNode? focusNode;
+
   @override
   State<TvFocusable> createState() => _TvFocusableState();
 }
@@ -33,11 +38,21 @@ class TvFocusable extends StatefulWidget {
 class _TvFocusableState extends State<TvFocusable> {
   bool _focused = false;
   bool _hovered = false;
+  FocusNode? _internalFocusNode;
+
+  FocusNode get _focusNode => widget.focusNode ?? (_internalFocusNode ??= FocusNode());
+
+  @override
+  void dispose() {
+    _internalFocusNode?.dispose();
+    super.dispose();
+  }
 
   @override
   Widget build(BuildContext context) {
     final bool active = _focused || _hovered;
     return FocusableActionDetector(
+      focusNode: _focusNode,
       autofocus: widget.autofocus,
       onShowFocusHighlight: (bool value) {
         if (mounted) setState(() => _focused = value);

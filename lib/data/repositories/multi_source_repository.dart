@@ -136,6 +136,10 @@ class MultiSourceRepository implements IptvRepository {
   Future<void> clearHistory() => _active().then((r) => r.clearHistory());
 
   @override
+  Future<void> removeFromHistory(int contentId, ContentType type) =>
+      _active().then((r) => r.removeFromHistory(contentId, type));
+
+  @override
   Future<void> refreshCatalog() => _active().then((r) => r.refreshCatalog());
 
   @override

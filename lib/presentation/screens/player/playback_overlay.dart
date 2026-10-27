@@ -39,7 +39,13 @@ class _PlaybackOverlayState extends State<PlaybackOverlay> {
         return Stack(
           fit: StackFit.expand,
           children: <Widget>[
-            widget.child,
+            // Con el reproductor visible, la app de debajo (catálogo, menús…)
+            // no debe recibir el foco del mando: evita que el D-Pad navegue por
+            // elementos ocultos detrás del vídeo.
+            ExcludeFocus(
+              excluding: widget.controller.isPlaying,
+              child: widget.child,
+            ),
             if (_started)
               Overlay(
                 initialEntries: <OverlayEntry>[

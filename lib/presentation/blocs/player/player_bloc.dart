@@ -98,11 +98,13 @@ class PlayerBloc extends Bloc<PlayerEvent, PlayerState> {
       );
       _pendingOpen = _player.open(media);
       await _pendingOpen;
-      // Refuerza el inicio en la posición guardada: algunos demuxers ignoran
-      // `Media.start`, así que se hace un seek explícito tras abrir.
+      // Refuerza el inicio en la posición guardada. `Media.start` no siempre
+      // surte efecto y un `seek` inmediato tras `open` se descarta porque el
+      // demuxer aún no conoce la duración; se espera hasta tenerla (máx. ~2 s)
+      // antes de buscar.
       final Duration? start = _startPosition;
       if (start != null && start > Duration.zero) {
-        await _player.seek(start);
+        await _seekAfterOpen(start);
       }
       // En masters HLS con varias variantes, libmpv puede quedarse sin
       // seleccionar una pista de vídeo (pantalla negra). Se fuerza la primera
@@ -116,6 +118,38 @@ class PlayerBloc extends Bloc<PlayerEvent, PlayerState> {
       emit(PlayerPlaying(streamUrl: url));
     } catch (_) {
       emit(const PlayerError(message: 'streamError'));
+    }
+  }
+
+  /// Espera a que el demuxer conozca el contenido y busca en [target].
+  ///
+  /// `Media.start` no se aplica de forma fiable al reabrir un contenido y un
+  /// `seek` inmediato tras `open` se descarta si el demuxer aún no tiene
+  /// duración. Se espera hasta que `duration > 0` o la posición avance, y se
+  /// reintenta el seek para cubrir arranques lentos.
+  Future<void> _seekAfterOpen(Duration target) async {
+    const int readyAttempts = 20; // ~5 s
+    for (int i = 0; i < readyAttempts; i++) {
+      if (_player.state.duration > Duration.zero ||
+          _player.state.position > Duration.zero) {
+        break;
+      }
+      await Future<void>.delayed(const Duration(milliseconds: 250));
+    }
+    for (int attempt = 0; attempt < 3; attempt++) {
+      try {
+        await _player.seek(target);
+        await Future<void>.delayed(const Duration(milliseconds: 400));
+        // Si la posición no se acerca al objetivo, reintenta.
+        if (_player.state.position >= target ||
+            _player.state.position > Duration.zero) {
+          break;
+        }
+      } catch (_) {
+        // Si el seek falla, se reintenta; si persiste, se continúa desde
+        // el inicio (no crítico).
+        await Future<void>.delayed(const Duration(milliseconds: 300));
+      }
     }
   }
 

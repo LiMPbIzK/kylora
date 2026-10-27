@@ -64,6 +64,7 @@ class _FakeRepository implements IptvRepository {
   Future<List<Category>> fetchLiveCategories() async => const <Category>[
     Category(id: 1, name: 'Deportes'),
     Category(id: 2, name: 'Noticias'),
+    Category(id: 3, name: 'Radio'),
   ];
 
   @override
@@ -80,6 +81,12 @@ class _FakeRepository implements IptvRepository {
         name: 'News 24',
         categoryId: 2,
         logo: 'http://x/logo2.png',
+      ),
+      Channel(
+        id: 103,
+        name: 'Radio 1',
+        categoryId: 3,
+        logo: 'http://x/radio.png',
       ),
     ];
     if (categoryId == null) return all;
@@ -117,9 +124,7 @@ class _FakeRepository implements IptvRepository {
       ),
     ];
     if (categoryId == null) return all;
-    return all
-        .where((Movie movie) => movie.categoryId == categoryId)
-        .toList();
+    return all.where((Movie movie) => movie.categoryId == categoryId).toList();
   }
 
   @override
@@ -135,7 +140,12 @@ class _FakeRepository implements IptvRepository {
   @override
   Future<List<Series>> fetchSeries({int? categoryId}) async {
     const List<Series> all = <Series>[
-      Series(id: 301, name: 'Breaking Bad', categoryId: 1, cover: 'http://x/bb.png'),
+      Series(
+        id: 301,
+        name: 'Breaking Bad',
+        categoryId: 1,
+        cover: 'http://x/bb.png',
+      ),
     ];
     if (categoryId == null) return all;
     return all
@@ -178,10 +188,14 @@ class _FakeRepository implements IptvRepository {
   Future<void> addToFavorite(FavoriteItem item) async {}
 
   @override
-  Future<void> removeFromFavorite(int contentId, domain.ContentType type) async {}
+  Future<void> removeFromFavorite(
+    int contentId,
+    domain.ContentType type,
+  ) async {}
 
   @override
-  Future<bool> isFavorite(int contentId, domain.ContentType type) async => false;
+  Future<bool> isFavorite(int contentId, domain.ContentType type) async =>
+      false;
 
   @override
   Future<List<FavoriteItem>> getFavorites() async => <FavoriteItem>[];
@@ -194,6 +208,12 @@ class _FakeRepository implements IptvRepository {
 
   @override
   Future<void> clearHistory() async {}
+
+  @override
+  Future<void> removeFromHistory(
+    int contentId,
+    domain.ContentType type,
+  ) async {}
 
   @override
   Future<void> refreshCatalog() async {}
@@ -269,6 +289,8 @@ void main() {
     );
     await tester.enterText(find.byType(TextFormField).at(1), 'user');
     await tester.enterText(find.byType(TextFormField).at(2), 'pass');
+    await tester.ensureVisible(find.widgetWithText(FilledButton, 'Sign In'));
+    await tester.pumpAndSettle();
     await tester.tap(find.widgetWithText(FilledButton, 'Sign In'));
     await tester.pumpAndSettle();
 
@@ -403,6 +425,45 @@ void main() {
     expect(find.text('Breaking Bad'), findsOneWidget);
   });
 
+  testWidgets('Las secciones separan TV y Radio y se vuelve al selector', (
+    WidgetTester tester,
+  ) async {
+    await pumpApp(
+      tester,
+      stored: const UserAccount(
+        serverUrl: 'http://server:8080',
+        username: 'user',
+        password: 'pass',
+        status: 'Active',
+      ),
+    );
+    // El dashboard arranca en el selector de secciones, sin catálogo montado.
+    expect(find.byType(HomeShellScreen), findsOneWidget);
+    expect(find.byType(LiveScreen), findsNothing);
+    expect(find.text('Radio'), findsOneWidget);
+
+    await tester.tap(find.text('Live TV'));
+    await tester.pumpAndSettle();
+    await tester.pump(const Duration(seconds: 1));
+    expect(find.byType(LiveScreen), findsOneWidget);
+    expect(find.text('Sports 1'), findsOneWidget);
+    // La radio no aparece en la sección de TV.
+    expect(find.text('Radio 1'), findsNothing);
+
+    // Atrás vuelve al selector de secciones.
+    await tester.tap(find.byIcon(Icons.arrow_back));
+    await tester.pumpAndSettle();
+    expect(find.byType(LiveScreen), findsNothing);
+
+    await tester.tap(find.text('Radio'));
+    await tester.pumpAndSettle();
+    await tester.pump(const Duration(seconds: 1));
+    expect(find.byType(LiveScreen), findsOneWidget);
+    expect(find.text('Radio 1'), findsOneWidget);
+    // La TV no aparece en la sección de radio.
+    expect(find.text('Sports 1'), findsNothing);
+  });
+
   _testAuthBloc();
 }
 
@@ -474,27 +535,33 @@ class _FailingRepository implements IptvRepository {
       throw UnimplementedError();
 
   @override
-  Future<void> removeFromFavorite(int contentId, domain.ContentType type) async =>
-      throw UnimplementedError();
+  Future<void> removeFromFavorite(
+    int contentId,
+    domain.ContentType type,
+  ) async => throw UnimplementedError();
 
   @override
   Future<bool> isFavorite(int contentId, domain.ContentType type) async =>
       throw UnimplementedError();
 
   @override
-  Future<List<FavoriteItem>> getFavorites() async =>
-      throw UnimplementedError();
+  Future<List<FavoriteItem>> getFavorites() async => throw UnimplementedError();
 
   @override
   Future<void> addToHistory(HistoryItem item) async =>
       throw UnimplementedError();
 
   @override
-  Future<List<HistoryItem>> getHistory() async =>
-      throw UnimplementedError();
+  Future<List<HistoryItem>> getHistory() async => throw UnimplementedError();
 
   @override
   Future<void> clearHistory() async => throw UnimplementedError();
+
+  @override
+  Future<void> removeFromHistory(
+    int contentId,
+    domain.ContentType type,
+  ) async => throw UnimplementedError();
 
   @override
   Future<void> refreshCatalog() async => throw UnimplementedError();

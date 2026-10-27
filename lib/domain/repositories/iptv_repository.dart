@@ -83,6 +83,9 @@ abstract interface class IptvRepository {
   /// Vacía todo el historial de reproducción.
   Future<void> clearHistory();
 
+  /// Elimina una entrada concreta del historial (para "Continuar visualización").
+  Future<void> removeFromHistory(int contentId, ContentType type);
+
   /// Fuerza la actualización del catálogo desde el proveedor
   /// (canales en directo y contenido VOD/series por red).
   Future<void> refreshCatalog();

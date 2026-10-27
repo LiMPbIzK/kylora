@@ -353,6 +353,16 @@ class XtreamRepository implements IptvRepository {
   }
 
   @override
+  Future<void> removeFromHistory(int contentId, domain.ContentType type) async {
+    final StoredCredentials credentials = await _requireCredentials();
+    await (_db.delete(_db.history)
+          ..where((t) => t.accountKey.equals(credentials.fingerprint))
+          ..where((t) => t.contentId.equals(contentId))
+          ..where((t) => t.contentType.equals(type.name)))
+        .go();
+  }
+
+  @override
   Future<void> refreshCatalog() async {
     await _refreshLiveContent();
   }

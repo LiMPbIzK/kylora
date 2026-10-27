@@ -12,9 +12,11 @@ import '../../../l10n/app_localizations.dart';
 import '../../blocs/favorites/favorites_bloc.dart';
 import '../../blocs/favorites/favorites_event.dart';
 import '../../blocs/favorites/favorites_state.dart';
+import '../../blocs/search/search_visibility_cubit.dart';
 import '../../blocs/vod/vod_bloc.dart';
 import '../../blocs/vod/vod_event.dart';
 import '../../blocs/vod/vod_state.dart';
+import '../../shared_widgets/catalog_search_field.dart';
 import '../../shared_widgets/category_sidebar.dart';
 import '../../shared_widgets/media_poster.dart';
 import '../../shared_widgets/resume_row.dart';
@@ -30,6 +32,8 @@ class VodScreen extends StatefulWidget {
 
 class _VodScreenState extends State<VodScreen> {
   final TextEditingController _searchController = TextEditingController();
+  final FocusNode _firstResultFocus = FocusNode();
+  final FocusNode _firstCategoryFocus = FocusNode();
 
   @override
   void initState() {
@@ -48,6 +52,8 @@ class _VodScreenState extends State<VodScreen> {
   @override
   void dispose() {
     _searchController.dispose();
+    _firstResultFocus.dispose();
+    _firstCategoryFocus.dispose();
     super.dispose();
   }
 
@@ -55,27 +61,53 @@ class _VodScreenState extends State<VodScreen> {
   Widget build(BuildContext context) {
     final AppLocalizations l10n = AppLocalizations.of(context)!;
 
-    return BlocBuilder<VodBloc, VodState>(
-      builder: (context, state) {
-        return switch (state) {
-          VodLoading() => const Center(child: CircularProgressIndicator()),
-          VodFailure() => _ErrorView(message: l10n.vodLoadError),
-          VodLoaded() => _VodContent(
-            state: state,
-            controller: _searchController,
-          ),
-        };
-      },
+    return BlocListener<VodBloc, VodState>(
+      // Al limpiar la búsqueda desde la lupa, vacía también el texto del cuadro
+      // para que no reaparezca al volver a abrirlo.
+      listenWhen: (VodState previous, VodState current) =>
+          previous is VodLoaded &&
+          previous.isSearching &&
+          current is VodLoaded &&
+          !current.isSearching,
+      listener: (context, state) => _searchController.clear(),
+      child: BlocBuilder<VodBloc, VodState>(
+        builder: (context, state) {
+          return switch (state) {
+            VodLoading() => const Center(child: CircularProgressIndicator()),
+            VodFailure() => _ErrorView(message: l10n.vodLoadError),
+            VodLoaded() => _VodContent(
+              state: state,
+              controller: _searchController,
+              firstResultFocus: _firstResultFocus,
+              firstCategoryFocus: _firstCategoryFocus,
+            ),
+          };
+        },
+      ),
     );
   }
 }
 
 /// Contenido del catálogo: buscador, chips de categorías y rejilla de pósters.
 class _VodContent extends StatelessWidget {
-  const _VodContent({required this.state, required this.controller});
+  const _VodContent({
+    required this.state,
+    required this.controller,
+    required this.firstResultFocus,
+    required this.firstCategoryFocus,
+  });
 
   final VodLoaded state;
   final TextEditingController controller;
+  final FocusNode firstResultFocus;
+  final FocusNode firstCategoryFocus;
+
+  /// Devuelve el foco a la primera sección tras cerrar el buscador.
+  void _focusFirstCategory() {
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      firstCategoryFocus.requestFocus();
+    });
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -83,41 +115,25 @@ class _VodContent extends StatelessWidget {
 
     return Column(
       children: <Widget>[
-        Padding(
-          padding: const EdgeInsets.fromLTRB(12, 8, 12, 4),
-          child: Row(
-            children: <Widget>[
-              Expanded(
-                child: TextField(
-                  controller: controller,
-                  onChanged: (String value) =>
-                      context.read<VodBloc>().add(VodSearchChanged(value)),
-                  decoration: InputDecoration(
-                    hintText: l10n.searchPlaceholder,
-                    prefixIcon: const Icon(Icons.search),
-                    suffixIcon: state.isSearching
-                        ? IconButton(
-                            icon: const Icon(Icons.clear),
-                            onPressed: () {
-                              controller.clear();
-                              context.read<VodBloc>().add(
-                                const VodSearchChanged(''),
-                              );
-                            },
-                          )
-                        : null,
-                    isDense: true,
-                    border: OutlineInputBorder(
-                      borderRadius: BorderRadius.circular(12),
-                      borderSide: BorderSide(
-                        color: context.colors.surfaceVariant,
-                      ),
-                    ),
-                  ),
-                ),
-              ),
-              const SizedBox(width: 8),
-              FilterChip(
+        BlocBuilder<SearchVisibilityCubit, bool>(
+          builder: (context, searchVisible) {
+            if (!searchVisible) return const SizedBox.shrink();
+            return CatalogSearchField(
+              controller: controller,
+              hintText: l10n.searchPlaceholder,
+              onChanged: (String value) =>
+                  context.read<VodBloc>().add(VodSearchChanged(value)),
+              onClose: () {
+                controller.clear();
+                context.read<VodBloc>().add(const VodSearchChanged(''));
+                context.read<SearchVisibilityCubit>().hide();
+                _focusFirstCategory();
+              },
+              onDismiss: () => context.read<SearchVisibilityCubit>().hide(),
+              upFocus: firstCategoryFocus,
+              downFocus: firstResultFocus,
+              onSearchSubmitted: () {},
+              trailing: FilterChip(
                 label: Text(l10n.recentlyAdded),
                 selected: state.recentOnly,
                 onSelected: (bool value) =>
@@ -130,8 +146,8 @@ class _VodContent extends StatelessWidget {
                       : context.colors.onSurfaceVariant,
                 ),
               ),
-            ],
-          ),
+            );
+          },
         ),
         const Divider(height: 1),
         Expanded(
@@ -151,6 +167,7 @@ class _VodContent extends StatelessWidget {
                 onResumeSelected: () => context.read<VodBloc>().add(
                   VodResumeToggled(!state.resumeMode),
                 ),
+                firstCategoryFocus: firstCategoryFocus,
                 icon: Icons.movie,
               ),
               const VerticalDivider(width: 1),
@@ -195,6 +212,7 @@ class _VodContent extends StatelessWidget {
                                 movie: movie,
                                 isFavorite: favoriteIds.contains(movie.id),
                                 autofocus: index == 0,
+                                focusNode: index == 0 ? firstResultFocus : null,
                               );
                             },
                           );
@@ -215,16 +233,19 @@ class _MovieCard extends StatelessWidget {
     required this.movie,
     this.isFavorite = false,
     this.autofocus = false,
+    this.focusNode,
   });
 
   final Movie movie;
   final bool isFavorite;
   final bool autofocus;
+  final FocusNode? focusNode;
 
   @override
   Widget build(BuildContext context) {
     return TvFocusable(
       autofocus: autofocus,
+      focusNode: focusNode,
       borderRadius: BorderRadius.circular(8),
       onPressed: () => context.push(Routes.movieDetail, extra: movie),
       child: InkWell(

@@ -33,3 +33,15 @@ final class SettingsThemeChanged extends SettingsEvent {
   @override
   List<Object?> get props => <Object?>[themeId];
 }
+
+/// Cambia el formato del reloj de la barra superior.
+///
+/// [clock24h] `true` = 24 horas, `false` = 12 horas (AM/PM).
+final class SettingsClockFormatChanged extends SettingsEvent {
+  const SettingsClockFormatChanged(this.clock24h);
+
+  final bool clock24h;
+
+  @override
+  List<Object?> get props => <Object?>[clock24h];
+}

@@ -91,8 +91,7 @@ class _FakeRepo implements IptvRepository {
   Future<List<Category>> fetchSeriesCategories() async => const <Category>[];
 
   @override
-  Future<List<Series>> fetchSeries({int? categoryId}) async =>
-      const <Series>[];
+  Future<List<Series>> fetchSeries({int? categoryId}) async => const <Series>[];
 
   @override
   Future<SeriesInfo> fetchSeriesInfo(int seriesId) async =>
@@ -111,7 +110,10 @@ class _FakeRepo implements IptvRepository {
   Future<void> addToFavorite(FavoriteItem item) async {}
 
   @override
-  Future<void> removeFromFavorite(int contentId, domain.ContentType type) async {}
+  Future<void> removeFromFavorite(
+    int contentId,
+    domain.ContentType type,
+  ) async {}
 
   @override
   Future<bool> isFavorite(int contentId, domain.ContentType type) async =>
@@ -128,6 +130,12 @@ class _FakeRepo implements IptvRepository {
 
   @override
   Future<void> clearHistory() async {}
+
+  @override
+  Future<void> removeFromHistory(
+    int contentId,
+    domain.ContentType type,
+  ) async {}
 
   @override
   Future<void> refreshCatalog() async {
@@ -175,12 +183,6 @@ void main() {
     }
     return repo;
   }
-
-  /// Scrollable del ListView de ajustes (evita los Scrollable subyacentes).
-  Finder settingsScrollable() => find.descendant(
-    of: find.byType(SettingsScreen),
-    matching: find.byType(Scrollable),
-  );
 
   testWidgets('Ajustes muestra los datos de cuenta Xtream y cierra sesión', (
     WidgetTester tester,
@@ -261,8 +263,10 @@ void main() {
     await tester.tap(find.text('Refresh catalog'));
     await tester.pumpAndSettle();
 
-    expect(find.text('Could not update the catalog. Check your connection.'),
-        findsOneWidget);
+    expect(
+      find.text('Could not update the catalog. Check your connection.'),
+      findsOneWidget,
+    );
   });
 
   testWidgets('Borrar caché confirma y limpia el repositorio', (
@@ -278,7 +282,7 @@ void main() {
       ),
     );
 
-await tester.ensureVisible(find.text('Clear cache'));
+    await tester.ensureVisible(find.text('Clear cache'));
     await tester.pumpAndSettle();
     await tester.tap(find.text('Clear cache'));
     await tester.pumpAndSettle();
@@ -303,17 +307,39 @@ await tester.ensureVisible(find.text('Clear cache'));
       store: store,
     );
 
-await tester.drag(settingsScrollable(), const Offset(0, -600));
+    await tester.ensureVisible(find.text('Spanish'));
     await tester.pumpAndSettle();
     await tester.tap(
-      find.ancestor(
-        of: find.text('Spanish'),
-        matching: find.byType(RadioListTile<String?>),
-      ),
+      find.ancestor(of: find.text('Spanish'), matching: find.byType(ListTile)),
     );
     await tester.pumpAndSettle();
 
     expect(store.values['locale'], 'es');
+  });
+
+  testWidgets('Cambiar formato de reloj dispara SettingsClockFormatChanged', (
+    WidgetTester tester,
+  ) async {
+    final _MemSettingsStore store = _MemSettingsStore();
+    await pumpSettings(
+      tester,
+      account: const UserAccount(
+        serverUrl: 'http://server:8080',
+        username: 'user',
+        password: 'pass',
+        status: 'Active',
+      ),
+      store: store,
+    );
+
+    await tester.ensureVisible(find.text('12-hour'));
+    await tester.pumpAndSettle();
+    await tester.tap(
+      find.ancestor(of: find.text('12-hour'), matching: find.byType(ListTile)),
+    );
+    await tester.pumpAndSettle();
+
+    expect(store.values['clock_24h'], 'false');
   });
 
   testWidgets('Cambiar tema dispara SettingsThemeChanged', (
@@ -331,13 +357,10 @@ await tester.drag(settingsScrollable(), const Offset(0, -600));
       store: store,
     );
 
-await tester.drag(settingsScrollable(), const Offset(0, -1400));
+    await tester.ensureVisible(find.text('Canvas'));
     await tester.pumpAndSettle();
     await tester.tap(
-      find.ancestor(
-        of: find.text('Canvas'),
-        matching: find.byType(RadioListTile<String>),
-      ),
+      find.ancestor(of: find.text('Canvas'), matching: find.byType(ListTile)),
     );
     await tester.pumpAndSettle();
 

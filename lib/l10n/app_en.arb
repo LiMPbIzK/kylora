@@ -121,6 +121,10 @@
   "@liveTv": {
     "description": "Panel section for live channels."
   },
+  "radio": "Radio",
+  "@radio": {
+    "description": "Dashboard section for radio stations."
+  },
 "allCategories": "All",
   "@allCategories": {
     "description": "Label of the chip that shows all channels without filtering."
@@ -160,6 +164,27 @@
   "settings": "Settings",
   "@settings": {
     "description": "Panel section for application settings."
+  },
+  "clock": "Clock",
+  "@clock": {
+    "description": "Settings section for the top-bar clock."
+  },
+  "clockFormat24h": "24-hour",
+  "@clockFormat24h": {
+    "description": "Clock format using 24 hours."
+  },
+  "clockFormat12h": "12-hour",
+  "@clockFormat12h": {
+    "description": "Clock format using 12 hours with AM/PM."
+  },
+  "endsAt": "Ends at {time}",
+  "@endsAt": {
+    "description": "Time at which the current playback will end.",
+    "placeholders": {
+      "time": {
+        "type": "String"
+      }
+    }
   },
   "settingsSectionAccount": "Account",
   "@settingsSectionAccount": {
@@ -329,9 +354,25 @@
   "@close": {
     "description": "Button to close a panel or dialog."
   },
+  "exitAppTitle": "Exit Kylora?",
+  "@exitAppTitle": {
+    "description": "Title of the dialog asking whether to exit the application."
+  },
+  "exitAppConfirm": "Are you sure you want to exit Kylora?",
+  "@exitAppConfirm": {
+    "description": "Confirmation message before closing the application."
+  },
+  "exitApp": "Exit",
+  "@exitApp": {
+    "description": "Button that confirms closing the application."
+  },
   "searchPlaceholder": "Search channels, movies...",
   "@searchPlaceholder": {
     "description": "Placeholder text of the search field."
+  },
+  "clearSearch": "Clear search",
+  "@clearSearch": {
+    "description": "Tooltip of the button that clears the active search and shows all content again."
   },
   "recentlyAdded": "Recently added",
   "@recentlyAdded": {
@@ -340,6 +381,18 @@
   "continueWatchingSection": "Continue watching",
   "@continueWatchingSection": {
     "description": "Section with in-progress content to resume playback."
+  },
+  "removeResumeTitle": "Remove viewing",
+  "@removeResumeTitle": {
+    "description": "Title of the dialog confirming deletion of a continue-watching entry."
+  },
+  "removeResumeConfirm": "Do you want to remove this recent viewing? You will not be able to resume it from here.",
+  "@removeResumeConfirm": {
+    "description": "Confirmation message before deleting a pending viewing."
+  },
+  "removeResumeConfirmButton": "Remove",
+  "@removeResumeConfirmButton": {
+    "description": "Button that confirms the deletion of the pending viewing."
   },
   "audioTrack": "Audio Track",
   "@audioTrack": {

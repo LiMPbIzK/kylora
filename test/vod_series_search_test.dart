@@ -116,6 +116,10 @@ class _FakeRepo implements IptvRepository {
   Future<void> clearHistory() async => throw UnimplementedError();
 
   @override
+  Future<void> removeFromHistory(int contentId, domain.ContentType type) async =>
+      throw UnimplementedError();
+
+  @override
   Future<void> refreshCatalog() async => throw UnimplementedError();
 
   @override
@@ -177,3 +181,5 @@ void main() {
     await bloc.close();
   });
 }
+
+

@@ -38,22 +38,29 @@ class _SettingsScreenState extends State<SettingsScreen> {
 
     return Scaffold(
       appBar: AppBar(title: Text(l10n.settings)),
-      body: ListView(
-        padding: const EdgeInsets.symmetric(vertical: 12),
-        children: <Widget>[
-          _SectionHeader(title: l10n.settingsSectionAccount),
-          _accountSection(context, l10n),
-          _SectionHeader(title: l10n.settingsSectionCatalog),
-          _catalogSection(context, l10n),
-          _SectionHeader(title: l10n.language),
-          _languageSection(context, l10n),
-          _SectionHeader(title: l10n.settingsSectionAppearance),
-          _appearanceSection(context, l10n),
-          _SectionHeader(title: l10n.settingsSectionSecurity),
-          _securitySection(l10n),
-          _SectionHeader(title: l10n.settingsSectionSupport),
-          _supportSection(context, l10n),
-        ],
+      body: SingleChildScrollView(
+        // Padding inferior amplio para que todas las opciones (idiomas, temas,
+        // soporte) puedan desplazarse por encima del borde en Android TV.
+        padding: const EdgeInsets.only(top: 12, bottom: 96),
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.stretch,
+          children: <Widget>[
+            _SectionHeader(title: l10n.settingsSectionAccount),
+            _accountSection(context, l10n),
+            _SectionHeader(title: l10n.settingsSectionCatalog),
+            _catalogSection(context, l10n),
+            _SectionHeader(title: l10n.language),
+            _languageSection(context, l10n),
+            _SectionHeader(title: l10n.clock),
+            _clockSection(context, l10n),
+            _SectionHeader(title: l10n.settingsSectionAppearance),
+            _appearanceSection(context, l10n),
+            _SectionHeader(title: l10n.settingsSectionSecurity),
+            _securitySection(l10n),
+            _SectionHeader(title: l10n.settingsSectionSupport),
+            _supportSection(context, l10n),
+          ],
+        ),
       ),
     );
   }
@@ -80,19 +87,14 @@ class _SettingsScreenState extends State<SettingsScreen> {
             ListTile(
               leading: const Icon(Icons.switch_account),
               title: Text(l10n.changeAccount),
-              onTap: () => context
-                  .read<AuthBloc>()
-                  .add(const AuthLogoutRequested()),
+              onTap: () =>
+                  context.read<AuthBloc>().add(const AuthLogoutRequested()),
             ),
             ListTile(
               leading: Icon(Icons.logout, color: colors.error),
-              title: Text(
-                l10n.signOut,
-                style: TextStyle(color: colors.error),
-              ),
-              onTap: () => context
-                  .read<AuthBloc>()
-                  .add(const AuthLogoutRequested()),
+              title: Text(l10n.signOut, style: TextStyle(color: colors.error)),
+              onTap: () =>
+                  context.read<AuthBloc>().add(const AuthLogoutRequested()),
             ),
           ],
         );
@@ -131,8 +133,8 @@ class _SettingsScreenState extends State<SettingsScreen> {
         label: l10n.accountStatus,
         value: account.isActive ? l10n.accountActive : l10n.accountExpired,
         valueColor: account.isActive
-          ? context.colors.secondary
-          : context.colors.error,
+            ? context.colors.secondary
+            : context.colors.error,
       ),
       _InfoTile(
         icon: Icons.event_outlined,
@@ -162,7 +164,11 @@ class _SettingsScreenState extends State<SettingsScreen> {
         label: l10n.accountSource,
         value: l10n.loginSourceM3u,
       ),
-      _InfoTile(icon: Icons.link, label: l10n.m3uPlaylistUrl, value: playlistUrl),
+      _InfoTile(
+        icon: Icons.link,
+        label: l10n.m3uPlaylistUrl,
+        value: playlistUrl,
+      ),
       _InfoTile(
         icon: Icons.event_note,
         label: l10n.m3uXmltvUrl,
@@ -257,44 +263,47 @@ class _SettingsScreenState extends State<SettingsScreen> {
         final String? currentCode = state is SettingsLoaded
             ? state.locale?.languageCode
             : null;
-        return RadioGroup<String?>(
-          groupValue: currentCode,
-          onChanged: (String? code) => _setLocale(
-            context,
-            code == null ? null : Locale(code),
-          ),
-          child: Column(
-            children: <Widget>[
-              RadioListTile<String?>(
-                value: null,
-                title: Text(l10n.localeSystem),
-              ),
-              RadioListTile<String?>(
-                value: 'es',
-                title: Text(l10n.languageSpanish),
-              ),
-              RadioListTile<String?>(
-                value: 'en',
-                title: Text(l10n.languageEnglish),
-              ),
-              RadioListTile<String?>(
-                value: 'fr',
-                title: Text(l10n.languageFrench),
-              ),
-              RadioListTile<String?>(
-                value: 'de',
-                title: Text(l10n.languageGerman),
-              ),
-              RadioListTile<String?>(
-                value: 'it',
-                title: Text(l10n.languageItalian),
-              ),
-              RadioListTile<String?>(
-                value: 'pt',
-                title: Text(l10n.languagePortuguese),
-              ),
-            ],
-          ),
+        // ListTiles enfocables en lugar de RadioGroup/RadioListTile: en Android
+        // TV los RadioGroup capturan Arriba/Abajo para cambiar la selección,
+        // impidiendo navegar por la lista y dejando las opciones invisibles.
+        return Column(
+          children: <Widget>[
+            _choiceTile(
+              label: l10n.localeSystem,
+              selected: currentCode == null,
+              onTap: () => _setLocale(context, null),
+            ),
+            _choiceTile(
+              label: l10n.languageSpanish,
+              selected: currentCode == 'es',
+              onTap: () => _setLocale(context, const Locale('es')),
+            ),
+            _choiceTile(
+              label: l10n.languageEnglish,
+              selected: currentCode == 'en',
+              onTap: () => _setLocale(context, const Locale('en')),
+            ),
+            _choiceTile(
+              label: l10n.languageFrench,
+              selected: currentCode == 'fr',
+              onTap: () => _setLocale(context, const Locale('fr')),
+            ),
+            _choiceTile(
+              label: l10n.languageGerman,
+              selected: currentCode == 'de',
+              onTap: () => _setLocale(context, const Locale('de')),
+            ),
+            _choiceTile(
+              label: l10n.languageItalian,
+              selected: currentCode == 'it',
+              onTap: () => _setLocale(context, const Locale('it')),
+            ),
+            _choiceTile(
+              label: l10n.languagePortuguese,
+              selected: currentCode == 'pt',
+              onTap: () => _setLocale(context, const Locale('pt')),
+            ),
+          ],
         );
       },
     );
@@ -302,6 +311,37 @@ class _SettingsScreenState extends State<SettingsScreen> {
 
   void _setLocale(BuildContext context, Locale? locale) {
     context.read<SettingsBloc>().add(SettingsLocaleChanged(locale));
+  }
+
+  // ---------------------------------------------------------------------------
+  // Reloj
+  // ---------------------------------------------------------------------------
+
+  Widget _clockSection(BuildContext context, AppLocalizations l10n) {
+    return BlocBuilder<SettingsBloc, SettingsState>(
+      buildWhen: (previous, current) => current is SettingsLoaded,
+      builder: (context, state) {
+        final bool clock24h = state is SettingsLoaded ? state.clock24h : true;
+        return Column(
+          children: <Widget>[
+            _choiceTile(
+              label: l10n.clockFormat24h,
+              selected: clock24h,
+              onTap: () => context.read<SettingsBloc>().add(
+                const SettingsClockFormatChanged(true),
+              ),
+            ),
+            _choiceTile(
+              label: l10n.clockFormat12h,
+              selected: !clock24h,
+              onTap: () => context.read<SettingsBloc>().add(
+                const SettingsClockFormatChanged(false),
+              ),
+            ),
+          ],
+        );
+      },
+    );
   }
 
   // ---------------------------------------------------------------------------
@@ -315,22 +355,38 @@ class _SettingsScreenState extends State<SettingsScreen> {
         final String currentId = state is SettingsLoaded
             ? state.themeId
             : AppThemes.nocturne;
-        return RadioGroup<String>(
-          groupValue: currentId,
-          onChanged: (String? id) {
-            if (id != null) _setTheme(context, id);
-          },
-          child: Column(
-            children: <Widget>[
-              for (final MapEntry<String, ThemeData> entry in AppThemes.entries)
-                RadioListTile<String>(
-                  value: entry.key,
-                  title: Text(_themeLabel(l10n, entry.key)),
-                ),
-            ],
-          ),
+        // Igual que en el idioma: filas enfocables para que el D-Pad navegue
+        // en lugar de que RadioGroup cambie la selección con las flechas.
+        return Column(
+          children: <Widget>[
+            for (final MapEntry<String, ThemeData> entry in AppThemes.entries)
+              _choiceTile(
+                label: _themeLabel(l10n, entry.key),
+                selected: entry.key == currentId,
+                onTap: () => _setTheme(context, entry.key),
+              ),
+          ],
         );
       },
+    );
+  }
+
+  /// Fila seleccionable (idioma, tema…) con icono de radio y navegación por
+  /// D-Pad normal: enfocar no cambia la selección; hay que pulsar OK.
+  Widget _choiceTile({
+    required String label,
+    required bool selected,
+    required VoidCallback onTap,
+  }) {
+    final AppColors colors = context.colors;
+    return ListTile(
+      leading: Icon(
+        selected ? Icons.radio_button_checked : Icons.radio_button_unchecked,
+        color: selected ? colors.secondary : colors.onSurfaceVariant,
+      ),
+      title: Text(label),
+      selected: selected,
+      onTap: onTap,
     );
   }
 
@@ -465,10 +521,7 @@ class _InfoTile extends StatelessWidget {
       leading: Icon(icon, color: colors.onSurfaceVariant),
       title: Text(
         label,
-        style: TextStyle(
-          fontSize: 13,
-          color: colors.onSurfaceVariant,
-        ),
+        style: TextStyle(fontSize: 13, color: colors.onSurfaceVariant),
       ),
       subtitle: Text(
         value,

@@ -19,6 +19,8 @@ import '../../blocs/favorites/favorites_state.dart';
 import '../../blocs/live/live_bloc.dart';
 import '../../blocs/live/live_event.dart';
 import '../../blocs/live/live_state.dart';
+import '../../blocs/search/search_visibility_cubit.dart';
+import '../../shared_widgets/catalog_search_field.dart';
 import '../../shared_widgets/category_sidebar.dart';
 import '../../shared_widgets/tv_focusable.dart';
 import '../player/playback_scope.dart';
@@ -30,8 +32,13 @@ import '../player/playback_scope.dart';
 /// vertical a la izquierda y los canales se muestran en una rejilla de tarjetas
 /// cuadradas. Un toque reproduce el canal; una pulsación prolongada alterna el
 /// favorito mostrando un mensaje con la acción realizada.
+///
+/// Con [radio] activo muestra solo las categorías de radio (streams de audio)
+/// y oculta la información de EPG, que no aplica a las emisoras.
 class LiveScreen extends StatefulWidget {
-  const LiveScreen({super.key});
+  const LiveScreen({super.key, this.radio = false});
+
+  final bool radio;
 
   @override
   State<LiveScreen> createState() => _LiveScreenState();
@@ -39,19 +46,24 @@ class LiveScreen extends StatefulWidget {
 
 class _LiveScreenState extends State<LiveScreen> {
   final TextEditingController _searchController = TextEditingController();
+  final FocusNode _firstResultFocus = FocusNode();
+  final FocusNode _firstCategoryFocus = FocusNode();
 
   @override
   void initState() {
     super.initState();
     // La carga se dispara al montar la pantalla para no depender de la navegación.
+    final bool radio = widget.radio;
     WidgetsBinding.instance.addPostFrameCallback((_) {
-      if (mounted) context.read<LiveBloc>().add(const LiveStarted());
+      if (mounted) context.read<LiveBloc>().add(LiveStarted(radio: radio));
     });
   }
 
   @override
   void dispose() {
     _searchController.dispose();
+    _firstResultFocus.dispose();
+    _firstCategoryFocus.dispose();
     super.dispose();
   }
 
@@ -59,27 +71,61 @@ class _LiveScreenState extends State<LiveScreen> {
   Widget build(BuildContext context) {
     final AppLocalizations l10n = AppLocalizations.of(context)!;
 
-    return BlocBuilder<LiveBloc, LiveState>(
-      builder: (context, state) {
-        return switch (state) {
-          LiveLoading() => const Center(child: CircularProgressIndicator()),
-          LiveFailure() => _ErrorView(message: l10n.liveLoadError),
-          LiveLoaded() => _LiveContent(
-            state: state,
-            controller: _searchController,
-          ),
-        };
-      },
+    return BlocListener<LiveBloc, LiveState>(
+      // Al limpiar la búsqueda desde la lupa, vacía también el texto del cuadro
+      // para que no reaparezca al volver a abrirlo.
+      listenWhen: (LiveState previous, LiveState current) =>
+          previous is LiveLoaded &&
+          previous.isSearching &&
+          current is LiveLoaded &&
+          !current.isSearching,
+      listener: (context, state) => _searchController.clear(),
+      child: BlocBuilder<LiveBloc, LiveState>(
+        builder: (context, state) {
+          return switch (state) {
+            LiveLoading() => const Center(child: CircularProgressIndicator()),
+            LiveFailure() => _ErrorView(
+              message: l10n.liveLoadError,
+              radio: widget.radio,
+            ),
+            LiveLoaded() => _LiveContent(
+              state: state,
+              controller: _searchController,
+              firstResultFocus: _firstResultFocus,
+              firstCategoryFocus: _firstCategoryFocus,
+              showEpg: !widget.radio,
+            ),
+          };
+        },
+      ),
     );
   }
 }
 
 /// Contenido del catálogo: buscador, categorías verticales y rejilla de canales.
 class _LiveContent extends StatelessWidget {
-  const _LiveContent({required this.state, required this.controller});
+  const _LiveContent({
+    required this.state,
+    required this.controller,
+    required this.firstResultFocus,
+    required this.firstCategoryFocus,
+    required this.showEpg,
+  });
 
   final LiveLoaded state;
   final TextEditingController controller;
+  final FocusNode firstResultFocus;
+  final FocusNode firstCategoryFocus;
+
+  /// `false` en la sección Radio: no se consulta ni muestra EPG.
+  final bool showEpg;
+
+  /// Devuelve el foco a la primera sección tras cerrar el buscador.
+  void _focusFirstCategory() {
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      firstCategoryFocus.requestFocus();
+    });
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -87,33 +133,26 @@ class _LiveContent extends StatelessWidget {
 
     return Column(
       children: <Widget>[
-        Padding(
-          padding: const EdgeInsets.fromLTRB(12, 8, 12, 4),
-          child: TextField(
-            controller: controller,
-            onChanged: (String value) =>
-                context.read<LiveBloc>().add(LiveSearchChanged(value)),
-            decoration: InputDecoration(
+        BlocBuilder<SearchVisibilityCubit, bool>(
+          builder: (context, searchVisible) {
+            if (!searchVisible) return const SizedBox.shrink();
+            return CatalogSearchField(
+              controller: controller,
               hintText: l10n.searchPlaceholder,
-              prefixIcon: const Icon(Icons.search),
-              suffixIcon: state.isSearching
-                  ? IconButton(
-                      icon: const Icon(Icons.clear),
-                      onPressed: () {
-                        controller.clear();
-                        context
-                            .read<LiveBloc>()
-                            .add(const LiveSearchChanged(''));
-                      },
-                    )
-                  : null,
-              isDense: true,
-              border: OutlineInputBorder(
-                borderRadius: BorderRadius.circular(12),
-                borderSide: BorderSide(color: context.colors.surfaceVariant),
-              ),
-            ),
-          ),
+              onChanged: (String value) =>
+                  context.read<LiveBloc>().add(LiveSearchChanged(value)),
+              onClose: () {
+                controller.clear();
+                context.read<LiveBloc>().add(const LiveSearchChanged(''));
+                context.read<SearchVisibilityCubit>().hide();
+                _focusFirstCategory();
+              },
+              onDismiss: () => context.read<SearchVisibilityCubit>().hide(),
+              upFocus: firstCategoryFocus,
+              downFocus: firstResultFocus,
+              onSearchSubmitted: () {},
+            );
+          },
         ),
         const Divider(height: 1),
         Expanded(
@@ -123,9 +162,9 @@ class _LiveContent extends StatelessWidget {
               CategorySidebar(
                 categories: state.categories,
                 selectedCategoryId: state.selectedCategoryId,
-                onCategorySelected: (int? id) => context
-                    .read<LiveBloc>()
-                    .add(LiveCategorySelected(id)),
+                onCategorySelected: (int? id) =>
+                    context.read<LiveBloc>().add(LiveCategorySelected(id)),
+                firstCategoryFocus: firstCategoryFocus,
               ),
               const VerticalDivider(width: 1),
               Expanded(
@@ -137,7 +176,11 @@ class _LiveContent extends StatelessWidget {
                               : l10n.noChannels,
                         ),
                       )
-                    : _ChannelsGrid(channels: state.channels),
+                    : _ChannelsGrid(
+                        channels: state.channels,
+                        firstResultFocus: firstResultFocus,
+                        showEpg: showEpg,
+                      ),
               ),
             ],
           ),
@@ -149,9 +192,15 @@ class _LiveContent extends StatelessWidget {
 
 /// Rejilla de tarjetas cuadradas de canales.
 class _ChannelsGrid extends StatelessWidget {
-  const _ChannelsGrid({required this.channels});
+  const _ChannelsGrid({
+    required this.channels,
+    required this.showEpg,
+    this.firstResultFocus,
+  });
 
   final List<Channel> channels;
+  final bool showEpg;
+  final FocusNode? firstResultFocus;
 
   @override
   Widget build(BuildContext context) {
@@ -161,7 +210,9 @@ class _ChannelsGrid extends StatelessWidget {
         final Set<int> favoriteIds = <int>{};
         if (favoritesState is FavoritesLoaded) {
           for (final FavoriteItem item in favoritesState.items) {
-            if (item.contentType.name == 'live') favoriteIds.add(item.contentId);
+            if (item.contentType.name == 'live') {
+              favoriteIds.add(item.contentId);
+            }
           }
         }
         return GridView.builder(
@@ -178,6 +229,8 @@ class _ChannelsGrid extends StatelessWidget {
               channel: channels[index],
               isFavorite: favoriteIds.contains(channels[index].id),
               autofocus: index == 0,
+              focusNode: index == 0 ? firstResultFocus : null,
+              showEpg: showEpg,
             );
           },
         );
@@ -193,13 +246,17 @@ enum _ChannelAction { play, favorite, guide }
 class _ChannelCard extends StatefulWidget {
   const _ChannelCard({
     required this.channel,
+    required this.showEpg,
     this.isFavorite = false,
     this.autofocus = false,
+    this.focusNode,
   });
 
   final Channel channel;
+  final bool showEpg;
   final bool isFavorite;
   final bool autofocus;
+  final FocusNode? focusNode;
 
   @override
   State<_ChannelCard> createState() => _ChannelCardState();
@@ -212,11 +269,14 @@ class _ChannelCardState extends State<_ChannelCard> {
   void initState() {
     super.initState();
     // Carga el EPG corto (ahora/siguiente) del canal si aún no está en caché.
-    WidgetsBinding.instance.addPostFrameCallback((_) {
-      if (mounted) {
-        context.read<EpgBloc>().add(EpgNowNextRequested(widget.channel.id));
-      }
-    });
+    // En radio no hay EPG, así que se evita la petición.
+    if (widget.showEpg) {
+      WidgetsBinding.instance.addPostFrameCallback((_) {
+        if (mounted) {
+          context.read<EpgBloc>().add(EpgNowNextRequested(widget.channel.id));
+        }
+      });
+    }
   }
 
   @override
@@ -225,7 +285,8 @@ class _ChannelCardState extends State<_ChannelCard> {
       buildWhen: (previous, current) =>
           current is EpgNowNextLoaded && current.streamId == widget.channel.id,
       builder: (context, epgState) {
-        final bool hasGuide = epgState is EpgNowNextLoaded && epgState.hasGuide;
+        final bool hasGuide =
+            widget.showEpg && epgState is EpgNowNextLoaded && epgState.hasGuide;
         _hasGuide = hasGuide;
         final AppColors colors = context.colors;
         return TvFocusable(
@@ -257,8 +318,8 @@ class _ChannelCardState extends State<_ChannelCard> {
                                 ? colors.secondary
                                 : Colors.transparent,
                             size: 22,
-                            semanticLabel:
-                                AppLocalizations.of(context)!.favorites,
+                            semanticLabel: AppLocalizations.of(context)!
+                                .favorites,
                           ),
                         ),
                         if (hasGuide)
@@ -272,9 +333,8 @@ class _ChannelCardState extends State<_ChannelCard> {
                                   Icons.calendar_view_day,
                                   color: colors.primary,
                                   size: 22,
-                                  semanticLabel: AppLocalizations.of(
-                                    context,
-                                  )!.epgGuide,
+                                  semanticLabel: AppLocalizations.of(context)!
+                                      .epgGuide,
                                 ),
                               ),
                             ),
@@ -291,11 +351,10 @@ class _ChannelCardState extends State<_ChannelCard> {
                           widget.channel.name,
                           maxLines: 1,
                           overflow: TextOverflow.ellipsis,
-                          style: const TextStyle(
-                            fontWeight: FontWeight.w600,
-                          ),
+                          style: const TextStyle(fontWeight: FontWeight.w600),
                         ),
-                        _EpgLine(streamId: widget.channel.id),
+                        if (widget.showEpg)
+                          _EpgLine(streamId: widget.channel.id),
                       ],
                     ),
                   ),
@@ -442,8 +501,7 @@ class _EpgLine extends StatelessWidget {
   Widget build(BuildContext context) {
     return BlocBuilder<EpgBloc, EpgState>(
       buildWhen: (previous, current) =>
-          current is EpgNowNextLoaded &&
-          current.streamId == streamId,
+          current is EpgNowNextLoaded && current.streamId == streamId,
       builder: (context, state) {
         if (state is! EpgNowNextLoaded || state.streamId != streamId) {
           return const SizedBox.shrink();
@@ -529,9 +587,10 @@ class _ChannelLogo extends StatelessWidget {
 
 /// Vista de error de carga del catálogo.
 class _ErrorView extends StatelessWidget {
-  const _ErrorView({required this.message});
+  const _ErrorView({required this.message, required this.radio});
 
   final String message;
+  final bool radio;
 
   @override
   Widget build(BuildContext context) {
@@ -545,7 +604,8 @@ class _ErrorView extends StatelessWidget {
           Text(message, textAlign: TextAlign.center),
           const SizedBox(height: 12),
           FilledButton.tonal(
-            onPressed: () => context.read<LiveBloc>().add(const LiveStarted()),
+            onPressed: () =>
+                context.read<LiveBloc>().add(LiveStarted(radio: radio)),
             child: Text(l10n.retry),
           ),
         ],

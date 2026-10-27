@@ -1,6 +1,7 @@
 import 'package:flutter/foundation.dart' hide Category;
 import 'package:flutter_bloc/flutter_bloc.dart';
 
+import '../../../core/utils/radio.dart';
 import '../../../domain/entities/category.dart';
 import '../../../domain/entities/channel.dart';
 import '../../../domain/repositories/iptv_repository.dart';
@@ -26,6 +27,10 @@ class LiveBloc extends Bloc<LiveEvent, LiveState> {
   List<Channel> _allChannels = <Channel>[];
   String _query = '';
 
+  /// `true` cuando el catálogo es la sección Radio: solo muestra las
+  /// categorías/canales de radio (streams de audio) y excluye la TV.
+  bool _radio = false;
+
   Future<void> _onRefreshRequested(
     LiveRefreshRequested event,
     Emitter<LiveState> emit,
@@ -48,6 +53,7 @@ class LiveBloc extends Bloc<LiveEvent, LiveState> {
   }
 
   Future<void> _onStarted(LiveStarted event, Emitter<LiveState> emit) async {
+    _radio = event.radio;
     emit(const LiveLoading());
     try {
       final List<Category> categories = await _repository.fetchLiveCategories();
@@ -55,9 +61,7 @@ class LiveBloc extends Bloc<LiveEvent, LiveState> {
       _categories = categories;
       _allChannels = channels;
       _query = '';
-      emit(
-        _buildLoaded(selectedCategoryId: _initialCategoryId),
-      );
+      emit(_buildLoaded(selectedCategoryId: _initialCategoryId));
     } catch (e, stack) {
       if (kDebugMode) {
         debugPrint('LiveBloc error: ${e.runtimeType}: $e');
@@ -87,20 +91,43 @@ class LiveBloc extends Bloc<LiveEvent, LiveState> {
     emit(_buildLoaded(selectedCategoryId: current.selectedCategoryId));
   }
 
-  /// Construye el estado cargado combinando categoría y búsqueda.
+  /// Construye el estado cargado combinando sección (TV/radio), categoría y
+  /// búsqueda.
   LiveLoaded _buildLoaded({required int? selectedCategoryId}) {
+    final Set<int> radioCategoryIds = _categories
+        .where((Category category) => isRadioCategory(category.name))
+        .map((Category category) => category.id)
+        .toSet();
+    final List<Category> categories = _categories
+        .where((Category category) => isRadioCategory(category.name) == _radio)
+        .toList();
+    // Si la categoría seleccionada no pertenece a esta sección (p. ej. al
+    // cambiar de TV a Radio), arranca en la primera disponible.
+    int? effectiveCategoryId = selectedCategoryId;
+    if (effectiveCategoryId != null &&
+        !categories.any(
+          (Category category) => category.id == effectiveCategoryId,
+        )) {
+      effectiveCategoryId = categories.isNotEmpty ? categories.first.id : null;
+    }
+
     final String term = _query.trim().toLowerCase();
     final List<Channel> channels = _allChannels.where((Channel channel) {
+      // Separa TV y radio según la categoría a la que pertenece el canal.
+      final bool isRadioChannel = radioCategoryIds.contains(channel.categoryId);
+      if (isRadioChannel != _radio) return false;
       final bool matchCategory =
-          selectedCategoryId == null || channel.categoryId == selectedCategoryId;
+          effectiveCategoryId == null ||
+          term.isNotEmpty ||
+          channel.categoryId == effectiveCategoryId;
       final bool matchQuery =
           term.isEmpty || channel.name.toLowerCase().contains(term);
       return matchCategory && matchQuery;
     }).toList();
 
     return LiveLoaded(
-      categories: _categories,
-      selectedCategoryId: selectedCategoryId,
+      categories: categories,
+      selectedCategoryId: effectiveCategoryId,
       channels: channels,
       query: _query,
     );

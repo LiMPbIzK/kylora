@@ -123,7 +123,9 @@ class VodBloc extends Bloc<VodEvent, VodState> {
     final DateTime cutoff = DateTime.now().subtract(const Duration(days: 7));
     final List<Movie> movies = _allMovies.where((Movie movie) {
       final bool matchCategory =
-          selectedCategoryId == null || movie.categoryId == selectedCategoryId;
+          selectedCategoryId == null ||
+          term.isNotEmpty ||
+          movie.categoryId == selectedCategoryId;
       final bool matchQuery =
           term.isEmpty || movie.name.toLowerCase().contains(term);
       final bool matchRecent =

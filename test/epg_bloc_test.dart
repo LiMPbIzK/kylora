@@ -143,8 +143,12 @@ class _FakeRepo implements IptvRepository {
   Future<void> clearHistory() async {}
 
   @override
+  Future<void> removeFromHistory(int contentId, domain.ContentType type) async {}
+
+  @override
   Future<void> refreshCatalog() async {}
 
   @override
   Future<void> clearCatalogCache() async {}
 }
+

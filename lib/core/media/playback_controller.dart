@@ -10,6 +10,13 @@ import 'playback_request.dart';
 class PlaybackController extends ChangeNotifier {
   PlaybackRequest? _current;
 
+  /// Callback registrado por el reproductor para interceptar el botón Atrás del
+  /// mando mientras hay reproducción (p. ej. ocultar primero el OSD).
+  ///
+  /// Devuelve `true` si ha consumido el Atrás; `false` si el llamante debe
+  /// aplicar su comportamiento de cierre.
+  bool Function()? onPlayerBack;
+
   /// Contenido en reproducción, o null si el reproductor está oculto.
   PlaybackRequest? get current => _current;
 

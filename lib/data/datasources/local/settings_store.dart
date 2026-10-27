@@ -11,7 +11,7 @@ abstract interface class AppSettingsStorage {
 /// Preferencias de la aplicación persistidas en una tabla clave-valor (Drift).
 ///
 /// Claves: `locale` (código de idioma), `themeId` (clave del registro
-/// `AppThemes`) y, en el futuro, `pinEnabled`.
+/// `AppThemes`), `clock_24h` (formato del reloj) y, en el futuro, `pinEnabled`.
 class SettingsStore implements AppSettingsStorage {
   SettingsStore(this._db);
 
@@ -19,29 +19,29 @@ class SettingsStore implements AppSettingsStorage {
 
   static const String kLocale = 'locale';
   static const String kThemeId = 'theme_id';
+  static const String kClock24h = 'clock_24h';
   static const String kPinEnabled = 'pin_enabled';
 
   @override
   Future<String?> read(String key) async {
-    final AppSetting? row = await (_db.select(_db.appSettings)
-          ..where((AppSettings t) => t.key.equals(key)))
-        .getSingleOrNull();
+    final AppSetting? row = await (_db.select(
+      _db.appSettings,
+    )..where((AppSettings t) => t.key.equals(key))).getSingleOrNull();
     return row?.value;
   }
 
   @override
   Future<void> write(String key, String? value) async {
     if (value == null) {
-      await (_db.delete(_db.appSettings)
-            ..where((AppSettings t) => t.key.equals(key)))
-          .go();
+      await (_db.delete(
+        _db.appSettings,
+      )..where((AppSettings t) => t.key.equals(key))).go();
       return;
     }
-    await _db.into(_db.appSettings).insertOnConflictUpdate(
-          AppSettingsCompanion.insert(
-            key: key,
-            value: Value<String?>(value),
-          ),
+    await _db
+        .into(_db.appSettings)
+        .insertOnConflictUpdate(
+          AppSettingsCompanion.insert(key: key, value: Value<String?>(value)),
         );
   }
 }

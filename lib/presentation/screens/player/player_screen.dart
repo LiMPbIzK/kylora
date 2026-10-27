@@ -2,6 +2,8 @@ import 'dart:async';
 
 import 'package:flutter/gestures.dart';
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart'
+    show HardwareKeyboard, KeyDownEvent, KeyEvent, LogicalKeyboardKey;
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:media_kit/media_kit.dart' hide PlayerState;
 import 'package:media_kit_video/media_kit_video.dart';
@@ -10,6 +12,7 @@ import '../../../core/media/app_player.dart';
 import '../../../core/media/playback_controller.dart';
 import '../../../core/media/playback_request.dart';
 import '../../../core/theme/app_theme.dart';
+import '../../../core/utils/playback_time.dart';
 import '../../../domain/entities/content_type.dart';
 import '../../../domain/entities/epg.dart';
 import '../../../domain/entities/history_item.dart';
@@ -21,6 +24,8 @@ import '../../blocs/epg/epg_state.dart';
 import '../../blocs/player/player_bloc.dart';
 import '../../blocs/player/player_event.dart';
 import '../../blocs/player/player_state.dart';
+import '../../blocs/settings/settings_bloc.dart';
+import '../../blocs/settings/settings_state.dart';
 
 /// Reproductor genérico (directo, VOD o series) con OSD de controles y pistas.
 ///
@@ -47,6 +52,7 @@ class _PlayerScreenState extends State<PlayerScreen> {
   bool _isFullscreen = false;
   String _title = '';
   int? _liveContentId;
+  String? _contentType;
   bool _guideOpen = false;
   _TrackPickerMode? _picker;
   StreamSubscription<Tracks>? _tracksSubscription;
@@ -54,7 +60,17 @@ class _PlayerScreenState extends State<PlayerScreen> {
   bool _audioPreferenceBlocked = false;
   Timer? _historyTimer;
   PlaybackRequest? _historyRequest;
+  Duration? _lastStartPosition;
   final Map<String, String> _streamUrlCache = <String, String>{};
+
+  /// Foco del control principal del OSD (play/pausa): al mostrar el OSD se le
+  /// da el foco para que el mando pueda navegar por los controles.
+  final FocusNode _osdFocusNode = FocusNode();
+
+  /// Foco del selector de pistas (audio/subtítulos): al abrirlo se le da el
+  /// foco al primer elemento para que el mando navegue dentro del selector y
+  /// no por el OSD o el catálogo que quedan detrás.
+  final FocusNode _pickerFocusNode = FocusNode(debugLabel: 'track-picker');
 
   /// Intervalo de persistencia del progreso de reproducción.
   static const Duration _historyInterval = Duration(seconds: 15);
@@ -79,7 +95,51 @@ class _PlayerScreenState extends State<PlayerScreen> {
     _videoController = VideoController(_bloc.player);
     widget.controller.addListener(_onControllerChanged);
     _tracksSubscription = _bloc.player.stream.tracks.listen(_onTracksChanged);
+    // Intercepta el botón Atrás del mando/TV mientras hay reproducción:
+    // primera pulsación oculta el OSD; la segunda cierra el reproductor.
+    widget.controller.onPlayerBack = () {
+      if (!mounted) return false;
+      // Con un selector abierto, Atrás lo cierra (no cierra el reproductor).
+      if (_picker != null) {
+        _closePicker();
+        return true;
+      }
+      if (_guideOpen) {
+        setState(() => _guideOpen = false);
+        _scheduleHide();
+        return true;
+      }
+      if (_osdVisible) {
+        setState(() => _osdVisible = false);
+        return true;
+      }
+      // No consume: el llamante (HomeShell) cerrará el reproductor.
+      return false;
+    };
+    // Captura el botón OK/selección del mando para mostrar el OSD mientras se
+    // reproduce (sin depender del foco, que puede no estar en ningún control).
+    HardwareKeyboard.instance.addHandler(_onHardwareKey);
     _onControllerChanged();
+  }
+
+  /// Handler global de teclas: con reproducción activa y el OSD oculto, el
+  /// botón de selección/OK del mando muestra el OSD. Con el OSD visible no se
+  /// consume, para que los controles enfocados reciban la pulsación.
+  bool _onHardwareKey(KeyEvent event) {
+    if (event is! KeyDownEvent) return false;
+    if (!mounted) return false;
+    if (!widget.controller.isPlaying) return false;
+    final LogicalKeyboardKey key = event.logicalKey;
+    final bool isSelect =
+        key == LogicalKeyboardKey.select ||
+        key == LogicalKeyboardKey.enter ||
+        key == LogicalKeyboardKey.gameButtonA;
+    if (!isSelect) return false;
+    if (!_osdVisible) {
+      _showOsd();
+      return true;
+    }
+    return false;
   }
 
   /// Selecciona la pista de audio por defecto según el idioma de la aplicación.
@@ -120,10 +180,21 @@ class _PlayerScreenState extends State<PlayerScreen> {
   void _onControllerChanged() {
     final PlaybackRequest? request = widget.controller.current;
     if (request == null) {
+      if (_contentType != null) {
+        setState(() => _contentType = null);
+      }
       if (!_bloc.isClosed) _bloc.player.stop();
       return;
     }
-    final bool needsPlay = _title != request.title || _bloc.streamUrl == null;
+    // Se reproduce si el contenido cambió, o si no hay URL cargada todavía, o
+    // si se pide reanudar desde una posición (mismo título pero nueva petición
+    // con startPosition: reanudar a otra posición o re-iniciar).
+    final bool resuming = request.startPosition != null;
+    final bool needsPlay =
+        _title != request.title ||
+        _bloc.streamUrl == null ||
+        _lastStartPosition != request.startPosition ||
+        (resuming && _bloc.streamUrl != null);
     final int? liveId = request.contentType == 'live'
         ? request.contentId
         : null;
@@ -139,8 +210,13 @@ class _PlayerScreenState extends State<PlayerScreen> {
         _title = request.title;
         _liveContentId = liveId;
         _guideOpen = wantsGuide;
+        _contentType = request.contentType;
       });
+      // Al iniciar la reproducción, muestra el OSD y programa su ocultado
+      // automático (en TV no hay ratón que dispare `onHover`).
+      if (needsPlay) _showOsd();
       if (needsPlay) {
+        _lastStartPosition = request.startPosition;
         _audioPreferenceApplied = false;
         _audioPreferenceBlocked = false;
         _bloc.add(
@@ -175,16 +251,27 @@ class _PlayerScreenState extends State<PlayerScreen> {
   ///
   /// La URL del stream se resuelve con [PlaybackRequest.urlBuilder] (no del
   /// player, que aún está a null durante la apertura asíncrona) para que el
-  /// historial guarde siempre una URL reanudable.
+  /// historial guarde siempre una URL reanudable. Si el contenido ya está casi
+  /// visto (>= 95% de duración), se elimina del historial temporal en lugar de
+  /// guardar el progreso (no tiene sentido "continuar" algo terminado).
   void _updateHistory(PlaybackRequest request) {
     final IptvRepository repository = context.read<IptvRepository>();
     final int positionSeconds = _bloc.player.state.position.inSeconds;
     final int durationSeconds = _bloc.player.state.duration.inSeconds;
     final String? url = _streamUrlCache[request.title] ?? _bloc.streamUrl;
+    final ContentType type = ContentType.values.byName(request.contentType!);
+
+    if (durationSeconds > 0 && positionSeconds >= durationSeconds * 0.95) {
+      repository.removeFromHistory(request.contentId!, type);
+      _historyRequest = null;
+      _historyTimer?.cancel();
+      return;
+    }
+
     repository.addToHistory(
       HistoryItem(
         contentId: request.contentId!,
-        contentType: ContentType.values.byName(request.contentType!),
+        contentType: type,
         name: request.title,
         logo: request.logo,
         watchedAt: DateTime.now(),
@@ -225,18 +312,45 @@ class _PlayerScreenState extends State<PlayerScreen> {
   void _scheduleHide() {
     _hideTimer?.cancel();
     _hideTimer = Timer(const Duration(seconds: 4), () {
-      if (mounted && _osdVisible) {
-        setState(() => _osdVisible = false);
-      }
+      if (!mounted || !_osdVisible) return;
+      // No ocultar el OSD mientras hay un selector o la guía abiertos: si no,
+      // el selector quedaría flotando sobre el vídeo sin sus controles.
+      if (_picker != null || _guideOpen) return;
+      setState(() => _osdVisible = false);
     });
   }
 
-  /// Muestra el OSD y programa su ocultado tras la inactividad.
+  /// Muestra el OSD, le da foco al control principal y programa su ocultado.
   void _showOsd() {
     if (!_osdVisible) {
       setState(() => _osdVisible = true);
+      // Da foco al primer control para que el mando pueda navegar por el OSD.
+      WidgetsBinding.instance.addPostFrameCallback((_) {
+        if (mounted) _osdFocusNode.requestFocus();
+      });
     }
     _scheduleHide();
+  }
+
+  /// Abre el selector de pistas y le da el foco al primer elemento.
+  void _openPicker(_TrackPickerMode mode) {
+    _cancelHide();
+    setState(() => _picker = mode);
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      if (mounted) _pickerFocusNode.requestFocus();
+    });
+  }
+
+  /// Cierra el selector de pistas y devuelve el foco al OSD.
+  void _closePicker() {
+    if (_picker == null) return;
+    setState(() => _picker = null);
+    _scheduleHide();
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      if (mounted && _osdVisible) {
+        _osdFocusNode.requestFocus();
+      }
+    });
   }
 
   void _onMouseHover(PointerHoverEvent event) => _showOsd();
@@ -256,7 +370,10 @@ class _PlayerScreenState extends State<PlayerScreen> {
     _bloc.resetContent();
     setState(() {
       _guideOpen = false;
+      _picker = null;
       _liveContentId = null;
+      _contentType = null;
+      _lastStartPosition = null;
     });
     widget.controller.stop();
   }
@@ -282,6 +399,10 @@ class _PlayerScreenState extends State<PlayerScreen> {
   @override
   void dispose() {
     widget.controller.removeListener(_onControllerChanged);
+    widget.controller.onPlayerBack = null;
+    HardwareKeyboard.instance.removeHandler(_onHardwareKey);
+    _osdFocusNode.dispose();
+    _pickerFocusNode.dispose();
     _tracksSubscription?.cancel();
     _hideTimer?.cancel();
     _stopHistoryTracking();
@@ -333,7 +454,10 @@ class _PlayerScreenState extends State<PlayerScreen> {
                     return const SizedBox.shrink();
                   },
                 ),
-                if (_osdVisible) _buildOsd(),
+                if (_osdVisible)
+                  // Con un selector abierto, los controles del OSD dejan de ser
+                  // enfocables para que el D-Pad se quede dentro del selector.
+                  ExcludeFocus(excluding: _picker != null, child: _buildOsd()),
                 if (_picker != null)
                   _buildTrackPicker(AppLocalizations.of(context)!),
                 if (_guideOpen && _liveContentId != null)
@@ -367,7 +491,7 @@ class _PlayerScreenState extends State<PlayerScreen> {
               Row(
                 children: <Widget>[
                   IconButton(
-                    tooltip: l10n.settings,
+                    tooltip: l10n.close,
                     icon: const Icon(Icons.arrow_back),
                     color: Colors.white,
                     onPressed: _closePlayer,
@@ -527,10 +651,7 @@ class _PlayerScreenState extends State<PlayerScreen> {
           IconButton(
             tooltip: l10n.audioTrack,
             icon: const Icon(Icons.music_note, color: Colors.white, size: 28),
-            onPressed: () {
-              _cancelHide();
-              setState(() => _picker = _TrackPickerMode.audio);
-            },
+            onPressed: () => _openPicker(_TrackPickerMode.audio),
           ),
           StreamBuilder<bool>(
             stream: _bloc.player.stream.playing,
@@ -538,6 +659,7 @@ class _PlayerScreenState extends State<PlayerScreen> {
             builder: (context, snapshot) {
               final bool playing = snapshot.data ?? false;
               return IconButton(
+                focusNode: _osdFocusNode,
                 icon: Icon(
                   playing
                       ? Icons.pause_circle_filled
@@ -556,11 +678,12 @@ class _PlayerScreenState extends State<PlayerScreen> {
           IconButton(
             tooltip: l10n.subtitles,
             icon: const Icon(Icons.subtitles, color: Colors.white, size: 28),
-            onPressed: () {
-              _cancelHide();
-              setState(() => _picker = _TrackPickerMode.subtitles);
-            },
+            onPressed: () => _openPicker(_TrackPickerMode.subtitles),
           ),
+          // Reloj con la hora de fin, solo en películas y series. Va dentro del
+          // OSD (se oculta con él), junto a los controles.
+          if (_contentType == 'vod' || _contentType == 'series')
+            _PlaybackClock(player: _bloc.player),
           const Spacer(),
           StreamBuilder<double>(
             stream: _bloc.player.stream.volume,
@@ -727,13 +850,70 @@ class _PlayerScreenState extends State<PlayerScreen> {
     final SubtitleTrack selectedSubtitle = _bloc.player.state.track.subtitle;
     final bool audioMode = _picker == _TrackPickerMode.audio;
 
+    // Tiles del selector. El primero recibe el foco al abrirlo para que el
+    // mando navegue dentro del selector (no por el OSD ni el catálogo).
+    final List<Widget> tiles = <Widget>[];
+    void addTile({
+      required String label,
+      required bool selected,
+      required VoidCallback onTap,
+    }) {
+      tiles.add(
+        _pickerTile(
+          label: label,
+          selected: selected,
+          onTap: onTap,
+          focusNode: tiles.isEmpty ? _pickerFocusNode : null,
+        ),
+      );
+    }
+
+    if (audioMode) {
+      for (final AudioTrack track in tracks.audio) {
+        addTile(
+          label: _trackLabel(track.title, track.language),
+          selected: selectedAudio.id == track.id,
+          onTap: () {
+            _closePicker();
+            _audioPreferenceBlocked = true;
+            final AudioTrack? found = _firstOrNull<AudioTrack>(
+              tracks.audio,
+              (AudioTrack t) => t.id == track.id,
+            );
+            if (found != null) _bloc.player.setAudioTrack(found);
+          },
+        );
+      }
+    } else {
+      addTile(
+        label: _trackLabel(null, 'Off'),
+        selected: selectedSubtitle.id == 'no',
+        onTap: () {
+          _closePicker();
+          _bloc.player.setSubtitleTrack(SubtitleTrack.no());
+        },
+      );
+      for (final SubtitleTrack track in tracks.subtitle) {
+        if (track.id == 'no' || track.id == 'auto') continue;
+        addTile(
+          label: _trackLabel(track.title, track.language),
+          selected: selectedSubtitle.id == track.id,
+          onTap: () {
+            _closePicker();
+            final SubtitleTrack? found = _firstOrNull<SubtitleTrack>(
+              tracks.subtitle,
+              (SubtitleTrack t) => t.id == track.id,
+            );
+            if (found != null) _bloc.player.setSubtitleTrack(found);
+          },
+        );
+      }
+    }
+
     return Positioned.fill(
       child: GestureDetector(
         behavior: HitTestBehavior.opaque,
-        onTap: () {
-          setState(() => _picker = null);
-          _scheduleHide();
-        },
+        onTap: _closePicker,
         child: Container(
           color: Colors.black45,
           alignment: Alignment.center,
@@ -758,51 +938,7 @@ class _PlayerScreenState extends State<PlayerScreen> {
                     ),
                   ),
                   const Divider(height: 1),
-                  if (audioMode)
-                    for (final AudioTrack track in tracks.audio)
-                      _pickerTile(
-                        label: _trackLabel(track.title, track.language),
-                        selected: selectedAudio.id == track.id,
-                        onTap: () {
-                          setState(() => _picker = null);
-                          _scheduleHide();
-                          _audioPreferenceBlocked = true;
-                          final AudioTrack? found = _firstOrNull<AudioTrack>(
-                            tracks.audio,
-                            (AudioTrack t) => t.id == track.id,
-                          );
-                          if (found != null) _bloc.player.setAudioTrack(found);
-                        },
-                      )
-                  else ...<Widget>[
-                    _pickerTile(
-                      label: _trackLabel(null, 'Off'),
-                      selected: selectedSubtitle.id == 'no',
-                      onTap: () {
-                        setState(() => _picker = null);
-                        _scheduleHide();
-                        _bloc.player.setSubtitleTrack(SubtitleTrack.no());
-                      },
-                    ),
-                    for (final SubtitleTrack track in tracks.subtitle)
-                      if (track.id != 'no' && track.id != 'auto')
-                        _pickerTile(
-                          label: _trackLabel(track.title, track.language),
-                          selected: selectedSubtitle.id == track.id,
-                          onTap: () {
-                            setState(() => _picker = null);
-                            _scheduleHide();
-                            final SubtitleTrack? found =
-                                _firstOrNull<SubtitleTrack>(
-                                  tracks.subtitle,
-                                  (SubtitleTrack t) => t.id == track.id,
-                                );
-                            if (found != null) {
-                              _bloc.player.setSubtitleTrack(found);
-                            }
-                          },
-                        ),
-                  ],
+                  ...tiles,
                 ],
               ),
             ),
@@ -816,9 +952,12 @@ class _PlayerScreenState extends State<PlayerScreen> {
     required String label,
     required bool selected,
     required VoidCallback onTap,
+    FocusNode? focusNode,
   }) {
     return ListTile(
       dense: true,
+      focusNode: focusNode,
+      autofocus: focusNode != null,
       leading: Icon(
         selected ? Icons.check_circle : Icons.circle_outlined,
         size: 20,
@@ -853,6 +992,120 @@ class _PlayerScreenState extends State<PlayerScreen> {
     String two(int value) => value.toString().padLeft(2, '0');
     return '${two(position.inHours)}:${two(position.inMinutes.remainder(60))}:'
         '${two(position.inSeconds.remainder(60))}';
+  }
+}
+
+/// Reloj de reproducción (solo VOD/series): hora actual y hora estimada de fin.
+///
+/// Vive dentro del OSD, junto a los controles, y se oculta con él. La hora de
+/// fin se calcula siempre con la hora actual: si el vídeo está en pausa, el
+/// tiempo restante no cambia pero el reloj sí avanza, por lo que la hora de fin
+/// se desplaza hacia delante.
+class _PlaybackClock extends StatefulWidget {
+  const _PlaybackClock({required this.player});
+
+  final Player player;
+
+  @override
+  State<_PlaybackClock> createState() => _PlaybackClockState();
+}
+
+class _PlaybackClockState extends State<_PlaybackClock> {
+  late DateTime _now;
+  DateTime? _endsAt;
+  Timer? _timer;
+
+  @override
+  void initState() {
+    super.initState();
+    _now = DateTime.now();
+    _tick(notify: false);
+    _timer = Timer.periodic(const Duration(seconds: 1), (_) => _tick());
+  }
+
+  void _tick({bool notify = true}) {
+    if (!mounted) return;
+    final DateTime now = DateTime.now();
+    final Duration duration = widget.player.state.duration;
+    final Duration position = widget.player.state.position;
+    // Sin condición de pausa: los minutos restantes son los que son, pero la
+    // hora de fin depende de la hora actual (en pausa se va desplazando).
+    final DateTime? endsAt = duration > Duration.zero
+        ? playbackEndsAt(now: now, position: position, duration: duration)
+        : null;
+    if (!notify) {
+      _now = now;
+      _endsAt = endsAt;
+      return;
+    }
+    setState(() {
+      _now = now;
+      _endsAt = endsAt;
+    });
+  }
+
+  @override
+  void dispose() {
+    _timer?.cancel();
+    super.dispose();
+  }
+
+  String _format(BuildContext context, DateTime value, bool clock24h) {
+    return MaterialLocalizations.of(context).formatTimeOfDay(
+      TimeOfDay.fromDateTime(value),
+      alwaysUse24HourFormat: clock24h,
+    );
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    return BlocBuilder<SettingsBloc, SettingsState>(
+      buildWhen: (SettingsState previous, SettingsState current) {
+        final bool previous24h = previous is SettingsLoaded
+            ? previous.clock24h
+            : true;
+        final bool current24h = current is SettingsLoaded
+            ? current.clock24h
+            : true;
+        return previous24h != current24h;
+      },
+      builder: (context, state) {
+        final AppLocalizations l10n = AppLocalizations.of(context)!;
+        final bool clock24h = state is SettingsLoaded ? state.clock24h : true;
+        final String nowText = _format(context, _now, clock24h);
+        final String? endText = _endsAt == null
+            ? null
+            : l10n.endsAt(_format(context, _endsAt!, clock24h));
+        return Container(
+          margin: const EdgeInsets.only(left: 8),
+          padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
+          decoration: BoxDecoration(
+            color: Colors.white.withValues(alpha: 0.10),
+            borderRadius: BorderRadius.circular(10),
+          ),
+          child: Column(
+            mainAxisSize: MainAxisSize.min,
+            children: <Widget>[
+              Text(
+                nowText,
+                style: const TextStyle(
+                  color: Colors.white,
+                  fontSize: 18,
+                  fontWeight: FontWeight.w700,
+                ),
+              ),
+              if (endText != null) ...<Widget>[
+                const SizedBox(height: 1),
+                Text(
+                  endText,
+                  style: const TextStyle(color: Colors.white70, fontSize: 12),
+                ),
+              ],
+            ],
+          ),
+        );
+      },
+    );
   }
 }
 

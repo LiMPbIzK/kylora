@@ -12,9 +12,11 @@ import '../../../l10n/app_localizations.dart';
 import '../../blocs/favorites/favorites_bloc.dart';
 import '../../blocs/favorites/favorites_event.dart';
 import '../../blocs/favorites/favorites_state.dart';
+import '../../blocs/search/search_visibility_cubit.dart';
 import '../../blocs/series/series_bloc.dart';
 import '../../blocs/series/series_event.dart';
 import '../../blocs/series/series_state.dart';
+import '../../shared_widgets/catalog_search_field.dart';
 import '../../shared_widgets/category_sidebar.dart';
 import '../../shared_widgets/media_poster.dart';
 import '../../shared_widgets/resume_row.dart';
@@ -30,6 +32,8 @@ class SeriesScreen extends StatefulWidget {
 
 class _SeriesScreenState extends State<SeriesScreen> {
   final TextEditingController _searchController = TextEditingController();
+  final FocusNode _firstResultFocus = FocusNode();
+  final FocusNode _firstCategoryFocus = FocusNode();
 
   @override
   void initState() {
@@ -48,6 +52,8 @@ class _SeriesScreenState extends State<SeriesScreen> {
   @override
   void dispose() {
     _searchController.dispose();
+    _firstResultFocus.dispose();
+    _firstCategoryFocus.dispose();
     super.dispose();
   }
 
@@ -55,30 +61,56 @@ class _SeriesScreenState extends State<SeriesScreen> {
   Widget build(BuildContext context) {
     final AppLocalizations l10n = AppLocalizations.of(context)!;
 
-    return BlocBuilder<SeriesBloc, SeriesState>(
-      builder: (context, state) {
-        return switch (state) {
-          SeriesLoading() => const Center(child: CircularProgressIndicator()),
-          SeriesFailure() => _ErrorView(message: l10n.seriesLoadError),
-          SeriesLoaded() => _SeriesContent(
-            state: state,
-            controller: _searchController,
-          ),
-          SeriesDetailLoading() ||
-          SeriesDetailLoaded() ||
-          SeriesDetailFailure() => const SizedBox.shrink(),
-        };
-      },
+    return BlocListener<SeriesBloc, SeriesState>(
+      // Al limpiar la búsqueda desde la lupa, vacía también el texto del cuadro
+      // para que no reaparezca al volver a abrirlo.
+      listenWhen: (SeriesState previous, SeriesState current) =>
+          previous is SeriesLoaded &&
+          previous.isSearching &&
+          current is SeriesLoaded &&
+          !current.isSearching,
+      listener: (context, state) => _searchController.clear(),
+      child: BlocBuilder<SeriesBloc, SeriesState>(
+        builder: (context, state) {
+          return switch (state) {
+            SeriesLoading() => const Center(child: CircularProgressIndicator()),
+            SeriesFailure() => _ErrorView(message: l10n.seriesLoadError),
+            SeriesLoaded() => _SeriesContent(
+              state: state,
+              controller: _searchController,
+              firstResultFocus: _firstResultFocus,
+              firstCategoryFocus: _firstCategoryFocus,
+            ),
+            SeriesDetailLoading() ||
+            SeriesDetailLoaded() ||
+            SeriesDetailFailure() => const SizedBox.shrink(),
+          };
+        },
+      ),
     );
   }
 }
 
 /// Contenido del catálogo: buscador, chips de categorías y rejilla de portadas.
 class _SeriesContent extends StatelessWidget {
-  const _SeriesContent({required this.state, required this.controller});
+  const _SeriesContent({
+    required this.state,
+    required this.controller,
+    required this.firstResultFocus,
+    required this.firstCategoryFocus,
+  });
 
   final SeriesLoaded state;
   final TextEditingController controller;
+  final FocusNode firstResultFocus;
+  final FocusNode firstCategoryFocus;
+
+  /// Devuelve el foco a la primera sección tras cerrar el buscador.
+  void _focusFirstCategory() {
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      firstCategoryFocus.requestFocus();
+    });
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -86,42 +118,25 @@ class _SeriesContent extends StatelessWidget {
 
     return Column(
       children: <Widget>[
-        Padding(
-          padding: const EdgeInsets.fromLTRB(12, 8, 12, 4),
-          child: Row(
-            children: <Widget>[
-              Expanded(
-                child: TextField(
-                  controller: controller,
-                  onChanged: (String value) => context.read<SeriesBloc>().add(
-                    SeriesSearchChanged(value),
-                  ),
-                  decoration: InputDecoration(
-                    hintText: l10n.searchPlaceholder,
-                    prefixIcon: const Icon(Icons.search),
-                    suffixIcon: state.isSearching
-                        ? IconButton(
-                            icon: const Icon(Icons.clear),
-                            onPressed: () {
-                              controller.clear();
-                              context.read<SeriesBloc>().add(
-                                const SeriesSearchChanged(''),
-                              );
-                            },
-                          )
-                        : null,
-                    isDense: true,
-                    border: OutlineInputBorder(
-                      borderRadius: BorderRadius.circular(12),
-                      borderSide: BorderSide(
-                        color: context.colors.surfaceVariant,
-                      ),
-                    ),
-                  ),
-                ),
-              ),
-              const SizedBox(width: 8),
-              FilterChip(
+        BlocBuilder<SearchVisibilityCubit, bool>(
+          builder: (context, searchVisible) {
+            if (!searchVisible) return const SizedBox.shrink();
+            return CatalogSearchField(
+              controller: controller,
+              hintText: l10n.searchPlaceholder,
+              onChanged: (String value) =>
+                  context.read<SeriesBloc>().add(SeriesSearchChanged(value)),
+              onClose: () {
+                controller.clear();
+                context.read<SeriesBloc>().add(const SeriesSearchChanged(''));
+                context.read<SearchVisibilityCubit>().hide();
+                _focusFirstCategory();
+              },
+              onDismiss: () => context.read<SearchVisibilityCubit>().hide(),
+              upFocus: firstCategoryFocus,
+              downFocus: firstResultFocus,
+              onSearchSubmitted: () {},
+              trailing: FilterChip(
                 label: Text(l10n.recentlyAdded),
                 selected: state.recentOnly,
                 onSelected: (bool value) =>
@@ -134,8 +149,8 @@ class _SeriesContent extends StatelessWidget {
                       : context.colors.onSurfaceVariant,
                 ),
               ),
-            ],
-          ),
+            );
+          },
         ),
         const Divider(height: 1),
         Expanded(
@@ -154,6 +169,7 @@ class _SeriesContent extends StatelessWidget {
                 onResumeSelected: () => context.read<SeriesBloc>().add(
                   SeriesResumeToggled(!state.resumeMode),
                 ),
+                firstCategoryFocus: firstCategoryFocus,
                 icon: Icons.theaters,
               ),
               const VerticalDivider(width: 1),
@@ -198,6 +214,7 @@ class _SeriesContent extends StatelessWidget {
                                 series: series,
                                 isFavorite: favoriteIds.contains(series.id),
                                 autofocus: index == 0,
+                                focusNode: index == 0 ? firstResultFocus : null,
                               );
                             },
                           );
@@ -218,16 +235,19 @@ class _SeriesCard extends StatelessWidget {
     required this.series,
     this.isFavorite = false,
     this.autofocus = false,
+    this.focusNode,
   });
 
   final Series series;
   final bool isFavorite;
   final bool autofocus;
+  final FocusNode? focusNode;
 
   @override
   Widget build(BuildContext context) {
     return TvFocusable(
       autofocus: autofocus,
+      focusNode: focusNode,
       borderRadius: BorderRadius.circular(8),
       onPressed: () => context.push(Routes.seriesDetail, extra: series),
       child: InkWell(

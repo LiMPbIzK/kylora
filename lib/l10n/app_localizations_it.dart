@@ -98,6 +98,9 @@ class AppLocalizationsIt extends AppLocalizations {
   String get liveTv => 'TV in Diretta';
 
   @override
+  String get radio => 'Radio';
+
+  @override
   String get allCategories => 'Tutte';
 
   @override
@@ -127,6 +130,20 @@ class AppLocalizationsIt extends AppLocalizations {
 
   @override
   String get settings => 'Impostazioni';
+
+  @override
+  String get clock => 'Orologio';
+
+  @override
+  String get clockFormat24h => '24 ore';
+
+  @override
+  String get clockFormat12h => '12 ore';
+
+  @override
+  String endsAt(String time) {
+    return 'Termina alle $time';
+  }
 
   @override
   String get settingsSectionAccount => 'Account';
@@ -261,13 +278,35 @@ class AppLocalizationsIt extends AppLocalizations {
   String get close => 'Chiudi';
 
   @override
+  String get exitAppTitle => 'Uscire da Kylora?';
+
+  @override
+  String get exitAppConfirm => 'Vuoi davvero uscire da Kylora?';
+
+  @override
+  String get exitApp => 'Esci';
+
+  @override
   String get searchPlaceholder => 'Cerca canali, film...';
+
+  @override
+  String get clearSearch => 'Cancella ricerca';
 
   @override
   String get recentlyAdded => 'Aggiunto di recente';
 
   @override
   String get continueWatchingSection => 'Continua a guardare';
+
+  @override
+  String get removeResumeTitle => 'Rimuovi visualizzazione';
+
+  @override
+  String get removeResumeConfirm =>
+      'Vuoi rimuovere questa visualizzazione recente? Non potrai riprenderla da qui.';
+
+  @override
+  String get removeResumeConfirmButton => 'Rimuovi';
 
   @override
   String get audioTrack => 'Traccia audio';

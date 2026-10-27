@@ -33,7 +33,8 @@ void main() {
       emitsInOrder(<dynamic>[
         isA<SettingsLoaded>()
             .having((s) => s.locale, 'locale', isNull)
-            .having((s) => s.themeId, 'themeId', AppThemes.nocturne),
+            .having((s) => s.themeId, 'themeId', AppThemes.nocturne)
+            .having((s) => s.clock24h, 'clock24h', true),
       ]),
     );
     await bloc.close();
@@ -55,32 +56,38 @@ void main() {
     await bloc.close();
   });
 
-  test('SettingsLocaleChanged persiste y cambia el idioma en caliente',
-      () async {
-    final _FakeSettingsStore store = _FakeSettingsStore();
-    final SettingsBloc bloc = SettingsBloc(store)..add(const SettingsStarted());
-    await bloc.stream.first;
+  test(
+    'SettingsLocaleChanged persiste y cambia el idioma en caliente',
+    () async {
+      final _FakeSettingsStore store = _FakeSettingsStore();
+      final SettingsBloc bloc = SettingsBloc(store)
+        ..add(const SettingsStarted());
+      await bloc.stream.first;
 
-    bloc.add(const SettingsLocaleChanged(Locale('en')));
-    await expectLater(
-      bloc.stream,
-      emitsInOrder(<dynamic>[
-        isA<SettingsLoaded>()
-            .having((s) => s.locale?.languageCode, 'locale', 'en'),
-      ]),
-    );
-    expect(store.values[SettingsStore.kLocale], 'en');
+      bloc.add(const SettingsLocaleChanged(Locale('en')));
+      await expectLater(
+        bloc.stream,
+        emitsInOrder(<dynamic>[
+          isA<SettingsLoaded>().having(
+            (s) => s.locale?.languageCode,
+            'locale',
+            'en',
+          ),
+        ]),
+      );
+      expect(store.values[SettingsStore.kLocale], 'en');
 
-    bloc.add(const SettingsLocaleChanged(null));
-    await expectLater(
-      bloc.stream,
-      emitsInOrder(<dynamic>[
-        isA<SettingsLoaded>().having((s) => s.locale, 'locale', isNull),
-      ]),
-    );
-    expect(store.values.containsKey(SettingsStore.kLocale), isFalse);
-    await bloc.close();
-  });
+      bloc.add(const SettingsLocaleChanged(null));
+      await expectLater(
+        bloc.stream,
+        emitsInOrder(<dynamic>[
+          isA<SettingsLoaded>().having((s) => s.locale, 'locale', isNull),
+        ]),
+      );
+      expect(store.values.containsKey(SettingsStore.kLocale), isFalse);
+      await bloc.close();
+    },
+  );
 
   test('SettingsThemeChanged persiste y cambia el tema en caliente', () async {
     final _FakeSettingsStore store = _FakeSettingsStore();
@@ -91,11 +98,31 @@ void main() {
     await expectLater(
       bloc.stream,
       emitsInOrder(<dynamic>[
-        isA<SettingsLoaded>()
-            .having((s) => s.themeId, 'themeId', AppThemes.canvas),
+        isA<SettingsLoaded>().having(
+          (s) => s.themeId,
+          'themeId',
+          AppThemes.canvas,
+        ),
       ]),
     );
     expect(store.values[SettingsStore.kThemeId], AppThemes.canvas);
+    await bloc.close();
+  });
+
+  test('SettingsClockFormatChanged persiste el formato del reloj', () async {
+    final _FakeSettingsStore store = _FakeSettingsStore();
+    final SettingsBloc bloc = SettingsBloc(store)..add(const SettingsStarted());
+    await bloc.stream.first;
+
+    bloc.add(const SettingsClockFormatChanged(false));
+    await expectLater(
+      bloc.stream,
+      emitsInOrder(<dynamic>[
+        isA<SettingsLoaded>().having((s) => s.clock24h, 'clock24h', false),
+      ]),
+    );
+    expect(store.values[SettingsStore.kClock24h], 'false');
+
     await bloc.close();
   });
 }

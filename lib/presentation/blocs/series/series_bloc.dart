@@ -124,7 +124,9 @@ class SeriesBloc extends Bloc<SeriesEvent, SeriesState> {
     final DateTime cutoff = DateTime.now().subtract(const Duration(days: 7));
     final List<Series> seriesList = _allSeries.where((Series series) {
       final bool matchCategory =
-          selectedCategoryId == null || series.categoryId == selectedCategoryId;
+          selectedCategoryId == null ||
+          term.isNotEmpty ||
+          series.categoryId == selectedCategoryId;
       final bool matchQuery =
           term.isEmpty || series.name.toLowerCase().contains(term);
       final bool matchRecent =

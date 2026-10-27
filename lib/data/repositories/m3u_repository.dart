@@ -315,6 +315,17 @@ class M3uRepository implements IptvRepository {
   }
 
   @override
+  Future<void> removeFromHistory(int contentId, domain.ContentType type) async {
+    final StoredCredentials? stored = await _authStore.read();
+    if (stored == null) return;
+    await (_db.delete(_db.history)
+          ..where((t) => t.accountKey.equals(stored.fingerprint))
+          ..where((t) => t.contentId.equals(contentId))
+          ..where((t) => t.contentType.equals(type.name)))
+        .go();
+  }
+
+  @override
   Future<void> refreshCatalog() async {
     final StoredCredentials? stored = await _authStore.read();
     if (stored == null || stored.sourceType != IptvSourceType.m3u) return;
