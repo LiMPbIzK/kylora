@@ -48,8 +48,10 @@ class CategorySidebar extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final bool hasResume =
-        resumeLabel != null && onResumeSelected != null;
+    final bool hasResume = resumeLabel != null && onResumeSelected != null;
+    final int selectedIndex = categories.indexWhere(
+      (Category category) => category.id == selectedCategoryId,
+    );
     return SizedBox(
       width: width,
       child: ListView(
@@ -60,6 +62,8 @@ class CategorySidebar extends StatelessWidget {
               label: resumeLabel!,
               icon: Icons.play_circle_outline,
               selected: isResumeSelected,
+              autofocus: isResumeSelected,
+              focusNode: isResumeSelected ? firstCategoryFocus : null,
               onTap: onResumeSelected!,
             ),
           for (int i = 0; i < categories.length; i++)
@@ -67,8 +71,14 @@ class CategorySidebar extends StatelessWidget {
               label: categories[i].name,
               icon: icon,
               selected: selectedCategoryId == categories[i].id,
+              autofocus:
+                  !isResumeSelected && selectedCategoryId == categories[i].id,
+              focusNode:
+                  !isResumeSelected &&
+                      i == (selectedIndex >= 0 ? selectedIndex : 0)
+                  ? firstCategoryFocus
+                  : null,
               onTap: () => onCategorySelected(categories[i].id),
-              focusNode: i == 0 ? firstCategoryFocus : null,
             ),
         ],
       ),
@@ -83,6 +93,7 @@ class _SidebarButton extends StatelessWidget {
     required this.icon,
     required this.selected,
     required this.onTap,
+    this.autofocus = false,
     this.focusNode,
   });
 
@@ -90,19 +101,23 @@ class _SidebarButton extends StatelessWidget {
   final IconData icon;
   final bool selected;
   final VoidCallback onTap;
+  final bool autofocus;
   final FocusNode? focusNode;
 
   @override
   Widget build(BuildContext context) {
     final AppColors colors = context.colors;
     return TvFocusable(
+      autofocus: autofocus,
       focusNode: focusNode,
       borderRadius: BorderRadius.circular(8),
+      onPressed: onTap,
       child: Material(
         color: selected ? colors.primary : Colors.transparent,
         borderRadius: BorderRadius.circular(8),
         clipBehavior: Clip.antiAlias,
         child: InkWell(
+          canRequestFocus: false,
           onTap: onTap,
           child: Padding(
             padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 14),

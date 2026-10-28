@@ -10,6 +10,7 @@ import '../../blocs/history/history_bloc.dart';
 import '../../blocs/history/history_event.dart';
 import '../../blocs/history/history_state.dart';
 import '../../shared_widgets/tv_focusable.dart';
+import '../../shared_widgets/tv_marquee_text.dart';
 
 /// Pantalla de historial de reproducción.
 class HistoryScreen extends StatefulWidget {
@@ -46,11 +47,14 @@ class _HistoryScreenState extends State<HistoryScreen> {
       body: BlocBuilder<HistoryBloc, HistoryState>(
         builder: (context, state) {
           return switch (state) {
-            HistoryLoading() => const Center(child: CircularProgressIndicator()),
+            HistoryLoading() => const Center(
+              child: CircularProgressIndicator(),
+            ),
             HistoryFailure() => _EmptyView(message: l10n.historyLoadError),
-            HistoryLoaded() => state.items.isEmpty
-                ? _EmptyView(message: l10n.noHistory)
-                : _HistoryList(items: state.items),
+            HistoryLoaded() =>
+              state.items.isEmpty
+                  ? _EmptyView(message: l10n.noHistory)
+                  : _HistoryList(items: state.items),
           };
         },
       ),
@@ -124,7 +128,7 @@ class _HistoryTile extends StatelessWidget {
       borderRadius: BorderRadius.circular(8),
       child: ListTile(
         leading: _Logo(logo: item.logo, icon: icon),
-        title: Text(item.name, maxLines: 1, overflow: TextOverflow.ellipsis),
+        title: TvMarqueeText(text: item.name, maxLines: 1),
         subtitle: Text(timeAgo),
       ),
     );

@@ -1,14 +1,17 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
-import 'package:intl/intl.dart';
 
+import '../../../core/media/playback_request.dart';
 import '../../../core/theme/app_theme.dart';
 import '../../../domain/entities/channel.dart';
 import '../../../domain/entities/epg.dart';
+import '../../../domain/repositories/iptv_repository.dart';
 import '../../../l10n/app_localizations.dart';
 import '../../blocs/epg/epg_bloc.dart';
 import '../../blocs/epg/epg_event.dart';
 import '../../blocs/epg/epg_state.dart';
+import '../../shared_widgets/program_guide_list.dart';
+import '../player/playback_scope.dart';
 
 /// Vista de programación EPG completa de un canal en directo.
 class ProgramGuideScreen extends StatefulWidget {
@@ -33,22 +36,81 @@ class _ProgramGuideScreenState extends State<ProgramGuideScreen> {
     });
   }
 
+  /// Entra al canal desde la propia guía, sin necesidad de volver al catálogo.
+  void _playChannel() {
+    final IptvRepository repository = context.read<IptvRepository>();
+    PlaybackScope.of(context).play(
+      PlaybackRequest(
+        title: widget.channel.name,
+        urlBuilder: () => repository.buildStreamUrl(widget.channel),
+        contentType: 'live',
+        contentId: widget.channel.id,
+        hasArchive: widget.channel.hasArchive,
+        archiveDurationDays: widget.channel.archiveDurationDays,
+        channelTitle: widget.channel.name,
+      ),
+    );
+  }
+
+  Future<void> _playCatchup(EpgEntry entry) async {
+    final IptvRepository repository = context.read<IptvRepository>();
+    final String? url = await repository.buildCatchupUrl(
+      streamId: widget.channel.id,
+      hasArchive: widget.channel.hasArchive,
+      archiveDurationDays: widget.channel.archiveDurationDays,
+      program: entry,
+    );
+    if (!mounted) return;
+    if (url == null) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(
+          content: Text(AppLocalizations.of(context)!.catchupUnavailable),
+        ),
+      );
+      return;
+    }
+    PlaybackScope.of(context).play(
+      PlaybackRequest(
+        title: '${widget.channel.name} · ${entry.title}',
+        urlBuilder: () async => url,
+        contentType: 'live',
+        contentId: widget.channel.id,
+        hasArchive: widget.channel.hasArchive,
+        archiveDurationDays: widget.channel.archiveDurationDays,
+        channelTitle: widget.channel.name,
+      ),
+    );
+  }
+
   @override
   Widget build(BuildContext context) {
     final AppLocalizations l10n = AppLocalizations.of(context)!;
 
     return Scaffold(
-      appBar: AppBar(title: Text(widget.channel.name)),
+      appBar: AppBar(
+        title: Text(widget.channel.name),
+        actions: <Widget>[
+          IconButton(
+            tooltip: l10n.play,
+            icon: const Icon(Icons.play_arrow),
+            onPressed: _playChannel,
+          ),
+        ],
+      ),
       body: BlocBuilder<EpgBloc, EpgState>(
         builder: (context, state) {
           return switch (state) {
-            EpgIdle() || EpgLoading() =>
-              const Center(child: CircularProgressIndicator()),
-            EpgGuideLoaded() => _GuideList(entries: state.entries),
-            EpgEmpty() => _EmptyView(message: l10n.epgNoProgram),
-            EpgNowNextLoaded() || EpgFailure() => _EmptyView(
-              message: l10n.epgLoadError,
+            EpgIdle() ||
+            EpgLoading() => const Center(child: CircularProgressIndicator()),
+            EpgGuideLoaded() => ProgramGuideList(
+              entries: state.entries,
+              hasArchive: widget.channel.hasArchive,
+              archiveDurationDays: widget.channel.archiveDurationDays,
+              onPlay: _playCatchup,
             ),
+            EpgEmpty() => _EmptyView(message: l10n.epgNoProgram),
+            EpgNowNextLoaded() ||
+            EpgFailure() => _EmptyView(message: l10n.epgLoadError),
           };
         },
       ),
@@ -56,99 +118,7 @@ class _ProgramGuideScreenState extends State<ProgramGuideScreen> {
   }
 }
 
-/// Lista de programas del canal con el programa actual resaltado.
-class _GuideList extends StatelessWidget {
-  const _GuideList({required this.entries});
-
-  final List<EpgEntry> entries;
-
-  @override
-  Widget build(BuildContext context) {
-    return ListView.builder(
-      padding: const EdgeInsets.symmetric(vertical: 8),
-      itemCount: entries.length,
-      itemBuilder: (context, index) {
-        final EpgEntry entry = entries[index];
-        return _ProgramTile(
-          entry: entry,
-          isOnAir: entry.isOnAir(DateTime.now()),
-        );
-      },
-    );
-  }
-}
-
-/// Fila de un programa con su franja horaria.
-class _ProgramTile extends StatelessWidget {
-  const _ProgramTile({required this.entry, required this.isOnAir});
-
-  final EpgEntry entry;
-  final bool isOnAir;
-
-  @override
-  Widget build(BuildContext context) {
-    final String time = _formatRange(entry.start, entry.end);
-    final AppColors colors = context.colors;
-
-    return Container(
-      margin: const EdgeInsets.symmetric(horizontal: 12, vertical: 4),
-      padding: const EdgeInsets.all(12),
-      decoration: BoxDecoration(
-        color: isOnAir ? colors.primaryContainer : colors.surfaceVariant,
-        borderRadius: BorderRadius.circular(8),
-      ),
-      child: Row(
-        children: <Widget>[
-          SizedBox(
-            width: 90,
-            child: Text(
-              time,
-              style: TextStyle(
-                color: isOnAir ? colors.primary : colors.onSurface,
-                fontWeight: FontWeight.w600,
-              ),
-            ),
-          ),
-          const SizedBox(width: 12),
-          Expanded(
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: <Widget>[
-                Text(
-                  entry.title,
-                  maxLines: 2,
-                  overflow: TextOverflow.ellipsis,
-                  style: TextStyle(
-                    fontWeight: isOnAir ? FontWeight.bold : FontWeight.normal,
-                  ),
-                ),
-                if (entry.description?.isNotEmpty == true) ...<Widget>[
-                  const SizedBox(height: 4),
-                  Text(
-                    entry.description!,
-                    maxLines: 3,
-                    overflow: TextOverflow.ellipsis,
-                    style: TextStyle(
-                      color: colors.onSurfaceVariant,
-                      fontSize: 13,
-                    ),
-                  ),
-                ],
-              ],
-            ),
-          ),
-        ],
-      ),
-    );
-  }
-
-  static String _formatRange(DateTime start, DateTime end) {
-    final DateFormat timeFormat = DateFormat('HH:mm');
-    return '${timeFormat.format(start)} - ${timeFormat.format(end)}';
-  }
-}
-
-/// Vista vacía o de error.
+/// Vista vacía o error.
 class _EmptyView extends StatelessWidget {
   const _EmptyView({required this.message});
 
@@ -160,7 +130,11 @@ class _EmptyView extends StatelessWidget {
       child: Column(
         mainAxisAlignment: MainAxisAlignment.center,
         children: <Widget>[
-          Icon(Icons.event_note, size: 56, color: context.colors.surfaceVariant),
+          Icon(
+            Icons.event_note,
+            size: 56,
+            color: context.colors.surfaceVariant,
+          ),
           const SizedBox(height: 12),
           Text(message, textAlign: TextAlign.center),
         ],

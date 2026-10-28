@@ -1,5 +1,6 @@
 import 'package:drift/drift.dart';
 
+import '../../core/utils/catchup.dart';
 import '../../domain/entities/category.dart';
 import '../../domain/entities/channel.dart';
 import '../../domain/entities/content_type.dart' as domain;
@@ -40,7 +41,10 @@ class XtreamRepository implements IptvRepository {
   final LiveCacheStore _cache;
 
   @override
-  Future<UserAccount> login(IptvAuthConfig config) async {
+  Future<UserAccount> login(
+    IptvAuthConfig config, {
+    bool activate = true,
+  }) async {
     final XtreamAuthConfig xtream = config as XtreamAuthConfig;
     final StoredCredentials newCredentials = StoredCredentials(
       serverUrl: xtream.serverUrl,
@@ -49,9 +53,11 @@ class XtreamRepository implements IptvRepository {
       sourceType: IptvSourceType.xtream,
     );
     final StoredCredentials? previous = await _authStore.read();
-    if (previous == null || previous.fingerprint != newCredentials.fingerprint) {
-      // Cuenta distinta: descarta la caché de canales de la cuenta anterior
-      // para que el nuevo catálogo se descargue limpio.
+    if (activate &&
+        (previous == null ||
+            previous.fingerprint != newCredentials.fingerprint)) {
+      // Cuenta distinta que va a activarse: descarta la caché de canales de la
+      // cuenta anterior para que el nuevo catálogo se descargue limpio.
       await _cache.clear();
     }
     final XtreamAuthResponse response = await _apiClient.authenticate(
@@ -70,7 +76,7 @@ class XtreamRepository implements IptvRepository {
       maxConnections: info.maxConnections,
       activeConnections: info.activeConnections,
     );
-    await _authStore.write(newCredentials);
+    await _authStore.write(newCredentials, activate: activate);
     await _adoptOrphans(newCredentials.fingerprint);
     return account;
   }
@@ -116,15 +122,39 @@ class XtreamRepository implements IptvRepository {
   }
 
   @override
+  Future<String?> buildCatchupUrl({
+    required int streamId,
+    required bool hasArchive,
+    int? archiveDurationDays,
+    required EpgEntry program,
+  }) async {
+    if (!isCatchupAvailable(
+      hasArchive: hasArchive,
+      archiveDurationDays: archiveDurationDays,
+      program: program,
+    )) {
+      return null;
+    }
+    final StoredCredentials credentials = await _requireCredentials();
+    return buildXtreamCatchupUrl(
+      serverUrl: credentials.serverUrl,
+      username: credentials.username,
+      password: credentials.password,
+      streamId: streamId,
+      program: program,
+    );
+  }
+
+  @override
   Future<List<Category>> fetchLiveCategories() async {
     final StoredCredentials credentials = await _requireCredentials();
     final List<Category> cached = await _cache.getCategories(
       credentials.fingerprint,
     );
     if (cached.isNotEmpty) return cached;
-    return _refreshLiveContent().then((_) => _cache.getCategories(
-          credentials.fingerprint,
-        ));
+    return _refreshLiveContent().then(
+      (_) => _cache.getCategories(credentials.fingerprint),
+    );
   }
 
   @override
@@ -135,7 +165,9 @@ class XtreamRepository implements IptvRepository {
       username: credentials.username,
       password: credentials.password,
     );
-    return dtos.map((XtreamCategoryDto category) => category.toEntity()).toList();
+    return dtos
+        .map((XtreamCategoryDto category) => category.toEntity())
+        .toList();
   }
 
   @override
@@ -170,7 +202,9 @@ class XtreamRepository implements IptvRepository {
       username: credentials.username,
       password: credentials.password,
     );
-    return dtos.map((XtreamCategoryDto category) => category.toEntity()).toList();
+    return dtos
+        .map((XtreamCategoryDto category) => category.toEntity())
+        .toList();
   }
 
   @override
@@ -234,20 +268,25 @@ class XtreamRepository implements IptvRepository {
   @override
   Future<void> addToFavorite(FavoriteItem item) async {
     final StoredCredentials credentials = await _requireCredentials();
-    await _db.into(_db.favorites).insert(
-      FavoritesCompanion.insert(
-        accountKey: Value(credentials.fingerprint),
-        contentId: item.contentId,
-        contentType: item.contentType.name,
-        name: item.name,
-        logo: Value(item.logo),
-        addedAt: DateTime.now(),
-      ),
-    );
+    await _db
+        .into(_db.favorites)
+        .insert(
+          FavoritesCompanion.insert(
+            accountKey: Value(credentials.fingerprint),
+            contentId: item.contentId,
+            contentType: item.contentType.name,
+            name: item.name,
+            logo: Value(item.logo),
+            addedAt: DateTime.now(),
+          ),
+        );
   }
 
   @override
-  Future<void> removeFromFavorite(int contentId, domain.ContentType type) async {
+  Future<void> removeFromFavorite(
+    int contentId,
+    domain.ContentType type,
+  ) async {
     final StoredCredentials credentials = await _requireCredentials();
     await (_db.delete(_db.favorites)
           ..where((f) => f.accountKey.equals(credentials.fingerprint))
@@ -259,27 +298,30 @@ class XtreamRepository implements IptvRepository {
   @override
   Future<bool> isFavorite(int contentId, domain.ContentType type) async {
     final StoredCredentials credentials = await _requireCredentials();
-    final List<Favorite> rows = await (_db.select(_db.favorites)
-          ..where((f) => f.accountKey.equals(credentials.fingerprint))
-          ..where((f) => f.contentId.equals(contentId))
-          ..where((f) => f.contentType.equals(type.name)))
-        .get();
+    final List<Favorite> rows =
+        await (_db.select(_db.favorites)
+              ..where((f) => f.accountKey.equals(credentials.fingerprint))
+              ..where((f) => f.contentId.equals(contentId))
+              ..where((f) => f.contentType.equals(type.name)))
+            .get();
     return rows.isNotEmpty;
   }
 
   @override
   Future<List<FavoriteItem>> getFavorites() async {
     final StoredCredentials credentials = await _requireCredentials();
-    final List<Favorite> rows = await (_db.select(_db.favorites)
-          ..where((f) => f.accountKey.equals(credentials.fingerprint)))
-        .get();
+    final List<Favorite> rows = await (_db.select(
+      _db.favorites,
+    )..where((f) => f.accountKey.equals(credentials.fingerprint))).get();
     return rows
-        .map((Favorite row) => FavoriteItem(
-              contentId: row.contentId,
-              contentType: _parseContentType(row.contentType),
-              name: row.name,
-              logo: row.logo,
-            ))
+        .map(
+          (Favorite row) => FavoriteItem(
+            contentId: row.contentId,
+            contentType: _parseContentType(row.contentType),
+            name: row.name,
+            logo: row.logo,
+          ),
+        )
         .toList();
   }
 
@@ -288,11 +330,12 @@ class XtreamRepository implements IptvRepository {
     final StoredCredentials credentials = await _requireCredentials();
     // Upsert por contenido: una única entrada por (cuenta, contentId, tipo),
     // actualizada con la última posición (necesario para "Continuar visualización").
-    final List<HistoryData> existing = await (_db.select(_db.history)
-          ..where((t) => t.accountKey.equals(credentials.fingerprint))
-          ..where((t) => t.contentId.equals(item.contentId))
-          ..where((t) => t.contentType.equals(item.contentType.name)))
-        .get();
+    final List<HistoryData> existing =
+        await (_db.select(_db.history)
+              ..where((t) => t.accountKey.equals(credentials.fingerprint))
+              ..where((t) => t.contentId.equals(item.contentId))
+              ..where((t) => t.contentType.equals(item.contentType.name)))
+            .get();
     if (existing.isNotEmpty) {
       final HistoryData row = existing.first;
       final bool furtherProgress = item.position > row.position;
@@ -308,48 +351,53 @@ class XtreamRepository implements IptvRepository {
       );
       return;
     }
-    await _db.into(_db.history).insert(
-      HistoryCompanion.insert(
-        accountKey: Value(credentials.fingerprint),
-        contentId: item.contentId,
-        contentType: item.contentType.name,
-        name: item.name,
-        logo: Value(item.logo),
-        watchedAt: item.watchedAt,
-        position: Value(item.position),
-        duration: Value(item.duration),
-        streamUrl: Value(item.streamUrl),
-      ),
-    );
+    await _db
+        .into(_db.history)
+        .insert(
+          HistoryCompanion.insert(
+            accountKey: Value(credentials.fingerprint),
+            contentId: item.contentId,
+            contentType: item.contentType.name,
+            name: item.name,
+            logo: Value(item.logo),
+            watchedAt: item.watchedAt,
+            position: Value(item.position),
+            duration: Value(item.duration),
+            streamUrl: Value(item.streamUrl),
+          ),
+        );
   }
 
   @override
   Future<List<HistoryItem>> getHistory() async {
     final StoredCredentials credentials = await _requireCredentials();
-    final List<HistoryData> rows = await (_db.select(_db.history)
-          ..where((t) => t.accountKey.equals(credentials.fingerprint))
-          ..orderBy([(t) => OrderingTerm.desc(t.watchedAt)]))
-        .get();
+    final List<HistoryData> rows =
+        await (_db.select(_db.history)
+              ..where((t) => t.accountKey.equals(credentials.fingerprint))
+              ..orderBy([(t) => OrderingTerm.desc(t.watchedAt)]))
+            .get();
     return rows
-        .map((HistoryData row) => HistoryItem(
-              contentId: row.contentId,
-              contentType: _parseContentType(row.contentType),
-              name: row.name,
-              logo: row.logo,
-              watchedAt: row.watchedAt,
-              position: row.position,
-              duration: row.duration,
-              streamUrl: row.streamUrl,
-            ))
+        .map(
+          (HistoryData row) => HistoryItem(
+            contentId: row.contentId,
+            contentType: _parseContentType(row.contentType),
+            name: row.name,
+            logo: row.logo,
+            watchedAt: row.watchedAt,
+            position: row.position,
+            duration: row.duration,
+            streamUrl: row.streamUrl,
+          ),
+        )
         .toList();
   }
 
   @override
   Future<void> clearHistory() async {
     final StoredCredentials credentials = await _requireCredentials();
-    await (_db.delete(_db.history)
-          ..where((t) => t.accountKey.equals(credentials.fingerprint)))
-        .go();
+    await (_db.delete(
+      _db.history,
+    )..where((t) => t.accountKey.equals(credentials.fingerprint))).go();
   }
 
   @override
@@ -415,11 +463,9 @@ class XtreamRepository implements IptvRepository {
   /// (accountKey == '') a la cuenta activa para no perder los datos previos.
   Future<void> _adoptOrphans(String fingerprint) async {
     await _db.transaction(() async {
-      await (_db.update(_db.favorites)
-            ..where((f) => f.accountKey.equals('')))
+      await (_db.update(_db.favorites)..where((f) => f.accountKey.equals('')))
           .write(FavoritesCompanion(accountKey: Value(fingerprint)));
-      await (_db.update(_db.history)
-            ..where((t) => t.accountKey.equals('')))
+      await (_db.update(_db.history)..where((t) => t.accountKey.equals('')))
           .write(HistoryCompanion(accountKey: Value(fingerprint)));
     });
   }

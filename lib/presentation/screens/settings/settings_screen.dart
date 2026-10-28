@@ -1,10 +1,13 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
+import 'package:go_router/go_router.dart';
 import 'package:intl/intl.dart';
 import 'package:url_launcher/url_launcher.dart';
 
+import '../../../app.dart';
 import '../../../core/theme/app_theme.dart';
 import '../../../domain/entities/iptv_source_type.dart';
+import '../../../domain/entities/saved_account.dart';
 import '../../../domain/entities/user_account.dart';
 import '../../../domain/repositories/iptv_repository.dart';
 import '../../../l10n/app_localizations.dart';
@@ -38,29 +41,40 @@ class _SettingsScreenState extends State<SettingsScreen> {
 
     return Scaffold(
       appBar: AppBar(title: Text(l10n.settings)),
-      body: SingleChildScrollView(
-        // Padding inferior amplio para que todas las opciones (idiomas, temas,
-        // soporte) puedan desplazarse por encima del borde en Android TV.
-        padding: const EdgeInsets.only(top: 12, bottom: 96),
-        child: Column(
-          crossAxisAlignment: CrossAxisAlignment.stretch,
-          children: <Widget>[
-            _SectionHeader(title: l10n.settingsSectionAccount),
-            _accountSection(context, l10n),
-            _SectionHeader(title: l10n.settingsSectionCatalog),
-            _catalogSection(context, l10n),
-            _SectionHeader(title: l10n.language),
-            _languageSection(context, l10n),
-            _SectionHeader(title: l10n.clock),
-            _clockSection(context, l10n),
-            _SectionHeader(title: l10n.settingsSectionAppearance),
-            _appearanceSection(context, l10n),
-            _SectionHeader(title: l10n.settingsSectionSecurity),
-            _securitySection(l10n),
-            _SectionHeader(title: l10n.settingsSectionSupport),
-            _supportSection(context, l10n),
-          ],
-        ),
+      body: Column(
+        crossAxisAlignment: CrossAxisAlignment.stretch,
+        children: <Widget>[
+          // La información de la cuenta queda fija: el scroll empieza en las
+          // acciones (Cambiar cuenta / Cerrar sesión).
+          _SectionHeader(title: l10n.settingsSectionAccount),
+          _accountInfoSection(context, l10n),
+          const Divider(height: 1),
+          Expanded(
+            child: SingleChildScrollView(
+              // Padding inferior amplio para que todas las opciones (idiomas,
+              // temas, soporte) puedan desplazarse por encima del borde en TV.
+              padding: const EdgeInsets.only(bottom: 96),
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.stretch,
+                children: <Widget>[
+                  _accountActions(context, l10n),
+                  _SectionHeader(title: l10n.settingsSectionCatalog),
+                  _catalogSection(context, l10n),
+                  _SectionHeader(title: l10n.language),
+                  _languageSection(context, l10n),
+                  _SectionHeader(title: l10n.clock),
+                  _clockSection(context, l10n),
+                  _SectionHeader(title: l10n.settingsSectionAppearance),
+                  _appearanceSection(context, l10n),
+                  _SectionHeader(title: l10n.settingsSectionSecurity),
+                  _securitySection(l10n),
+                  _SectionHeader(title: l10n.settingsSectionSupport),
+                  _supportSection(context, l10n),
+                ],
+              ),
+            ),
+          ),
+        ],
       ),
     );
   }
@@ -69,26 +83,49 @@ class _SettingsScreenState extends State<SettingsScreen> {
   // Cuenta
   // ---------------------------------------------------------------------------
 
-  Widget _accountSection(BuildContext context, AppLocalizations l10n) {
+  Widget _accountInfoSection(BuildContext context, AppLocalizations l10n) {
     return BlocBuilder<AuthBloc, AuthState>(
       buildWhen: (previous, current) => current is AuthAuthenticated,
       builder: (context, state) {
         if (state is! AuthAuthenticated) return const SizedBox.shrink();
         final UserAccount account = state.account;
-        final AppColors colors = context.colors;
+        return _InfoGrid(
+          children: account.sourceType == IptvSourceType.xtream
+              ? _xtreamAccountRows(context, l10n, account)
+              : _m3uAccountRows(context, l10n, account),
+        );
+      },
+    );
+  }
 
+  Widget _accountActions(BuildContext context, AppLocalizations l10n) {
+    final AppColors colors = context.colors;
+    return BlocBuilder<AuthBloc, AuthState>(
+      buildWhen: (previous, current) => current is AuthAuthenticated,
+      builder: (context, state) {
+        final List<SavedAccount> accounts = state is AuthAuthenticated
+            ? state.accounts
+            : const <SavedAccount>[];
+        final String? activeId = state is AuthAuthenticated
+            ? state.activeAccountId
+            : null;
         return Column(
           children: <Widget>[
-            if (account.sourceType == IptvSourceType.xtream)
-              ..._xtreamAccountRows(context, l10n, account)
-            else
-              ..._m3uAccountRows(context, l10n, account),
-            const Divider(height: 24),
+            ListTile(
+              leading: const Icon(Icons.person_add_alt_1),
+              title: Text(l10n.addAccount),
+              onTap: () => context.push(Routes.accountAdd),
+            ),
+            ListTile(
+              leading: const Icon(Icons.qr_code_2),
+              title: Text(l10n.addAccountFromPhone),
+              onTap: () => context.push(Routes.accountWebImport),
+            ),
             ListTile(
               leading: const Icon(Icons.switch_account),
               title: Text(l10n.changeAccount),
               onTap: () =>
-                  context.read<AuthBloc>().add(const AuthLogoutRequested()),
+                  _showAccountPicker(context, l10n, accounts, activeId),
             ),
             ListTile(
               leading: Icon(Icons.logout, color: colors.error),
@@ -100,6 +137,61 @@ class _SettingsScreenState extends State<SettingsScreen> {
         );
       },
     );
+  }
+
+  Future<void> _showAccountPicker(
+    BuildContext context,
+    AppLocalizations l10n,
+    List<SavedAccount> accounts,
+    String? activeId,
+  ) async {
+    if (accounts.isEmpty) return;
+    final SavedAccount? selected = await showDialog<SavedAccount>(
+      context: context,
+      builder: (BuildContext dialogContext) {
+        return AlertDialog(
+          title: Text(l10n.selectAccount),
+          content: ConstrainedBox(
+            constraints: const BoxConstraints(maxWidth: 460, maxHeight: 420),
+            child: ListView.separated(
+              shrinkWrap: true,
+              itemCount: accounts.length,
+              separatorBuilder: (_, _) => const Divider(height: 1),
+              itemBuilder: (BuildContext context, int index) {
+                final SavedAccount account = accounts[index];
+                final bool active = account.id == activeId;
+                return ListTile(
+                  autofocus: index == 0,
+                  leading: Icon(
+                    account.sourceType == IptvSourceType.xtream
+                        ? Icons.dns_outlined
+                        : Icons.playlist_play,
+                  ),
+                  title: Text(
+                    account.label,
+                    maxLines: 1,
+                    overflow: TextOverflow.ellipsis,
+                  ),
+                  subtitle: Text(
+                    account.serverUrl,
+                    maxLines: 1,
+                    overflow: TextOverflow.ellipsis,
+                  ),
+                  trailing: active
+                      ? Icon(Icons.check_circle, color: context.colors.primary)
+                      : null,
+                  onTap: () => Navigator.of(dialogContext).pop(account),
+                );
+              },
+            ),
+          ),
+        );
+      },
+    );
+
+    if (selected == null || selected.id == activeId) return;
+    if (!context.mounted) return;
+    context.read<AuthBloc>().add(AuthAccountSwitchRequested(selected.id));
   }
 
   List<Widget> _xtreamAccountRows(
@@ -499,7 +591,68 @@ class _SectionHeader extends StatelessWidget {
   }
 }
 
-/// Fila de información etiqueta/valor.
+/// Rejilla compacta para los datos de la cuenta (no enfocables).
+///
+/// En TV/escritorio se muestran varios campos por fila para no desperdiciar
+/// espacio vertical; la última fila queda centrada (sin hueco a la derecha).
+class _InfoGrid extends StatelessWidget {
+  const _InfoGrid({required this.children});
+
+  final List<Widget> children;
+
+  @override
+  Widget build(BuildContext context) {
+    final AppColors colors = context.colors;
+    return Padding(
+      padding: const EdgeInsets.fromLTRB(16, 0, 16, 8),
+      child: Container(
+        padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 10),
+        decoration: BoxDecoration(
+          color: colors.surfaceVariant.withValues(alpha: 0.28),
+          borderRadius: BorderRadius.circular(12),
+        ),
+        child: LayoutBuilder(
+          builder: (context, constraints) {
+            // En pantallas anchas (TV) los datos van en una sola fila compacta;
+            // en pantallas estrechas se reparten en 3/2 columnas centradas.
+            final bool singleRow = constraints.maxWidth >= 1100;
+            if (singleRow) {
+              return Row(
+                children: <Widget>[
+                  for (int i = 0; i < children.length; i++) ...<Widget>[
+                    if (i > 0)
+                      Container(
+                        width: 1,
+                        height: 34,
+                        margin: const EdgeInsets.symmetric(horizontal: 14),
+                        color: colors.onSurfaceVariant.withValues(alpha: 0.18),
+                      ),
+                    Expanded(child: children[i]),
+                  ],
+                ],
+              );
+            }
+            final int columns = constraints.maxWidth >= 700 ? 3 : 2;
+            const double spacing = 12;
+            final double tileWidth =
+                (constraints.maxWidth - spacing * (columns - 1)) / columns;
+            return Wrap(
+              alignment: WrapAlignment.center,
+              spacing: spacing,
+              runSpacing: 12,
+              children: <Widget>[
+                for (final Widget child in children)
+                  SizedBox(width: tileWidth, child: child),
+              ],
+            );
+          },
+        ),
+      ),
+    );
+  }
+}
+
+/// Dato compacto etiqueta/valor de la cuenta (sin tarjeta propia).
 class _InfoTile extends StatelessWidget {
   const _InfoTile({
     required this.icon,
@@ -516,17 +669,42 @@ class _InfoTile extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final AppColors colors = context.colors;
-    return ListTile(
-      dense: true,
-      leading: Icon(icon, color: colors.onSurfaceVariant),
-      title: Text(
-        label,
-        style: TextStyle(fontSize: 13, color: colors.onSurfaceVariant),
-      ),
-      subtitle: Text(
-        value,
-        style: TextStyle(color: valueColor ?? colors.onSurface),
-      ),
+    return Column(
+      mainAxisSize: MainAxisSize.min,
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: <Widget>[
+        Row(
+          children: <Widget>[
+            Icon(icon, size: 13, color: colors.onSurfaceVariant),
+            const SizedBox(width: 5),
+            Flexible(
+              child: Text(
+                label.toUpperCase(),
+                maxLines: 1,
+                overflow: TextOverflow.ellipsis,
+                style: TextStyle(
+                  fontSize: 10,
+                  letterSpacing: 0.6,
+                  fontWeight: FontWeight.w600,
+                  color: colors.onSurfaceVariant,
+                ),
+              ),
+            ),
+          ],
+        ),
+        const SizedBox(height: 3),
+        Text(
+          value,
+          maxLines: 2,
+          overflow: TextOverflow.ellipsis,
+          style: TextStyle(
+            fontSize: 13.5,
+            height: 1.2,
+            fontWeight: FontWeight.w500,
+            color: valueColor ?? colors.onSurface,
+          ),
+        ),
+      ],
     );
   }
 }

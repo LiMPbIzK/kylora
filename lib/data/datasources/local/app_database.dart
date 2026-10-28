@@ -31,6 +31,8 @@ class LiveChannels extends Table {
   IntColumn get number => integer().nullable()();
   TextColumn get logo => text().nullable()();
   TextColumn get epgChannelId => text().nullable()();
+  BoolColumn get hasArchive => boolean().withDefault(const Constant(false))();
+  IntColumn get archiveDurationDays => integer().nullable()();
 }
 
 /// Tipo de contenido para favoritos e historial.
@@ -75,13 +77,9 @@ class AppSettings extends Table {
   Set<Column<Object>> get primaryKey => {key};
 }
 
-@DriftDatabase(tables: <Type>[
-  LiveCategories,
-  LiveChannels,
-  Favorites,
-  History,
-  AppSettings,
-])
+@DriftDatabase(
+  tables: <Type>[LiveCategories, LiveChannels, Favorites, History, AppSettings],
+)
 class AppDatabase extends _$AppDatabase {
   AppDatabase([QueryExecutor? executor])
     : super(executor ?? _openDefaultConnection());
@@ -96,7 +94,7 @@ class AppDatabase extends _$AppDatabase {
   }
 
   @override
-  int get schemaVersion => 5;
+  int get schemaVersion => 6;
 
   @override
   MigrationStrategy get migration {
@@ -127,6 +125,14 @@ class AppDatabase extends _$AppDatabase {
           // V5: guarda la URL del stream en el historial para poder reanudar
           // ("Continuar visualización") sin depender del catálogo.
           await m.addColumn(history, history.streamUrl);
+        }
+        if (from < 6) {
+          // V6: datos de catch-up/timeshift del canal.
+          await m.addColumn(liveChannels, liveChannels.hasArchive);
+          await m.addColumn(liveChannels, liveChannels.archiveDurationDays);
+          // La caché anterior no tiene los nuevos campos; se re-descarga al
+          // abrir el catálogo la próxima vez.
+          await delete(liveChannels).go();
         }
       },
     );

@@ -23,7 +23,11 @@ class _FakeAuthStore extends AuthStore {
   Future<StoredCredentials?> read() async => stored;
 
   @override
-  Future<void> write(StoredCredentials credentials) async {
+  Future<void> write(
+    StoredCredentials credentials, {
+    String? label,
+    bool activate = true,
+  }) async {
     stored = credentials;
   }
 
@@ -55,19 +59,25 @@ void main() {
       );
       final LiveCacheStore cache = LiveCacheStore(database);
       final MultiSourceRepository repo = MultiSourceRepository(
-        xtream: XtreamRepository(XtreamApiClient(dio), authStore, database, cache: cache),
-        m3u: M3uRepository(M3uDownloader(dio), authStore, database, cache: cache),
+        xtream: XtreamRepository(
+          XtreamApiClient(dio),
+          authStore,
+          database,
+          cache: cache,
+        ),
+        m3u: M3uRepository(
+          M3uDownloader(dio),
+          authStore,
+          database,
+          cache: cache,
+        ),
         authStore: authStore,
       );
 
       // Sin sesión previa, el enrutado por config M3U debe elegir la fuente m3u
       // sin lanzar el cast TypeError que ocurría con el repo único de Xtream.
       await expectLater(
-        repo.login(
-          const M3uAuthConfig(
-            m3uUrl: 'file:///inexistente.m3u',
-          ),
-        ),
+        repo.login(const M3uAuthConfig(m3uUrl: 'file:///inexistente.m3u')),
         throwsA(isA<M3uNetworkException>()),
       );
     });

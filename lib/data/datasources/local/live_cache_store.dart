@@ -13,15 +13,18 @@ class LiveCacheStore {
   final AppDatabase _db;
 
   Future<List<Category>> getCategories(String accountKey) async {
-    final List<LiveCategory> rows = await (_db.select(_db.liveCategories)
-          ..where((t) => t.accountKey.equals(accountKey)))
-        .get();
+    final List<LiveCategory> rows = await (_db.select(
+      _db.liveCategories,
+    )..where((t) => t.accountKey.equals(accountKey))).get();
     return rows
         .map((LiveCategory row) => Category(id: row.id, name: row.name))
         .toList();
   }
 
-  Future<List<Channel>> getChannels(String accountKey, {int? categoryId}) async {
+  Future<List<Channel>> getChannels(
+    String accountKey, {
+    int? categoryId,
+  }) async {
     final query = _db.select(_db.liveChannels)
       ..where((t) => t.accountKey.equals(accountKey))
       ..orderBy([(LiveChannels row) => OrderingTerm.asc(row.number)]);
@@ -38,12 +41,12 @@ class LiveCacheStore {
     required List<Channel> channels,
   }) async {
     await _db.transaction(() async {
-      await (_db.delete(_db.liveCategories)
-            ..where((LiveCategories t) => t.accountKey.equals(accountKey)))
-          .go();
-      await (_db.delete(_db.liveChannels)
-            ..where((LiveChannels t) => t.accountKey.equals(accountKey)))
-          .go();
+      await (_db.delete(
+        _db.liveCategories,
+      )..where((LiveCategories t) => t.accountKey.equals(accountKey))).go();
+      await (_db.delete(
+        _db.liveChannels,
+      )..where((LiveChannels t) => t.accountKey.equals(accountKey))).go();
       await _db.batch((Batch batch) {
         batch.insertAll(
           _db.liveCategories,
@@ -80,6 +83,8 @@ class LiveCacheStore {
     number: row.number,
     logo: row.logo,
     epgChannelId: row.epgChannelId,
+    hasArchive: row.hasArchive,
+    archiveDurationDays: row.archiveDurationDays,
   );
 
   LiveChannelsCompanion _toInsertable(String accountKey, Channel channel) =>
@@ -91,5 +96,7 @@ class LiveCacheStore {
         number: Value<int?>(channel.number),
         logo: Value<String?>(channel.logo),
         epgChannelId: Value<String?>(channel.epgChannelId),
+        hasArchive: Value<bool>(channel.hasArchive),
+        archiveDurationDays: Value<int?>(channel.archiveDurationDays),
       );
 }

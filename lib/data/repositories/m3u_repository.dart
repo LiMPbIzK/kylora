@@ -50,7 +50,10 @@ class M3uRepository implements IptvRepository {
   List<Category> _categories = <Category>[];
 
   @override
-  Future<UserAccount> login(IptvAuthConfig config) async {
+  Future<UserAccount> login(
+    IptvAuthConfig config, {
+    bool activate = true,
+  }) async {
     final M3uAuthConfig m3u = config as M3uAuthConfig;
     final StoredCredentials newCredentials = StoredCredentials(
       serverUrl: m3u.m3uUrl,
@@ -61,7 +64,9 @@ class M3uRepository implements IptvRepository {
       xmltvUrl: m3u.xmltvUrl,
     );
     final StoredCredentials? previous = await _authStore.read();
-    if (previous == null || previous.fingerprint != newCredentials.fingerprint) {
+    if (activate &&
+        (previous == null ||
+            previous.fingerprint != newCredentials.fingerprint)) {
       await _cache.clear();
     }
     await _loadPlaylist(m3u.m3uUrl, m3u.xmltvUrl);
@@ -70,7 +75,11 @@ class M3uRepository implements IptvRepository {
       categories: _categories,
       channels: _buildChannels(),
     );
-    await _authStore.write(newCredentials);
+    await _authStore.write(
+      newCredentials,
+      label: m3u.displayName,
+      activate: activate,
+    );
     await _adoptOrphans(newCredentials.fingerprint);
     return UserAccount(
       serverUrl: m3u.m3uUrl,
@@ -120,7 +129,9 @@ class M3uRepository implements IptvRepository {
   Future<List<Category>> fetchLiveCategories() async {
     final StoredCredentials? stored = await _authStore.read();
     if (stored == null) return const <Category>[];
-    final List<Category> cached = await _cache.getCategories(stored.fingerprint);
+    final List<Category> cached = await _cache.getCategories(
+      stored.fingerprint,
+    );
     if (cached.isNotEmpty) return cached;
     return _categories;
   }
@@ -148,6 +159,14 @@ class M3uRepository implements IptvRepository {
   }
 
   @override
+  Future<String?> buildCatchupUrl({
+    required int streamId,
+    required bool hasArchive,
+    int? archiveDurationDays,
+    required EpgEntry program,
+  }) async => null;
+
+  @override
   Future<List<Category>> fetchVodCategories() async => const <Category>[];
 
   @override
@@ -161,8 +180,7 @@ class M3uRepository implements IptvRepository {
   Future<List<Category>> fetchSeriesCategories() async => const <Category>[];
 
   @override
-  Future<List<Series>> fetchSeries({int? categoryId}) async =>
-      const <Series>[];
+  Future<List<Series>> fetchSeries({int? categoryId}) async => const <Series>[];
 
   @override
   Future<SeriesInfo> fetchSeriesInfo(int seriesId) async {
@@ -190,20 +208,25 @@ class M3uRepository implements IptvRepository {
   Future<void> addToFavorite(FavoriteItem item) async {
     final StoredCredentials? stored = await _authStore.read();
     if (stored == null) return;
-    await _db.into(_db.favorites).insert(
-      FavoritesCompanion.insert(
-        accountKey: Value(stored.fingerprint),
-        contentId: item.contentId,
-        contentType: item.contentType.name,
-        name: item.name,
-        logo: Value(item.logo),
-        addedAt: DateTime.now(),
-      ),
-    );
+    await _db
+        .into(_db.favorites)
+        .insert(
+          FavoritesCompanion.insert(
+            accountKey: Value(stored.fingerprint),
+            contentId: item.contentId,
+            contentType: item.contentType.name,
+            name: item.name,
+            logo: Value(item.logo),
+            addedAt: DateTime.now(),
+          ),
+        );
   }
 
   @override
-  Future<void> removeFromFavorite(int contentId, domain.ContentType type) async {
+  Future<void> removeFromFavorite(
+    int contentId,
+    domain.ContentType type,
+  ) async {
     final StoredCredentials? stored = await _authStore.read();
     if (stored == null) return;
     await (_db.delete(_db.favorites)
@@ -217,11 +240,12 @@ class M3uRepository implements IptvRepository {
   Future<bool> isFavorite(int contentId, domain.ContentType type) async {
     final StoredCredentials? stored = await _authStore.read();
     if (stored == null) return false;
-    final List<Favorite> rows = await (_db.select(_db.favorites)
-          ..where((f) => f.accountKey.equals(stored.fingerprint))
-          ..where((f) => f.contentId.equals(contentId))
-          ..where((f) => f.contentType.equals(type.name)))
-        .get();
+    final List<Favorite> rows =
+        await (_db.select(_db.favorites)
+              ..where((f) => f.accountKey.equals(stored.fingerprint))
+              ..where((f) => f.contentId.equals(contentId))
+              ..where((f) => f.contentType.equals(type.name)))
+            .get();
     return rows.isNotEmpty;
   }
 
@@ -229,16 +253,18 @@ class M3uRepository implements IptvRepository {
   Future<List<FavoriteItem>> getFavorites() async {
     final StoredCredentials? stored = await _authStore.read();
     if (stored == null) return const <FavoriteItem>[];
-    final List<Favorite> rows = await (_db.select(_db.favorites)
-          ..where((f) => f.accountKey.equals(stored.fingerprint)))
-        .get();
+    final List<Favorite> rows = await (_db.select(
+      _db.favorites,
+    )..where((f) => f.accountKey.equals(stored.fingerprint))).get();
     return rows
-        .map((Favorite row) => FavoriteItem(
-              contentId: row.contentId,
-              contentType: _parseContentType(row.contentType),
-              name: row.name,
-              logo: row.logo,
-            ))
+        .map(
+          (Favorite row) => FavoriteItem(
+            contentId: row.contentId,
+            contentType: _parseContentType(row.contentType),
+            name: row.name,
+            logo: row.logo,
+          ),
+        )
         .toList();
   }
 
@@ -248,11 +274,12 @@ class M3uRepository implements IptvRepository {
     if (stored == null) return;
     // Upsert por contenido: una única entrada por (cuenta, contentId, tipo),
     // actualizada con la última posición ("Continuar visualización").
-    final List<HistoryData> existing = await (_db.select(_db.history)
-          ..where((t) => t.accountKey.equals(stored.fingerprint))
-          ..where((t) => t.contentId.equals(item.contentId))
-          ..where((t) => t.contentType.equals(item.contentType.name)))
-        .get();
+    final List<HistoryData> existing =
+        await (_db.select(_db.history)
+              ..where((t) => t.accountKey.equals(stored.fingerprint))
+              ..where((t) => t.contentId.equals(item.contentId))
+              ..where((t) => t.contentType.equals(item.contentType.name)))
+            .get();
     if (existing.isNotEmpty) {
       final HistoryData row = existing.first;
       final bool furtherProgress = item.position > row.position;
@@ -268,40 +295,45 @@ class M3uRepository implements IptvRepository {
       );
       return;
     }
-    await _db.into(_db.history).insert(
-      HistoryCompanion.insert(
-        accountKey: Value(stored.fingerprint),
-        contentId: item.contentId,
-        contentType: item.contentType.name,
-        name: item.name,
-        logo: Value(item.logo),
-        watchedAt: item.watchedAt,
-        position: Value(item.position),
-        duration: Value(item.duration),
-        streamUrl: Value(item.streamUrl),
-      ),
-    );
+    await _db
+        .into(_db.history)
+        .insert(
+          HistoryCompanion.insert(
+            accountKey: Value(stored.fingerprint),
+            contentId: item.contentId,
+            contentType: item.contentType.name,
+            name: item.name,
+            logo: Value(item.logo),
+            watchedAt: item.watchedAt,
+            position: Value(item.position),
+            duration: Value(item.duration),
+            streamUrl: Value(item.streamUrl),
+          ),
+        );
   }
 
   @override
   Future<List<HistoryItem>> getHistory() async {
     final StoredCredentials? stored = await _authStore.read();
     if (stored == null) return const <HistoryItem>[];
-    final List<HistoryData> rows = await (_db.select(_db.history)
-          ..where((t) => t.accountKey.equals(stored.fingerprint))
-          ..orderBy([(t) => OrderingTerm.desc(t.watchedAt)]))
-        .get();
+    final List<HistoryData> rows =
+        await (_db.select(_db.history)
+              ..where((t) => t.accountKey.equals(stored.fingerprint))
+              ..orderBy([(t) => OrderingTerm.desc(t.watchedAt)]))
+            .get();
     return rows
-        .map((HistoryData row) => HistoryItem(
-              contentId: row.contentId,
-              contentType: _parseContentType(row.contentType),
-              name: row.name,
-              logo: row.logo,
-              watchedAt: row.watchedAt,
-              position: row.position,
-              duration: row.duration,
-              streamUrl: row.streamUrl,
-            ))
+        .map(
+          (HistoryData row) => HistoryItem(
+            contentId: row.contentId,
+            contentType: _parseContentType(row.contentType),
+            name: row.name,
+            logo: row.logo,
+            watchedAt: row.watchedAt,
+            position: row.position,
+            duration: row.duration,
+            streamUrl: row.streamUrl,
+          ),
+        )
         .toList();
   }
 
@@ -309,9 +341,9 @@ class M3uRepository implements IptvRepository {
   Future<void> clearHistory() async {
     final StoredCredentials? stored = await _authStore.read();
     if (stored == null) return;
-    await (_db.delete(_db.history)
-          ..where((t) => t.accountKey.equals(stored.fingerprint)))
-        .go();
+    await (_db.delete(
+      _db.history,
+    )..where((t) => t.accountKey.equals(stored.fingerprint))).go();
   }
 
   @override
@@ -344,11 +376,9 @@ class M3uRepository implements IptvRepository {
   /// (accountKey == '') a la cuenta activa.
   Future<void> _adoptOrphans(String fingerprint) async {
     await _db.transaction(() async {
-      await (_db.update(_db.favorites)
-            ..where((f) => f.accountKey.equals('')))
+      await (_db.update(_db.favorites)..where((f) => f.accountKey.equals('')))
           .write(FavoritesCompanion(accountKey: Value(fingerprint)));
-      await (_db.update(_db.history)
-            ..where((t) => t.accountKey.equals('')))
+      await (_db.update(_db.history)..where((t) => t.accountKey.equals('')))
           .write(HistoryCompanion(accountKey: Value(fingerprint)));
     });
   }
@@ -364,7 +394,9 @@ class M3uRepository implements IptvRepository {
     }
     final List<M3uEntry> entries = await parseM3uInIsolate(content);
     if (entries.isEmpty) {
-      throw const M3uParseException('No se encontraron canales en la lista M3U');
+      throw const M3uParseException(
+        'No se encontraron canales en la lista M3U',
+      );
     }
     _entries = entries;
     _buildCategories();

@@ -1,5 +1,7 @@
 import 'dart:async';
 
+import 'package:flutter/foundation.dart'
+    show defaultTargetPlatform, TargetPlatform;
 import 'package:flutter/gestures.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart'
@@ -12,7 +14,9 @@ import '../../../core/media/app_player.dart';
 import '../../../core/media/playback_controller.dart';
 import '../../../core/media/playback_request.dart';
 import '../../../core/theme/app_theme.dart';
+import '../../../core/utils/clock_format.dart';
 import '../../../core/utils/playback_time.dart';
+import '../../../core/utils/video_resolution.dart';
 import '../../../domain/entities/content_type.dart';
 import '../../../domain/entities/epg.dart';
 import '../../../domain/entities/history_item.dart';
@@ -26,6 +30,8 @@ import '../../blocs/player/player_event.dart';
 import '../../blocs/player/player_state.dart';
 import '../../blocs/settings/settings_bloc.dart';
 import '../../blocs/settings/settings_state.dart';
+import '../../shared_widgets/program_guide_list.dart';
+import 'playback_scope.dart';
 
 /// Reproductor genérico (directo, VOD o series) con OSD de controles y pistas.
 ///
@@ -53,7 +59,12 @@ class _PlayerScreenState extends State<PlayerScreen> {
   String _title = '';
   int? _liveContentId;
   String? _contentType;
+  bool _hasArchive = false;
+  int? _archiveDurationDays;
+  String _channelTitle = '';
   bool _guideOpen = false;
+  final FocusNode _guideCloseFocusNode = FocusNode(debugLabel: 'guide-close');
+  final FocusScopeNode _guideScopeNode = FocusScopeNode(debugLabel: 'guide');
   _TrackPickerMode? _picker;
   StreamSubscription<Tracks>? _tracksSubscription;
   bool _audioPreferenceApplied = false;
@@ -66,6 +77,10 @@ class _PlayerScreenState extends State<PlayerScreen> {
   /// Foco del control principal del OSD (play/pausa): al mostrar el OSD se le
   /// da el foco para que el mando pueda navegar por los controles.
   final FocusNode _osdFocusNode = FocusNode();
+
+  /// Scope de los controles del OSD: permite saber si el foco está en alguno de
+  /// ellos para no robarlo al volver a mostrar el OSD.
+  final FocusScopeNode _osdScopeNode = FocusScopeNode(debugLabel: 'osd');
 
   /// Foco del selector de pistas (audio/subtítulos): al abrirlo se le da el
   /// foco al primer elemento para que el mando navegue dentro del selector y
@@ -92,7 +107,22 @@ class _PlayerScreenState extends State<PlayerScreen> {
     super.initState();
     // Un único bloc/player para toda la sesión (no se recrea por navegación).
     _bloc = PlayerBloc(AppPlayer.instance.player);
-    _videoController = VideoController(_bloc.player);
+    // En Android (TV/móvil) se fuerza la decodificación por hardware. El modo
+    // `auto-safe` puede caer a software con HEVC/4K; `auto` usa MediaCodec,
+    // pero en algunos Android TV el camino zero-copy con dmabuf está bloqueado
+    // por SELinux (se ven `avc: denied ... dev="dmabuf"` en logcat). Por eso se
+    // usa `mediacodec_embed`: la salida va directa a la superficie del decodificador,
+    // sin textura intermedia de GPU, que en Mali provocaba tirones en 4K.
+    _videoController = VideoController(
+      _bloc.player,
+      configuration: defaultTargetPlatform == TargetPlatform.android
+          ? const VideoControllerConfiguration(
+              vo: 'mediacodec_embed',
+              hwdec: 'mediacodec',
+              enableHardwareAcceleration: true,
+            )
+          : const VideoControllerConfiguration(),
+    );
     widget.controller.addListener(_onControllerChanged);
     _tracksSubscription = _bloc.player.stream.tracks.listen(_onTracksChanged);
     // Intercepta el botón Atrás del mando/TV mientras hay reproducción:
@@ -105,8 +135,7 @@ class _PlayerScreenState extends State<PlayerScreen> {
         return true;
       }
       if (_guideOpen) {
-        setState(() => _guideOpen = false);
-        _scheduleHide();
+        _closeGuide();
         return true;
       }
       if (_osdVisible) {
@@ -135,6 +164,7 @@ class _PlayerScreenState extends State<PlayerScreen> {
         key == LogicalKeyboardKey.enter ||
         key == LogicalKeyboardKey.gameButtonA;
     if (!isSelect) return false;
+    if (_guideOpen) return false;
     if (!_osdVisible) {
       _showOsd();
       return true;
@@ -181,7 +211,12 @@ class _PlayerScreenState extends State<PlayerScreen> {
     final PlaybackRequest? request = widget.controller.current;
     if (request == null) {
       if (_contentType != null) {
-        setState(() => _contentType = null);
+        setState(() {
+          _contentType = null;
+          _hasArchive = false;
+          _archiveDurationDays = null;
+          _channelTitle = '';
+        });
       }
       if (!_bloc.isClosed) _bloc.player.stop();
       return;
@@ -211,6 +246,9 @@ class _PlayerScreenState extends State<PlayerScreen> {
         _liveContentId = liveId;
         _guideOpen = wantsGuide;
         _contentType = request.contentType;
+        _hasArchive = request.hasArchive;
+        _archiveDurationDays = request.archiveDurationDays;
+        _channelTitle = request.channelTitle ?? request.title;
       });
       // Al iniciar la reproducción, muestra el OSD y programa su ocultado
       // automático (en TV no hay ratón que dispare `onHover`).
@@ -321,15 +359,41 @@ class _PlayerScreenState extends State<PlayerScreen> {
   }
 
   /// Muestra el OSD, le da foco al control principal y programa su ocultado.
+  ///
+  /// Si el foco ya está en algún control del OSD (p. ej. el volumen), no se
+  /// roba; si viene de fuera (inicio de reproducción, OSD recién mostrado) se
+  /// enfoca play/pausa para que el mando tenga un punto de partida claro.
   void _showOsd() {
     if (!_osdVisible) {
       setState(() => _osdVisible = true);
-      // Da foco al primer control para que el mando pueda navegar por el OSD.
-      WidgetsBinding.instance.addPostFrameCallback((_) {
-        if (mounted) _osdFocusNode.requestFocus();
-      });
     }
     _scheduleHide();
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      if (!mounted || !_osdVisible || _picker != null || _guideOpen) return;
+      if (!_osdScopeNode.hasFocus) {
+        _osdFocusNode.requestFocus();
+      }
+    });
+  }
+
+  /// Abre la guía embebida y lleva el foco a su X, para que el mando pueda
+  /// cerrarla sin depender de la navegación por los controles del OSD.
+  void _openGuide({int? streamId}) {
+    _scheduleHide();
+    setState(() {
+      _guideOpen = true;
+      if (streamId != null) _liveContentId ??= streamId;
+    });
+  }
+
+  /// Cierra la guía embebida y devuelve el foco al OSD si sigue visible.
+  void _closeGuide() {
+    if (!_guideOpen) return;
+    setState(() => _guideOpen = false);
+    _scheduleHide();
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      if (mounted && _osdVisible) _osdFocusNode.requestFocus();
+    });
   }
 
   /// Abre el selector de pistas y le da el foco al primer elemento.
@@ -373,6 +437,9 @@ class _PlayerScreenState extends State<PlayerScreen> {
       _picker = null;
       _liveContentId = null;
       _contentType = null;
+      _hasArchive = false;
+      _archiveDurationDays = null;
+      _channelTitle = '';
       _lastStartPosition = null;
     });
     widget.controller.stop();
@@ -402,6 +469,9 @@ class _PlayerScreenState extends State<PlayerScreen> {
     widget.controller.onPlayerBack = null;
     HardwareKeyboard.instance.removeHandler(_onHardwareKey);
     _osdFocusNode.dispose();
+    _osdScopeNode.dispose();
+    _guideCloseFocusNode.dispose();
+    _guideScopeNode.dispose();
     _pickerFocusNode.dispose();
     _tracksSubscription?.cancel();
     _hideTimer?.cancel();
@@ -457,7 +527,10 @@ class _PlayerScreenState extends State<PlayerScreen> {
                 if (_osdVisible)
                   // Con un selector abierto, los controles del OSD dejan de ser
                   // enfocables para que el D-Pad se quede dentro del selector.
-                  ExcludeFocus(excluding: _picker != null, child: _buildOsd()),
+                  ExcludeFocus(
+                    excluding: _picker != null || _guideOpen,
+                    child: FocusScope(node: _osdScopeNode, child: _buildOsd()),
+                  ),
                 if (_picker != null)
                   _buildTrackPicker(AppLocalizations.of(context)!),
                 if (_guideOpen && _liveContentId != null)
@@ -517,6 +590,10 @@ class _PlayerScreenState extends State<PlayerScreen> {
                       ],
                     ),
                   ),
+                  // Hora actual y fin de la reproducción (solo VOD/series),
+                  // en la esquina superior derecha del OSD.
+                  if (_contentType == 'vod' || _contentType == 'series')
+                    _PlaybackClock(player: _bloc.player),
                 ],
               ),
               const Spacer(),
@@ -561,11 +638,7 @@ class _PlayerScreenState extends State<PlayerScreen> {
                   tooltip: l10n.epgGuide,
                   icon: const Icon(Icons.calendar_view_day),
                   color: Colors.white,
-                  onPressed: () {
-                    _scheduleHide();
-                    setState(() => _guideOpen = true);
-                    _liveContentId ??= streamId;
-                  },
+                  onPressed: () => _openGuide(streamId: streamId),
                 ),
             ],
           );
@@ -635,6 +708,41 @@ class _PlayerScreenState extends State<PlayerScreen> {
     );
   }
 
+  /// Chip con la resolución real del vídeo (480p, 720p, 1080p...).
+  Widget _buildResolutionChip() {
+    return StreamBuilder<int?>(
+      stream: _bloc.player.stream.height,
+      initialData: _bloc.player.state.height,
+      builder: (context, snapshot) {
+        final int? height =
+            snapshot.data ??
+            _bloc.player.state.videoParams.dh ??
+            _bloc.player.state.height;
+        final String? label = videoResolutionLabel(height);
+        if (label == null) return const SizedBox.shrink();
+        return Padding(
+          padding: const EdgeInsets.only(right: 8),
+          child: Container(
+            padding: const EdgeInsets.symmetric(horizontal: 7, vertical: 2),
+            decoration: BoxDecoration(
+              color: Colors.white,
+              borderRadius: BorderRadius.circular(3),
+            ),
+            child: Text(
+              label,
+              style: const TextStyle(
+                color: Colors.black,
+                fontSize: 11,
+                fontWeight: FontWeight.w700,
+                height: 1.1,
+              ),
+            ),
+          ),
+        );
+      },
+    );
+  }
+
   Widget _buildControlBar(AppLocalizations l10n) {
     return Container(
       decoration: const BoxDecoration(
@@ -680,11 +788,8 @@ class _PlayerScreenState extends State<PlayerScreen> {
             icon: const Icon(Icons.subtitles, color: Colors.white, size: 28),
             onPressed: () => _openPicker(_TrackPickerMode.subtitles),
           ),
-          // Reloj con la hora de fin, solo en películas y series. Va dentro del
-          // OSD (se oculta con él), junto a los controles.
-          if (_contentType == 'vod' || _contentType == 'series')
-            _PlaybackClock(player: _bloc.player),
           const Spacer(),
+          _buildResolutionChip(),
           StreamBuilder<double>(
             stream: _bloc.player.stream.volume,
             initialData: _bloc.player.state.volume,
@@ -739,87 +844,89 @@ class _PlayerScreenState extends State<PlayerScreen> {
     });
 
     return Positioned.fill(
-      child: GestureDetector(
-        behavior: HitTestBehavior.opaque,
-        onTap: () {
-          setState(() => _guideOpen = false);
-          _scheduleHide();
-        },
-        child: Container(
-          color: Colors.black87,
-          alignment: Alignment.center,
-          child: Material(
-            color: context.colors.surface,
-            borderRadius: BorderRadius.circular(16),
-            clipBehavior: Clip.antiAlias,
-            child: ConstrainedBox(
-              constraints: const BoxConstraints(maxWidth: 640, maxHeight: 500),
-              child: Column(
-                children: <Widget>[
-                  Padding(
-                    padding: const EdgeInsets.fromLTRB(16, 12, 8, 4),
-                    child: Row(
-                      children: <Widget>[
-                        Icon(
-                          Icons.calendar_view_day,
-                          color: context.colors.primary,
-                        ),
-                        const SizedBox(width: 12),
-                        Expanded(
-                          child: Text(
-                            l10n.epgGuide,
-                            style: TextStyle(
-                              fontWeight: FontWeight.bold,
-                              color: context.colors.onSurface,
+      child: FocusScope(
+        node: _guideScopeNode,
+        child: GestureDetector(
+          behavior: HitTestBehavior.opaque,
+          onTap: _closeGuide,
+          child: Container(
+            color: Colors.black87,
+            alignment: Alignment.center,
+            child: Material(
+              color: context.colors.surface,
+              borderRadius: BorderRadius.circular(16),
+              clipBehavior: Clip.antiAlias,
+              child: ConstrainedBox(
+                constraints: const BoxConstraints(
+                  maxWidth: 640,
+                  maxHeight: 500,
+                ),
+                child: Column(
+                  children: <Widget>[
+                    Padding(
+                      padding: const EdgeInsets.fromLTRB(16, 12, 8, 4),
+                      child: Row(
+                        children: <Widget>[
+                          Icon(
+                            Icons.calendar_view_day,
+                            color: context.colors.primary,
+                          ),
+                          const SizedBox(width: 12),
+                          Expanded(
+                            child: Text(
+                              l10n.epgGuide,
+                              style: TextStyle(
+                                fontWeight: FontWeight.bold,
+                                color: context.colors.onSurface,
+                              ),
                             ),
                           ),
-                        ),
-                        IconButton(
-                          tooltip: l10n.close,
-                          icon: Icon(
-                            Icons.close,
-                            color: context.colors.onSurface,
+                          IconButton(
+                            focusNode: _guideCloseFocusNode,
+                            tooltip: l10n.close,
+                            icon: Icon(
+                              Icons.close,
+                              color: context.colors.onSurface,
+                            ),
+                            onPressed: _closeGuide,
                           ),
-                          onPressed: () {
-                            setState(() => _guideOpen = false);
-                            _scheduleHide();
-                          },
-                        ),
-                      ],
+                        ],
+                      ),
                     ),
-                  ),
-                  const Divider(height: 1),
-                  Expanded(
-                    child: BlocBuilder<EpgBloc, EpgState>(
-                      buildWhen: (previous, current) => switch (current) {
-                        EpgGuideLoaded() => current.streamId == streamId,
-                        EpgLoading() => current.streamId == streamId,
-                        EpgEmpty() => current.streamId == streamId,
-                        EpgFailure() => current.streamId == streamId,
-                        _ => false,
-                      },
-                      builder: (context, state) {
-                        switch (state) {
-                          case EpgGuideLoaded() when state.streamId == streamId:
-                            return state.entries.isEmpty
-                                ? Center(child: Text(l10n.epgNoProgram))
-                                : _buildGuideList(state.entries);
-                          case EpgLoading() when state.streamId == streamId:
-                          case EpgEmpty() when state.streamId == streamId:
-                            return Center(child: Text(l10n.epgNoProgram));
-                          case EpgFailure() when state.streamId == streamId:
-                            return Center(child: Text(l10n.epgLoadError));
-                          default:
-                            return Center(
-                              child: CircularProgressIndicator(
-                                color: context.colors.primary,
-                              ),
-                            );
-                        }
-                      },
+                    const Divider(height: 1),
+                    Expanded(
+                      child: BlocBuilder<EpgBloc, EpgState>(
+                        buildWhen: (previous, current) => switch (current) {
+                          EpgGuideLoaded() => current.streamId == streamId,
+                          EpgLoading() => current.streamId == streamId,
+                          EpgEmpty() => current.streamId == streamId,
+                          EpgFailure() => current.streamId == streamId,
+                          _ => false,
+                        },
+                        builder: (context, state) {
+                          switch (state) {
+                            case EpgGuideLoaded()
+                                when state.streamId == streamId:
+                              return state.entries.isEmpty
+                                  ? Center(child: Text(l10n.epgNoProgram))
+                                  : _buildGuideList(state.entries);
+                            case EpgLoading() when state.streamId == streamId:
+                            case EpgEmpty() when state.streamId == streamId:
+                              return Center(child: Text(l10n.epgNoProgram));
+                            case EpgFailure() when state.streamId == streamId:
+                              return Center(child: Text(l10n.epgLoadError));
+                            default:
+                              return Center(
+                                child: CircularProgressIndicator(
+                                  color: context.colors.primary,
+                                ),
+                              );
+                          }
+                        },
+                      ),
                     ),
-                  ),
-                ],
+                  ],
+                ),
               ),
             ),
           ),
@@ -828,14 +935,46 @@ class _PlayerScreenState extends State<PlayerScreen> {
     );
   }
 
+  Future<void> _playCatchupFromGuide(EpgEntry entry) async {
+    final int? streamId = _liveContentId;
+    if (streamId == null) return;
+    final IptvRepository repository = context.read<IptvRepository>();
+    final String? url = await repository.buildCatchupUrl(
+      streamId: streamId,
+      hasArchive: _hasArchive,
+      archiveDurationDays: _archiveDurationDays,
+      program: entry,
+    );
+    if (!mounted) return;
+    if (url == null) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(
+          content: Text(AppLocalizations.of(context)!.catchupUnavailable),
+        ),
+      );
+      return;
+    }
+    _closeGuide();
+    PlaybackScope.of(context).play(
+      PlaybackRequest(
+        title: '$_channelTitle · ${entry.title}',
+        urlBuilder: () async => url,
+        contentType: 'live',
+        contentId: streamId,
+        hasArchive: _hasArchive,
+        archiveDurationDays: _archiveDurationDays,
+        channelTitle: _channelTitle,
+      ),
+    );
+  }
+
   Widget _buildGuideList(List<EpgEntry> entries) {
-    return ListView.builder(
-      padding: const EdgeInsets.symmetric(vertical: 8),
-      itemCount: entries.length,
-      itemBuilder: (context, index) {
-        final EpgEntry entry = entries[index];
-        return _GuideTile(entry: entry, isOnAir: entry.isOnAir(DateTime.now()));
-      },
+    return ProgramGuideList(
+      entries: entries,
+      hasArchive: _hasArchive,
+      archiveDurationDays: _archiveDurationDays,
+      onPlay: _playCatchupFromGuide,
+      compact: true,
     );
   }
 
@@ -997,10 +1136,10 @@ class _PlayerScreenState extends State<PlayerScreen> {
 
 /// Reloj de reproducción (solo VOD/series): hora actual y hora estimada de fin.
 ///
-/// Vive dentro del OSD, junto a los controles, y se oculta con él. La hora de
-/// fin se calcula siempre con la hora actual: si el vídeo está en pausa, el
-/// tiempo restante no cambia pero el reloj sí avanza, por lo que la hora de fin
-/// se desplaza hacia delante.
+/// Se muestra en la esquina superior derecha del OSD (fuera de la barra de
+/// controles) y se oculta con él. La hora de fin se calcula siempre con la hora
+/// actual: si el vídeo está en pausa, el tiempo restante no cambia pero el reloj
+/// sí avanza, por lo que la hora de fin se desplaza hacia delante.
 class _PlaybackClock extends StatefulWidget {
   const _PlaybackClock({required this.player});
 
@@ -1051,24 +1190,16 @@ class _PlaybackClockState extends State<_PlaybackClock> {
   }
 
   String _format(BuildContext context, DateTime value, bool clock24h) {
-    return MaterialLocalizations.of(context).formatTimeOfDay(
+    return formatClockTime(
       TimeOfDay.fromDateTime(value),
-      alwaysUse24HourFormat: clock24h,
+      clock24h: clock24h,
+      localizations: MaterialLocalizations.of(context),
     );
   }
 
   @override
   Widget build(BuildContext context) {
     return BlocBuilder<SettingsBloc, SettingsState>(
-      buildWhen: (SettingsState previous, SettingsState current) {
-        final bool previous24h = previous is SettingsLoaded
-            ? previous.clock24h
-            : true;
-        final bool current24h = current is SettingsLoaded
-            ? current.clock24h
-            : true;
-        return previous24h != current24h;
-      },
       builder: (context, state) {
         final AppLocalizations l10n = AppLocalizations.of(context)!;
         final bool clock24h = state is SettingsLoaded ? state.clock24h : true;
@@ -1077,7 +1208,7 @@ class _PlaybackClockState extends State<_PlaybackClock> {
             ? null
             : l10n.endsAt(_format(context, _endsAt!, clock24h));
         return Container(
-          margin: const EdgeInsets.only(left: 8),
+          margin: const EdgeInsets.only(left: 8, right: 12),
           padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
           decoration: BoxDecoration(
             color: Colors.white.withValues(alpha: 0.10),
@@ -1131,73 +1262,4 @@ class _ErrorOverlay extends StatelessWidget {
       ),
     );
   }
-}
-
-/// Fila de programa de la guía embebida, con el actual resaltado.
-class _GuideTile extends StatelessWidget {
-  const _GuideTile({required this.entry, required this.isOnAir});
-
-  final EpgEntry entry;
-  final bool isOnAir;
-
-  @override
-  Widget build(BuildContext context) {
-    final String time =
-        '${_two(entry.start.hour)}:${_two(entry.start.minute)}'
-        ' - ${_two(entry.end.hour)}:${_two(entry.end.minute)}';
-    final AppColors colors = context.colors;
-
-    return Container(
-      margin: const EdgeInsets.symmetric(horizontal: 12, vertical: 4),
-      padding: const EdgeInsets.all(10),
-      decoration: BoxDecoration(
-        color: isOnAir ? colors.primaryContainer : colors.surfaceVariant,
-        borderRadius: BorderRadius.circular(8),
-      ),
-      child: Row(
-        children: <Widget>[
-          SizedBox(
-            width: 78,
-            child: Text(
-              time,
-              style: TextStyle(
-                color: isOnAir ? colors.primary : colors.onSurface,
-                fontWeight: FontWeight.w600,
-              ),
-            ),
-          ),
-          const SizedBox(width: 12),
-          Expanded(
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: <Widget>[
-                Text(
-                  entry.title,
-                  maxLines: 2,
-                  overflow: TextOverflow.ellipsis,
-                  style: TextStyle(
-                    fontWeight: isOnAir ? FontWeight.bold : FontWeight.normal,
-                  ),
-                ),
-                if (entry.description?.isNotEmpty == true) ...<Widget>[
-                  const SizedBox(height: 4),
-                  Text(
-                    entry.description!,
-                    maxLines: 2,
-                    overflow: TextOverflow.ellipsis,
-                    style: TextStyle(
-                      color: colors.onSurfaceVariant,
-                      fontSize: 12,
-                    ),
-                  ),
-                ],
-              ],
-            ),
-          ),
-        ],
-      ),
-    );
-  }
-
-  static String _two(int value) => value.toString().padLeft(2, '0');
 }

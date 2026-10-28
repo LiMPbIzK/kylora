@@ -18,7 +18,7 @@ abstract interface class IptvRepository {
   ///
   /// [config] contiene los parámetros específicos de cada fuente
   /// (Xtream: servidor/usuario/contraseña; M3U: URL de playlist/XMLTV).
-  Future<UserAccount> login(IptvAuthConfig config);
+  Future<UserAccount> login(IptvAuthConfig config, {bool activate = true});
 
   /// Restaura la sesión guardada sin requerir credenciales.
   Future<UserAccount?> restoreSession();
@@ -34,6 +34,15 @@ abstract interface class IptvRepository {
 
   /// Construye la URL de reproducción de un canal en directo.
   Future<String> buildStreamUrl(Channel channel);
+
+  /// Construye la URL de catch-up de un programa, o null si la fuente no lo
+  /// soporta o el programa queda fuera de la ventana de archivo.
+  Future<String?> buildCatchupUrl({
+    required int streamId,
+    required bool hasArchive,
+    int? archiveDurationDays,
+    required EpgEntry program,
+  });
 
   /// Categorías de películas (VOD).
   Future<List<Category>> fetchVodCategories();

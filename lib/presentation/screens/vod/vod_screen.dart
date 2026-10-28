@@ -3,6 +3,8 @@ import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:go_router/go_router.dart';
 
 import '../../../app.dart';
+import '../../../core/media/playback_controller.dart';
+import '../../../core/media/playback_request.dart';
 import '../../../core/theme/app_theme.dart';
 import '../../../domain/entities/content_type.dart';
 import '../../../domain/entities/favorite_item.dart';
@@ -20,7 +22,10 @@ import '../../shared_widgets/catalog_search_field.dart';
 import '../../shared_widgets/category_sidebar.dart';
 import '../../shared_widgets/media_poster.dart';
 import '../../shared_widgets/resume_row.dart';
+import '../../shared_widgets/tv_context_menu.dart';
 import '../../shared_widgets/tv_focusable.dart';
+import '../../shared_widgets/tv_marquee_text.dart';
+import '../player/playback_scope.dart';
 
 /// Catálogo de películas (VOD) con rejilla de pósters y categorías.
 class VodScreen extends StatefulWidget {
@@ -34,6 +39,9 @@ class _VodScreenState extends State<VodScreen> {
   final TextEditingController _searchController = TextEditingController();
   final FocusNode _firstResultFocus = FocusNode();
   final FocusNode _firstCategoryFocus = FocusNode();
+
+  PlaybackController? _playback;
+  bool _wasPlaying = false;
 
   @override
   void initState() {
@@ -50,7 +58,37 @@ class _VodScreenState extends State<VodScreen> {
   }
 
   @override
+  void didChangeDependencies() {
+    super.didChangeDependencies();
+    final PlaybackController controller = PlaybackScope.of(context);
+    if (!identical(controller, _playback)) {
+      _playback?.removeListener(_onPlaybackChanged);
+      _playback = controller..addListener(_onPlaybackChanged);
+      _wasPlaying = controller.isPlaying;
+    }
+  }
+
+  /// Si al cerrar el reproductor el overlay no pudo devolver el foco a la
+  /// tarjeta, deja el foco en la categoría seleccionada para que el D-Pad siga
+  /// respondiendo.
+  void _onPlaybackChanged() {
+    final bool playing = _playback?.isPlaying ?? false;
+    if (playing == _wasPlaying) return;
+    _wasPlaying = playing;
+    if (playing) return;
+    Future<void>.delayed(const Duration(milliseconds: 220), () {
+      if (!mounted) return;
+      if (ModalRoute.of(context)?.isCurrent != true) return;
+      if (FocusScope.of(context).hasFocus) return;
+      if (_firstCategoryFocus.context != null) {
+        _firstCategoryFocus.requestFocus();
+      }
+    });
+  }
+
+  @override
   void dispose() {
+    _playback?.removeListener(_onPlaybackChanged);
     _searchController.dispose();
     _firstResultFocus.dispose();
     _firstCategoryFocus.dispose();
@@ -211,7 +249,7 @@ class _VodContent extends StatelessWidget {
                               return _MovieCard(
                                 movie: movie,
                                 isFavorite: favoriteIds.contains(movie.id),
-                                autofocus: index == 0,
+                                autofocus: false,
                                 focusNode: index == 0 ? firstResultFocus : null,
                               );
                             },
@@ -227,8 +265,11 @@ class _VodContent extends StatelessWidget {
   }
 }
 
+/// Acciones del menú contextual de una tarjeta de película.
+enum _MovieAction { play, favorite, details }
+
 /// Tarjeta de película con póster, título y favorito.
-class _MovieCard extends StatelessWidget {
+class _MovieCard extends StatefulWidget {
   const _MovieCard({
     required this.movie,
     this.isFavorite = false,
@@ -242,17 +283,40 @@ class _MovieCard extends StatelessWidget {
   final FocusNode? focusNode;
 
   @override
+  State<_MovieCard> createState() => _MovieCardState();
+}
+
+class _MovieCardState extends State<_MovieCard> {
+  FocusNode? _internalFocusNode;
+
+  FocusNode get _cardFocusNode =>
+      widget.focusNode ??
+      (_internalFocusNode ??= FocusNode(debugLabel: 'movie-card'));
+
+  @override
+  void dispose() {
+    _internalFocusNode?.dispose();
+    super.dispose();
+  }
+
+  void _openDetails() {
+    context.push(Routes.movieDetail, extra: widget.movie);
+  }
+
+  @override
   Widget build(BuildContext context) {
     return TvFocusable(
-      autofocus: autofocus,
-      focusNode: focusNode,
+      autofocus: widget.autofocus,
+      focusNode: _cardFocusNode,
       borderRadius: BorderRadius.circular(8),
-      onPressed: () => context.push(Routes.movieDetail, extra: movie),
+      onPressed: _openDetails,
+      onLongPress: _showContextMenu,
       child: InkWell(
+        canRequestFocus: false,
         borderRadius: BorderRadius.circular(8),
-        onTap: () => context.push(Routes.movieDetail, extra: movie),
-        onLongPress: () => _toggleFavorite(context),
-        onSecondaryTap: () => _toggleFavorite(context),
+        onTap: _openDetails,
+        onLongPress: _showContextMenu,
+        onSecondaryTap: _showContextMenu,
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: <Widget>[
@@ -260,14 +324,17 @@ class _MovieCard extends StatelessWidget {
               child: Stack(
                 fit: StackFit.expand,
                 children: <Widget>[
-                  MediaPoster(url: movie.streamIcon, fallbackIcon: Icons.movie),
+                  MediaPoster(
+                    url: widget.movie.streamIcon,
+                    fallbackIcon: Icons.movie,
+                  ),
                   Positioned(
                     top: 4,
                     left: 4,
                     child: Icon(
                       Icons.favorite,
                       size: 18,
-                      color: isFavorite
+                      color: widget.isFavorite
                           ? context.colors.secondary
                           : Colors.transparent,
                       semanticLabel: AppLocalizations.of(context)!.favorites,
@@ -277,10 +344,9 @@ class _MovieCard extends StatelessWidget {
               ),
             ),
             const SizedBox(height: 6),
-            Text(
-              movie.name,
+            TvMarqueeText(
+              text: widget.movie.name,
               maxLines: 2,
-              overflow: TextOverflow.ellipsis,
               style: Theme.of(context).textTheme.bodySmall,
             ),
           ],
@@ -289,19 +355,75 @@ class _MovieCard extends StatelessWidget {
     );
   }
 
-  Future<void> _toggleFavorite(BuildContext context) async {
+  Future<void> _showContextMenu() async {
+    final AppLocalizations l10n = AppLocalizations.of(context)!;
+    final _MovieAction? action = await showTvContextMenu<_MovieAction>(
+      context: context,
+      entries: <TvContextMenuEntry<_MovieAction>>[
+        TvContextMenuEntry<_MovieAction>(
+          value: _MovieAction.play,
+          icon: Icons.play_arrow,
+          label: l10n.play,
+        ),
+        TvContextMenuEntry<_MovieAction>(
+          value: _MovieAction.favorite,
+          icon: widget.isFavorite ? Icons.favorite : Icons.favorite_border,
+          iconColor: widget.isFavorite ? context.colors.secondary : null,
+          label: l10n.favorites,
+        ),
+        TvContextMenuEntry<_MovieAction>(
+          value: _MovieAction.details,
+          icon: Icons.info_outline,
+          label: l10n.viewDetails,
+        ),
+      ],
+    );
+
+    if (!mounted) return;
+    // El foco vuelve a la tarjeta antes de reproducir para que el reproductor
+    // guarde este nodo y lo restaure al cerrar el vídeo.
+    _cardFocusNode.requestFocus();
+    switch (action) {
+      case _MovieAction.play:
+        _play();
+      case _MovieAction.favorite:
+        await _toggleFavorite();
+      case _MovieAction.details:
+        _openDetails();
+      case null:
+        break;
+    }
+  }
+
+  void _play() {
+    final IptvRepository repository = context.read<IptvRepository>();
+    PlaybackScope.of(context).play(
+      PlaybackRequest(
+        title: widget.movie.name,
+        urlBuilder: () => repository.buildVodStreamUrl(widget.movie),
+        contentType: 'vod',
+        contentId: widget.movie.id,
+        logo: widget.movie.streamIcon,
+      ),
+    );
+  }
+
+  Future<void> _toggleFavorite() async {
     final IptvRepository repository = context.read<IptvRepository>();
     final FavoritesBloc favoritesBloc = context.read<FavoritesBloc>();
     final AppLocalizations l10n = AppLocalizations.of(context)!;
     final ScaffoldMessengerState messenger = ScaffoldMessenger.of(context);
 
-    final bool isFav = await repository.isFavorite(movie.id, ContentType.vod);
+    final bool isFav = await repository.isFavorite(
+      widget.movie.id,
+      ContentType.vod,
+    );
     favoritesBloc.add(
       FavoritesToggled(
-        movie.id,
+        widget.movie.id,
         ContentType.vod.name,
-        movie.name,
-        movie.streamIcon,
+        widget.movie.name,
+        widget.movie.streamIcon,
       ),
     );
     favoritesBloc.add(FavoritesStarted());

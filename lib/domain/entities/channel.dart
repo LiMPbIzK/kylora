@@ -9,6 +9,8 @@ class Channel extends Equatable {
     this.number,
     this.logo,
     this.epgChannelId,
+    this.hasArchive = false,
+    this.archiveDurationDays,
   });
 
   /// Identificador único del stream en la fuente.
@@ -28,6 +30,21 @@ class Channel extends Equatable {
   /// Identificador de canal para el EPG (XMLTV).
   final String? epgChannelId;
 
+  /// El proveedor ofrece catch-up/timeshift para este canal.
+  final bool hasArchive;
+
+  /// Días de archivo disponibles según el proveedor (si se conocen).
+  final int? archiveDurationDays;
+
   @override
-  List<Object?> get props => [id, name, categoryId, number, logo, epgChannelId];
+  List<Object?> get props => <Object?>[
+    id,
+    name,
+    categoryId,
+    number,
+    logo,
+    epgChannelId,
+    hasArchive,
+    archiveDurationDays,
+  ];
 }

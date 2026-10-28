@@ -354,6 +354,31 @@ class $LiveChannelsTable extends LiveChannels
     type: DriftSqlType.string,
     requiredDuringInsert: false,
   );
+  static const VerificationMeta _hasArchiveMeta = const VerificationMeta(
+    'hasArchive',
+  );
+  @override
+  late final GeneratedColumn<bool> hasArchive = GeneratedColumn<bool>(
+    'has_archive',
+    aliasedName,
+    false,
+    type: DriftSqlType.bool,
+    requiredDuringInsert: false,
+    defaultConstraints: GeneratedColumn.constraintIsAlways(
+      'CHECK ("has_archive" IN (0, 1))',
+    ),
+    defaultValue: const Constant(false),
+  );
+  static const VerificationMeta _archiveDurationDaysMeta =
+      const VerificationMeta('archiveDurationDays');
+  @override
+  late final GeneratedColumn<int> archiveDurationDays = GeneratedColumn<int>(
+    'archive_duration_days',
+    aliasedName,
+    true,
+    type: DriftSqlType.int,
+    requiredDuringInsert: false,
+  );
   @override
   List<GeneratedColumn> get $columns => [
     accountKey,
@@ -364,6 +389,8 @@ class $LiveChannelsTable extends LiveChannels
     number,
     logo,
     epgChannelId,
+    hasArchive,
+    archiveDurationDays,
   ];
   @override
   String get aliasedName => _alias ?? actualTableName;
@@ -431,6 +458,21 @@ class $LiveChannelsTable extends LiveChannels
         ),
       );
     }
+    if (data.containsKey('has_archive')) {
+      context.handle(
+        _hasArchiveMeta,
+        hasArchive.isAcceptableOrUnknown(data['has_archive']!, _hasArchiveMeta),
+      );
+    }
+    if (data.containsKey('archive_duration_days')) {
+      context.handle(
+        _archiveDurationDaysMeta,
+        archiveDurationDays.isAcceptableOrUnknown(
+          data['archive_duration_days']!,
+          _archiveDurationDaysMeta,
+        ),
+      );
+    }
     return context;
   }
 
@@ -472,6 +514,14 @@ class $LiveChannelsTable extends LiveChannels
         DriftSqlType.string,
         data['${effectivePrefix}epg_channel_id'],
       ),
+      hasArchive: attachedDatabase.typeMapping.read(
+        DriftSqlType.bool,
+        data['${effectivePrefix}has_archive'],
+      )!,
+      archiveDurationDays: attachedDatabase.typeMapping.read(
+        DriftSqlType.int,
+        data['${effectivePrefix}archive_duration_days'],
+      ),
     );
   }
 
@@ -491,6 +541,8 @@ class LiveChannel extends DataClass implements Insertable<LiveChannel> {
   final int? number;
   final String? logo;
   final String? epgChannelId;
+  final bool hasArchive;
+  final int? archiveDurationDays;
   const LiveChannel({
     required this.accountKey,
     required this.id,
@@ -500,6 +552,8 @@ class LiveChannel extends DataClass implements Insertable<LiveChannel> {
     this.number,
     this.logo,
     this.epgChannelId,
+    required this.hasArchive,
+    this.archiveDurationDays,
   });
   @override
   Map<String, Expression> toColumns(bool nullToAbsent) {
@@ -518,6 +572,10 @@ class LiveChannel extends DataClass implements Insertable<LiveChannel> {
     if (!nullToAbsent || epgChannelId != null) {
       map['epg_channel_id'] = Variable<String>(epgChannelId);
     }
+    map['has_archive'] = Variable<bool>(hasArchive);
+    if (!nullToAbsent || archiveDurationDays != null) {
+      map['archive_duration_days'] = Variable<int>(archiveDurationDays);
+    }
     return map;
   }
 
@@ -535,6 +593,10 @@ class LiveChannel extends DataClass implements Insertable<LiveChannel> {
       epgChannelId: epgChannelId == null && nullToAbsent
           ? const Value.absent()
           : Value(epgChannelId),
+      hasArchive: Value(hasArchive),
+      archiveDurationDays: archiveDurationDays == null && nullToAbsent
+          ? const Value.absent()
+          : Value(archiveDurationDays),
     );
   }
 
@@ -552,6 +614,10 @@ class LiveChannel extends DataClass implements Insertable<LiveChannel> {
       number: serializer.fromJson<int?>(json['number']),
       logo: serializer.fromJson<String?>(json['logo']),
       epgChannelId: serializer.fromJson<String?>(json['epgChannelId']),
+      hasArchive: serializer.fromJson<bool>(json['hasArchive']),
+      archiveDurationDays: serializer.fromJson<int?>(
+        json['archiveDurationDays'],
+      ),
     );
   }
   @override
@@ -566,6 +632,8 @@ class LiveChannel extends DataClass implements Insertable<LiveChannel> {
       'number': serializer.toJson<int?>(number),
       'logo': serializer.toJson<String?>(logo),
       'epgChannelId': serializer.toJson<String?>(epgChannelId),
+      'hasArchive': serializer.toJson<bool>(hasArchive),
+      'archiveDurationDays': serializer.toJson<int?>(archiveDurationDays),
     };
   }
 
@@ -578,6 +646,8 @@ class LiveChannel extends DataClass implements Insertable<LiveChannel> {
     Value<int?> number = const Value.absent(),
     Value<String?> logo = const Value.absent(),
     Value<String?> epgChannelId = const Value.absent(),
+    bool? hasArchive,
+    Value<int?> archiveDurationDays = const Value.absent(),
   }) => LiveChannel(
     accountKey: accountKey ?? this.accountKey,
     id: id ?? this.id,
@@ -587,6 +657,10 @@ class LiveChannel extends DataClass implements Insertable<LiveChannel> {
     number: number.present ? number.value : this.number,
     logo: logo.present ? logo.value : this.logo,
     epgChannelId: epgChannelId.present ? epgChannelId.value : this.epgChannelId,
+    hasArchive: hasArchive ?? this.hasArchive,
+    archiveDurationDays: archiveDurationDays.present
+        ? archiveDurationDays.value
+        : this.archiveDurationDays,
   );
   LiveChannel copyWithCompanion(LiveChannelsCompanion data) {
     return LiveChannel(
@@ -604,6 +678,12 @@ class LiveChannel extends DataClass implements Insertable<LiveChannel> {
       epgChannelId: data.epgChannelId.present
           ? data.epgChannelId.value
           : this.epgChannelId,
+      hasArchive: data.hasArchive.present
+          ? data.hasArchive.value
+          : this.hasArchive,
+      archiveDurationDays: data.archiveDurationDays.present
+          ? data.archiveDurationDays.value
+          : this.archiveDurationDays,
     );
   }
 
@@ -617,7 +697,9 @@ class LiveChannel extends DataClass implements Insertable<LiveChannel> {
           ..write('categoryId: $categoryId, ')
           ..write('number: $number, ')
           ..write('logo: $logo, ')
-          ..write('epgChannelId: $epgChannelId')
+          ..write('epgChannelId: $epgChannelId, ')
+          ..write('hasArchive: $hasArchive, ')
+          ..write('archiveDurationDays: $archiveDurationDays')
           ..write(')'))
         .toString();
   }
@@ -632,6 +714,8 @@ class LiveChannel extends DataClass implements Insertable<LiveChannel> {
     number,
     logo,
     epgChannelId,
+    hasArchive,
+    archiveDurationDays,
   );
   @override
   bool operator ==(Object other) =>
@@ -644,7 +728,9 @@ class LiveChannel extends DataClass implements Insertable<LiveChannel> {
           other.categoryId == this.categoryId &&
           other.number == this.number &&
           other.logo == this.logo &&
-          other.epgChannelId == this.epgChannelId);
+          other.epgChannelId == this.epgChannelId &&
+          other.hasArchive == this.hasArchive &&
+          other.archiveDurationDays == this.archiveDurationDays);
 }
 
 class LiveChannelsCompanion extends UpdateCompanion<LiveChannel> {
@@ -656,6 +742,8 @@ class LiveChannelsCompanion extends UpdateCompanion<LiveChannel> {
   final Value<int?> number;
   final Value<String?> logo;
   final Value<String?> epgChannelId;
+  final Value<bool> hasArchive;
+  final Value<int?> archiveDurationDays;
   const LiveChannelsCompanion({
     this.accountKey = const Value.absent(),
     this.id = const Value.absent(),
@@ -665,6 +753,8 @@ class LiveChannelsCompanion extends UpdateCompanion<LiveChannel> {
     this.number = const Value.absent(),
     this.logo = const Value.absent(),
     this.epgChannelId = const Value.absent(),
+    this.hasArchive = const Value.absent(),
+    this.archiveDurationDays = const Value.absent(),
   });
   LiveChannelsCompanion.insert({
     this.accountKey = const Value.absent(),
@@ -675,6 +765,8 @@ class LiveChannelsCompanion extends UpdateCompanion<LiveChannel> {
     this.number = const Value.absent(),
     this.logo = const Value.absent(),
     this.epgChannelId = const Value.absent(),
+    this.hasArchive = const Value.absent(),
+    this.archiveDurationDays = const Value.absent(),
   }) : streamId = Value(streamId),
        name = Value(name),
        categoryId = Value(categoryId);
@@ -687,6 +779,8 @@ class LiveChannelsCompanion extends UpdateCompanion<LiveChannel> {
     Expression<int>? number,
     Expression<String>? logo,
     Expression<String>? epgChannelId,
+    Expression<bool>? hasArchive,
+    Expression<int>? archiveDurationDays,
   }) {
     return RawValuesInsertable({
       if (accountKey != null) 'account_key': accountKey,
@@ -697,6 +791,9 @@ class LiveChannelsCompanion extends UpdateCompanion<LiveChannel> {
       if (number != null) 'number': number,
       if (logo != null) 'logo': logo,
       if (epgChannelId != null) 'epg_channel_id': epgChannelId,
+      if (hasArchive != null) 'has_archive': hasArchive,
+      if (archiveDurationDays != null)
+        'archive_duration_days': archiveDurationDays,
     });
   }
 
@@ -709,6 +806,8 @@ class LiveChannelsCompanion extends UpdateCompanion<LiveChannel> {
     Value<int?>? number,
     Value<String?>? logo,
     Value<String?>? epgChannelId,
+    Value<bool>? hasArchive,
+    Value<int?>? archiveDurationDays,
   }) {
     return LiveChannelsCompanion(
       accountKey: accountKey ?? this.accountKey,
@@ -719,6 +818,8 @@ class LiveChannelsCompanion extends UpdateCompanion<LiveChannel> {
       number: number ?? this.number,
       logo: logo ?? this.logo,
       epgChannelId: epgChannelId ?? this.epgChannelId,
+      hasArchive: hasArchive ?? this.hasArchive,
+      archiveDurationDays: archiveDurationDays ?? this.archiveDurationDays,
     );
   }
 
@@ -749,6 +850,12 @@ class LiveChannelsCompanion extends UpdateCompanion<LiveChannel> {
     if (epgChannelId.present) {
       map['epg_channel_id'] = Variable<String>(epgChannelId.value);
     }
+    if (hasArchive.present) {
+      map['has_archive'] = Variable<bool>(hasArchive.value);
+    }
+    if (archiveDurationDays.present) {
+      map['archive_duration_days'] = Variable<int>(archiveDurationDays.value);
+    }
     return map;
   }
 
@@ -762,7 +869,9 @@ class LiveChannelsCompanion extends UpdateCompanion<LiveChannel> {
           ..write('categoryId: $categoryId, ')
           ..write('number: $number, ')
           ..write('logo: $logo, ')
-          ..write('epgChannelId: $epgChannelId')
+          ..write('epgChannelId: $epgChannelId, ')
+          ..write('hasArchive: $hasArchive, ')
+          ..write('archiveDurationDays: $archiveDurationDays')
           ..write(')'))
         .toString();
   }
@@ -2236,6 +2345,8 @@ typedef $$LiveChannelsTableCreateCompanionBuilder =
       Value<int?> number,
       Value<String?> logo,
       Value<String?> epgChannelId,
+      Value<bool> hasArchive,
+      Value<int?> archiveDurationDays,
     });
 typedef $$LiveChannelsTableUpdateCompanionBuilder =
     LiveChannelsCompanion Function({
@@ -2247,6 +2358,8 @@ typedef $$LiveChannelsTableUpdateCompanionBuilder =
       Value<int?> number,
       Value<String?> logo,
       Value<String?> epgChannelId,
+      Value<bool> hasArchive,
+      Value<int?> archiveDurationDays,
     });
 
 class $$LiveChannelsTableFilterComposer
@@ -2295,6 +2408,16 @@ class $$LiveChannelsTableFilterComposer
 
   ColumnFilters<String> get epgChannelId => $composableBuilder(
     column: $table.epgChannelId,
+    builder: (column) => ColumnFilters(column),
+  );
+
+  ColumnFilters<bool> get hasArchive => $composableBuilder(
+    column: $table.hasArchive,
+    builder: (column) => ColumnFilters(column),
+  );
+
+  ColumnFilters<int> get archiveDurationDays => $composableBuilder(
+    column: $table.archiveDurationDays,
     builder: (column) => ColumnFilters(column),
   );
 }
@@ -2347,6 +2470,16 @@ class $$LiveChannelsTableOrderingComposer
     column: $table.epgChannelId,
     builder: (column) => ColumnOrderings(column),
   );
+
+  ColumnOrderings<bool> get hasArchive => $composableBuilder(
+    column: $table.hasArchive,
+    builder: (column) => ColumnOrderings(column),
+  );
+
+  ColumnOrderings<int> get archiveDurationDays => $composableBuilder(
+    column: $table.archiveDurationDays,
+    builder: (column) => ColumnOrderings(column),
+  );
 }
 
 class $$LiveChannelsTableAnnotationComposer
@@ -2385,6 +2518,16 @@ class $$LiveChannelsTableAnnotationComposer
 
   GeneratedColumn<String> get epgChannelId => $composableBuilder(
     column: $table.epgChannelId,
+    builder: (column) => column,
+  );
+
+  GeneratedColumn<bool> get hasArchive => $composableBuilder(
+    column: $table.hasArchive,
+    builder: (column) => column,
+  );
+
+  GeneratedColumn<int> get archiveDurationDays => $composableBuilder(
+    column: $table.archiveDurationDays,
     builder: (column) => column,
   );
 }
@@ -2428,6 +2571,8 @@ class $$LiveChannelsTableTableManager
                 Value<int?> number = const Value.absent(),
                 Value<String?> logo = const Value.absent(),
                 Value<String?> epgChannelId = const Value.absent(),
+                Value<bool> hasArchive = const Value.absent(),
+                Value<int?> archiveDurationDays = const Value.absent(),
               }) => LiveChannelsCompanion(
                 accountKey: accountKey,
                 id: id,
@@ -2437,6 +2582,8 @@ class $$LiveChannelsTableTableManager
                 number: number,
                 logo: logo,
                 epgChannelId: epgChannelId,
+                hasArchive: hasArchive,
+                archiveDurationDays: archiveDurationDays,
               ),
           createCompanionCallback:
               ({
@@ -2448,6 +2595,8 @@ class $$LiveChannelsTableTableManager
                 Value<int?> number = const Value.absent(),
                 Value<String?> logo = const Value.absent(),
                 Value<String?> epgChannelId = const Value.absent(),
+                Value<bool> hasArchive = const Value.absent(),
+                Value<int?> archiveDurationDays = const Value.absent(),
               }) => LiveChannelsCompanion.insert(
                 accountKey: accountKey,
                 id: id,
@@ -2457,6 +2606,8 @@ class $$LiveChannelsTableTableManager
                 number: number,
                 logo: logo,
                 epgChannelId: epgChannelId,
+                hasArchive: hasArchive,
+                archiveDurationDays: archiveDurationDays,
               ),
           withReferenceMapper: (p0) => p0
               .map((e) => (e.readTable(table), BaseReferences(db, table, e)))

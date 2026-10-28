@@ -1,5 +1,6 @@
 import 'package:equatable/equatable.dart';
 
+import '../../../domain/entities/saved_account.dart';
 import '../../../domain/entities/user_account.dart';
 
 /// Estado del flujo de autenticación.
@@ -22,12 +23,22 @@ final class AuthUnauthenticated extends AuthState {
 
 /// Sesión activa y cuenta cargada.
 final class AuthAuthenticated extends AuthState {
-  const AuthAuthenticated({required this.account});
+  const AuthAuthenticated({
+    required this.account,
+    this.accounts = const <SavedAccount>[],
+    this.activeAccountId,
+  });
 
   final UserAccount account;
 
+  /// Cuentas guardadas; puede estar vacía en tests sin almacén de cuentas.
+  final List<SavedAccount> accounts;
+
+  /// Identificador de la cuenta activa (huella de sus credenciales).
+  final String? activeAccountId;
+
   @override
-  List<Object?> get props => [account];
+  List<Object?> get props => <Object?>[account, accounts, activeAccountId];
 }
 
 /// Fallo de autenticación con mensaje informativo.

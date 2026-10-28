@@ -1,7 +1,10 @@
 import 'package:cached_network_image/cached_network_image.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
+import 'package:go_router/go_router.dart';
 
+import '../../../app.dart';
+import '../../../core/media/playback_controller.dart';
 import '../../../core/media/playback_request.dart';
 import '../../../core/theme/app_theme.dart';
 import '../../../domain/entities/channel.dart';
@@ -22,7 +25,9 @@ import '../../blocs/live/live_state.dart';
 import '../../blocs/search/search_visibility_cubit.dart';
 import '../../shared_widgets/catalog_search_field.dart';
 import '../../shared_widgets/category_sidebar.dart';
+import '../../shared_widgets/tv_context_menu.dart';
 import '../../shared_widgets/tv_focusable.dart';
+import '../../shared_widgets/tv_marquee_text.dart';
 import '../player/playback_scope.dart';
 
 /// Catálogo de canales en directo con buscador, categorías a la izquierda y
@@ -49,6 +54,9 @@ class _LiveScreenState extends State<LiveScreen> {
   final FocusNode _firstResultFocus = FocusNode();
   final FocusNode _firstCategoryFocus = FocusNode();
 
+  PlaybackController? _playback;
+  bool _wasPlaying = false;
+
   @override
   void initState() {
     super.initState();
@@ -60,7 +68,37 @@ class _LiveScreenState extends State<LiveScreen> {
   }
 
   @override
+  void didChangeDependencies() {
+    super.didChangeDependencies();
+    final PlaybackController controller = PlaybackScope.of(context);
+    if (!identical(controller, _playback)) {
+      _playback?.removeListener(_onPlaybackChanged);
+      _playback = controller..addListener(_onPlaybackChanged);
+      _wasPlaying = controller.isPlaying;
+    }
+  }
+
+  /// Si al cerrar el reproductor el overlay no pudo devolver el foco a la
+  /// tarjeta, deja el foco en la categoría seleccionada para que el D-Pad siga
+  /// respondiendo.
+  void _onPlaybackChanged() {
+    final bool playing = _playback?.isPlaying ?? false;
+    if (playing == _wasPlaying) return;
+    _wasPlaying = playing;
+    if (playing) return;
+    Future<void>.delayed(const Duration(milliseconds: 220), () {
+      if (!mounted) return;
+      if (ModalRoute.of(context)?.isCurrent != true) return;
+      if (FocusScope.of(context).hasFocus) return;
+      if (_firstCategoryFocus.context != null) {
+        _firstCategoryFocus.requestFocus();
+      }
+    });
+  }
+
+  @override
   void dispose() {
+    _playback?.removeListener(_onPlaybackChanged);
     _searchController.dispose();
     _firstResultFocus.dispose();
     _firstCategoryFocus.dispose();
@@ -228,7 +266,7 @@ class _ChannelsGrid extends StatelessWidget {
             return _ChannelCard(
               channel: channels[index],
               isFavorite: favoriteIds.contains(channels[index].id),
-              autofocus: index == 0,
+              autofocus: false,
               focusNode: index == 0 ? firstResultFocus : null,
               showEpg: showEpg,
             );
@@ -264,6 +302,11 @@ class _ChannelCard extends StatefulWidget {
 
 class _ChannelCardState extends State<_ChannelCard> {
   bool _hasGuide = false;
+  FocusNode? _internalFocusNode;
+
+  FocusNode get _cardFocusNode =>
+      widget.focusNode ??
+      (_internalFocusNode ??= FocusNode(debugLabel: 'channel-card'));
 
   @override
   void initState() {
@@ -280,6 +323,12 @@ class _ChannelCardState extends State<_ChannelCard> {
   }
 
   @override
+  void dispose() {
+    _internalFocusNode?.dispose();
+    super.dispose();
+  }
+
+  @override
   Widget build(BuildContext context) {
     return BlocBuilder<EpgBloc, EpgState>(
       buildWhen: (previous, current) =>
@@ -291,13 +340,16 @@ class _ChannelCardState extends State<_ChannelCard> {
         final AppColors colors = context.colors;
         return TvFocusable(
           autofocus: widget.autofocus,
+          focusNode: _cardFocusNode,
           onPressed: _play,
+          onLongPress: _showContextMenu,
           borderRadius: BorderRadius.circular(10),
           child: Material(
             color: colors.surface,
             borderRadius: BorderRadius.circular(10),
             clipBehavior: Clip.antiAlias,
             child: InkWell(
+              canRequestFocus: false,
               onTap: _play,
               onLongPress: _showContextMenu,
               onSecondaryTap: _showContextMenu,
@@ -347,10 +399,9 @@ class _ChannelCardState extends State<_ChannelCard> {
                     child: Column(
                       crossAxisAlignment: CrossAxisAlignment.start,
                       children: <Widget>[
-                        Text(
-                          widget.channel.name,
+                        TvMarqueeText(
+                          text: widget.channel.name,
                           maxLines: 1,
-                          overflow: TextOverflow.ellipsis,
                           style: const TextStyle(fontWeight: FontWeight.w600),
                         ),
                         if (widget.showEpg)
@@ -368,10 +419,6 @@ class _ChannelCardState extends State<_ChannelCard> {
   }
 
   void _play() {
-    _playWithGuide(openGuide: false);
-  }
-
-  void _playWithGuide({bool openGuide = true}) {
     final IptvRepository repository = context.read<IptvRepository>();
     PlaybackScope.of(context).play(
       PlaybackRequest(
@@ -379,82 +426,51 @@ class _ChannelCardState extends State<_ChannelCard> {
         urlBuilder: () => repository.buildStreamUrl(widget.channel),
         contentType: 'live',
         contentId: widget.channel.id,
-        openGuide: openGuide,
+        hasArchive: widget.channel.hasArchive,
+        archiveDurationDays: widget.channel.archiveDurationDays,
+        channelTitle: widget.channel.name,
       ),
     );
   }
 
   Future<void> _showContextMenu() async {
     final AppLocalizations l10n = AppLocalizations.of(context)!;
-    final RenderBox? box = context.findRenderObject() as RenderBox?;
-    final Size screen = MediaQuery.sizeOf(context);
-
-    // Ancla el menú sobre la propia tarjeta (centrado en su posición).
-    RelativeRect position;
-    if (box != null && box.hasSize) {
-      final Offset topLeft = box.localToGlobal(Offset.zero);
-      final Rect anchor = Rect.fromLTWH(
-        topLeft.dx,
-        topLeft.dy,
-        box.size.width,
-        box.size.height,
-      );
-      position = RelativeRect.fromRect(anchor, Offset.zero & screen);
-    } else {
-      position = const RelativeRect.fromLTRB(0, 0, 0, 0);
-    }
-
-    final _ChannelAction? action = await showMenu<_ChannelAction>(
+    final _ChannelAction? action = await showTvContextMenu<_ChannelAction>(
       context: context,
-      position: position,
-      items: <PopupMenuEntry<_ChannelAction>>[
-        PopupMenuItem<_ChannelAction>(
+      entries: <TvContextMenuEntry<_ChannelAction>>[
+        TvContextMenuEntry<_ChannelAction>(
           value: _ChannelAction.play,
-          child: Row(
-            children: <Widget>[
-              const Icon(Icons.play_arrow, size: 20),
-              const SizedBox(width: 12),
-              Text(l10n.play),
-            ],
-          ),
+          icon: Icons.play_arrow,
+          label: l10n.play,
         ),
-        PopupMenuItem<_ChannelAction>(
+        TvContextMenuEntry<_ChannelAction>(
           value: _ChannelAction.favorite,
-          child: Row(
-            children: <Widget>[
-              Icon(
-                widget.isFavorite ? Icons.favorite : Icons.favorite_border,
-                size: 20,
-                color: widget.isFavorite
-                    ? context.colors.secondary
-                    : context.colors.onSurfaceVariant,
-              ),
-              const SizedBox(width: 12),
-              Text(l10n.favorites),
-            ],
-          ),
+          icon: widget.isFavorite ? Icons.favorite : Icons.favorite_border,
+          iconColor: widget.isFavorite ? context.colors.secondary : null,
+          label: l10n.favorites,
         ),
         if (_hasGuide)
-          PopupMenuItem<_ChannelAction>(
+          TvContextMenuEntry<_ChannelAction>(
             value: _ChannelAction.guide,
-            child: Row(
-              children: <Widget>[
-                const Icon(Icons.calendar_view_day, size: 20),
-                const SizedBox(width: 12),
-                Text(l10n.epgGuide),
-              ],
-            ),
+            icon: Icons.calendar_view_day,
+            label: l10n.epgGuide,
           ),
       ],
     );
 
+    if (!mounted) return;
+    // El foco vuelve a la tarjeta antes de reproducir para que el reproductor
+    // guarde este nodo y lo restaure al cerrar el vídeo.
+    _cardFocusNode.requestFocus();
     switch (action) {
       case _ChannelAction.play:
         _play();
       case _ChannelAction.favorite:
         await _toggleFavorite();
       case _ChannelAction.guide:
-        _playWithGuide();
+        // La guía se consulta sin arrancar el canal. Desde ella se puede
+        // entrar con el botón de reproducir.
+        context.push(Routes.programGuide, extra: widget.channel);
       case null:
         break;
     }

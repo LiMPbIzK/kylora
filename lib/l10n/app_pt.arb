@@ -74,7 +74,43 @@
   },
   "changeAccount": "Trocar de conta",
   "@changeAccount": {
-    "description": "Botão para encerrar a sessão e voltar ao login para trocar de conta ou fonte."
+    "description": "Botão para abrir a lista de contas guardadas e ativar outra."
+  },
+  "addAccount": "Adicionar conta",
+  "@addAccount": {
+    "description": "Título e botão para adicionar uma nova conta."
+  },
+  "addAccountFromPhone": "Adicionar pelo telemóvel",
+  "@addAccountFromPhone": {
+    "description": "Botão e título para importar contas pela rede local."
+  },
+  "webImportInstructions": "Leia o QR com um telemóvel ligado ao mesmo Wi-Fi. Também pode abrir o endereço no navegador.",
+  "@webImportInstructions": {
+    "description": "Instruções para abrir a página local das contas."
+  },
+  "webImportStarting": "A iniciar o servidor local…",
+  "@webImportStarting": {
+    "description": "Mensagem durante o arranque do servidor local."
+  },
+  "webImportError": "Não foi possível iniciar o servidor local. Verifique se a TV e o telemóvel estão no mesmo Wi-Fi.",
+  "@webImportError": {
+    "description": "Erro ao iniciar o servidor local."
+  },
+  "webImportLocalOnly": "Apenas rede local: sem Internet nem HTTPS. O host, utilizador e palavra-passe não podem ser alterados pela web; apenas a etiqueta ou apagar a conta.",
+  "@webImportLocalOnly": {
+    "description": "Aviso de segurança da importação web local."
+  },
+  "playFromStart": "Reproduzir desde o início",
+  "@playFromStart": {
+    "description": "Ação para reproduzir um programa passado do arquivo do canal."
+  },
+  "catchupUnavailable": "Este programa não está disponível em catch-up.",
+  "@catchupUnavailable": {
+    "description": "Mensagem quando o catch-up não está disponível."
+  },
+  "selectAccount": "Selecionar conta",
+  "@selectAccount": {
+    "description": "Título da caixa de diálogo para escolher a conta ativa."
   },
   "fullscreen": "Tela cheia",
   "@fullscreen": {
@@ -185,6 +221,10 @@
         "type": "String"
       }
     }
+  },
+  "viewDetails": "Ver detalhes",
+  "@viewDetails": {
+    "description": "Ação do menu contextual para abrir a ficha de detalhes."
   },
   "settingsSectionAccount": "Conta",
   "@settingsSectionAccount": {

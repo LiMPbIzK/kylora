@@ -16,6 +16,7 @@ class EpgBloc extends Bloc<EpgEvent, EpgState> {
   EpgBloc(this._repository) : super(const EpgIdle()) {
     on<EpgNowNextRequested>(_onNowNext);
     on<EpgGuideRequested>(_onGuide);
+    on<EpgCleared>(_onCleared);
   }
 
   final IptvRepository _repository;
@@ -35,7 +36,8 @@ class EpgBloc extends Bloc<EpgEvent, EpgState> {
       emit(cached);
       return;
     }
-    if (state is EpgLoading && (state as EpgLoading).streamId == event.streamId) {
+    if (state is EpgLoading &&
+        (state as EpgLoading).streamId == event.streamId) {
       return;
     }
     emit(EpgLoading(event.streamId));
@@ -70,10 +72,7 @@ class EpgBloc extends Bloc<EpgEvent, EpgState> {
     }
   }
 
-  Future<void> _onGuide(
-    EpgGuideRequested event,
-    Emitter<EpgState> emit,
-  ) async {
+  Future<void> _onGuide(EpgGuideRequested event, Emitter<EpgState> emit) async {
     final EpgGuideLoaded? cached = _guideCache[event.streamId];
     if (cached != null) {
       emit(cached);
@@ -101,6 +100,12 @@ class EpgBloc extends Bloc<EpgEvent, EpgState> {
       }
       emit(EpgFailure(event.streamId));
     }
+  }
+
+  void _onCleared(EpgCleared event, Emitter<EpgState> emit) {
+    _nowNextCache.clear();
+    _guideCache.clear();
+    emit(const EpgIdle());
   }
 
   bool _isFresh(EpgNowNextLoaded loaded) {

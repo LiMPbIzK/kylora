@@ -74,7 +74,43 @@
   },
   "changeAccount": "Cambia account",
   "@changeAccount": {
-    "description": "Pulsante per chiudere la sessione e tornare all'accesso per cambiare account o sorgente."
+    "description": "Pulsante per aprire l'elenco degli account salvati e attivarne un altro."
+  },
+  "addAccount": "Aggiungi account",
+  "@addAccount": {
+    "description": "Titolo e pulsante per aggiungere un nuovo account."
+  },
+  "addAccountFromPhone": "Aggiungi dal telefono",
+  "@addAccountFromPhone": {
+    "description": "Pulsante e titolo per l'importazione locale degli account."
+  },
+  "webImportInstructions": "Scansiona il QR con un telefono connesso alla stessa Wi-Fi. Puoi anche aprire l'indirizzo nel browser.",
+  "@webImportInstructions": {
+    "description": "Istruzioni per aprire la pagina locale degli account."
+  },
+  "webImportStarting": "Avvio del server locale…",
+  "@webImportStarting": {
+    "description": "Messaggio durante l'avvio del server locale."
+  },
+  "webImportError": "Impossibile avviare il server locale. Controlla che TV e telefono siano sulla stessa Wi-Fi.",
+  "@webImportError": {
+    "description": "Errore di avvio del server locale."
+  },
+  "webImportLocalOnly": "Solo rete locale: niente Internet né HTTPS. Host, utente e password non si possono modificare dal web; solo l'etichetta o l'eliminazione dell'account.",
+  "@webImportLocalOnly": {
+    "description": "Avviso di sicurezza per l'importazione web locale."
+  },
+  "playFromStart": "Riproduci dall'inizio",
+  "@playFromStart": {
+    "description": "Azione per riprodurre un programma passato dall'archivio del canale."
+  },
+  "catchupUnavailable": "Questo programma non è disponibile in catch-up.",
+  "@catchupUnavailable": {
+    "description": "Messaggio quando il catch-up non è disponibile."
+  },
+  "selectAccount": "Seleziona account",
+  "@selectAccount": {
+    "description": "Titolo della finestra per scegliere l'account attivo."
   },
   "fullscreen": "Schermo intero",
   "@fullscreen": {
@@ -185,6 +221,10 @@
         "type": "String"
       }
     }
+  },
+  "viewDetails": "Vedi scheda",
+  "@viewDetails": {
+    "description": "Azione del menu contestuale per aprire la scheda dettagliata."
   },
   "settingsSectionAccount": "Account",
   "@settingsSectionAccount": {

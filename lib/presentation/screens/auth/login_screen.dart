@@ -1,6 +1,8 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
+import 'package:go_router/go_router.dart';
 
+import '../../../app.dart';
 import '../../../core/theme/app_theme.dart';
 import '../../../domain/entities/iptv_auth_config.dart';
 import '../../../domain/entities/iptv_source_type.dart';
@@ -11,7 +13,11 @@ import '../../blocs/auth/auth_state.dart';
 
 /// Pantalla de inicio de sesión (Xtream o M3U/XMLTV).
 class LoginScreen extends StatefulWidget {
-  const LoginScreen({super.key});
+  const LoginScreen({super.key, this.addAccount = false});
+
+  /// Si es true, el formulario añade una cuenta a la lista en lugar de ser el
+  /// login inicial de la aplicación.
+  final bool addAccount;
 
   @override
   State<LoginScreen> createState() => _LoginScreenState();
@@ -30,6 +36,7 @@ class _LoginScreenState extends State<LoginScreen> {
   final TextEditingController _playlistController = TextEditingController();
   final TextEditingController _xmltvController = TextEditingController();
   final TextEditingController _m3uNameController = TextEditingController();
+  bool _submitting = false;
 
   @override
   void dispose() {
@@ -43,8 +50,10 @@ class _LoginScreenState extends State<LoginScreen> {
   }
 
   void _submit() {
+    if (_submitting) return;
     if (!_formKey.currentState!.validate()) return;
     FocusScope.of(context).unfocus();
+    setState(() => _submitting = true);
 
     final IptvAuthConfig config = switch (_sourceType) {
       IptvSourceType.xtream => XtreamAuthConfig(
@@ -63,7 +72,9 @@ class _LoginScreenState extends State<LoginScreen> {
       ),
     };
 
-    context.read<AuthBloc>().add(AuthLoginRequested(config));
+    context.read<AuthBloc>().add(
+      AuthLoginRequested(config, activate: !widget.addAccount),
+    );
   }
 
   String? _urlValidator(String? value) {
@@ -90,54 +101,80 @@ class _LoginScreenState extends State<LoginScreen> {
     final AppLocalizations l10n = AppLocalizations.of(context)!;
     final bool isM3u = _sourceType == IptvSourceType.m3u;
 
-    return Scaffold(
-      // El teclado virtual (Android TV/móvil) no debe tapar los campos: el
-      // body se redimensiona (inset) y se pide scroll para subir el activo.
-      resizeToAvoidBottomInset: true,
-      body: SafeArea(
-        child: LayoutBuilder(
-          builder: (context, constraints) {
-            final double bottomInset = MediaQuery.viewInsetsOf(context).bottom;
-            return SingleChildScrollView(
-              padding: EdgeInsets.only(
-                left: 24,
-                right: 24,
-                top: 32,
-                bottom: bottomInset + 16,
-              ),
-              child: ConstrainedBox(
-                constraints: BoxConstraints(
-                  minHeight: constraints.maxHeight - bottomInset,
+    return BlocListener<AuthBloc, AuthState>(
+      listenWhen: (AuthState previous, AuthState current) =>
+          _submitting &&
+          (current is AuthAuthenticated || current is AuthFailure),
+      listener: (BuildContext context, AuthState state) {
+        if (state is AuthAuthenticated && widget.addAccount) {
+          // Volver a la pantalla que abrió el formulario (Ajustes) para no
+          // perder la pila de navegación ni el listener de cambio de cuenta.
+          if (context.canPop()) {
+            context.pop();
+          } else {
+            context.go(Routes.settings);
+          }
+        } else if (state is AuthFailure && mounted) {
+          setState(() => _submitting = false);
+        }
+      },
+      child: Scaffold(
+        appBar: widget.addAccount ? AppBar(title: Text(l10n.addAccount)) : null,
+        // El teclado virtual (Android TV/móvil) no debe tapar los campos: el
+        // body se redimensiona (inset) y se pide scroll para subir el activo.
+        resizeToAvoidBottomInset: true,
+        body: SafeArea(
+          child: LayoutBuilder(
+            builder: (context, constraints) {
+              final double bottomInset = MediaQuery.viewInsetsOf(context)
+                  .bottom;
+              return SingleChildScrollView(
+                padding: EdgeInsets.only(
+                  left: 24,
+                  right: 24,
+                  top: 32,
+                  bottom: bottomInset + 16,
                 ),
-                child: Center(
-                  child: ConstrainedBox(
-                    constraints: const BoxConstraints(maxWidth: 420),
-                    child: _LoginForm(
-                      formKey: _formKey,
-                      l10n: l10n,
-                      isM3u: isM3u,
-                      sourceType: _sourceType,
-                      onSourceChanged: (IptvSourceType type) {
-                        setState(() => _sourceType = type);
-                      },
-                      controllers: _LoginControllers(
-                        server: _serverController,
-                        username: _usernameController,
-                        password: _passwordController,
-                        playlist: _playlistController,
-                        xmltv: _xmltvController,
-                        m3uName: _m3uNameController,
+                child: ConstrainedBox(
+                  constraints: BoxConstraints(
+                    minHeight: constraints.maxHeight - bottomInset,
+                  ),
+                  child: Center(
+                    child: ConstrainedBox(
+                      constraints: const BoxConstraints(maxWidth: 420),
+                      child: _LoginForm(
+                        formKey: _formKey,
+                        l10n: l10n,
+                        isM3u: isM3u,
+                        sourceType: _sourceType,
+                        title: widget.addAccount
+                            ? l10n.addAccount
+                            : l10n.loginTitle,
+                        buttonLabel: widget.addAccount
+                            ? l10n.addAccount
+                            : l10n.loginButton,
+                        onSourceChanged: (IptvSourceType type) {
+                          setState(() => _sourceType = type);
+                        },
+                        controllers: _LoginControllers(
+                          server: _serverController,
+                          username: _usernameController,
+                          password: _passwordController,
+                          playlist: _playlistController,
+                          xmltv: _xmltvController,
+                          m3uName: _m3uNameController,
+                        ),
+                        onFieldSubmitted: _submit,
+                        onSubmitted: _submit,
+                        urlValidator: _urlValidator,
+                        requiredValidator: _requiredValidator,
                       ),
-                      onFieldSubmitted: _submit,
-                      onSubmitted: _submit,
-                      urlValidator: _urlValidator,
-                      requiredValidator: _requiredValidator,
                     ),
                   ),
                 ),
-              ),
-            );
-          },
+              );
+            },
+          ),
         ),
       ),
     );
@@ -192,10 +229,7 @@ class _AutoScrollFieldState extends State<_AutoScrollField> {
 
   @override
   Widget build(BuildContext context) {
-    return KeyedSubtree(
-      key: _fieldKey,
-      child: widget.builder(_focusNode),
-    );
+    return KeyedSubtree(key: _fieldKey, child: widget.builder(_focusNode));
   }
 }
 
@@ -227,6 +261,8 @@ class _LoginForm extends StatefulWidget {
     required this.sourceType,
     required this.onSourceChanged,
     required this.controllers,
+    required this.title,
+    required this.buttonLabel,
     required this.onFieldSubmitted,
     required this.onSubmitted,
     required this.urlValidator,
@@ -237,6 +273,8 @@ class _LoginForm extends StatefulWidget {
   final AppLocalizations l10n;
   final bool isM3u;
   final IptvSourceType sourceType;
+  final String title;
+  final String buttonLabel;
   final ValueChanged<IptvSourceType> onSourceChanged;
   final _LoginControllers controllers;
   final VoidCallback onFieldSubmitted;
@@ -281,7 +319,7 @@ class _LoginFormState extends State<_LoginForm> {
               ),
               const SizedBox(height: 4),
               Text(
-                l10n.loginTitle,
+                widget.title,
                 textAlign: TextAlign.center,
                 style: Theme.of(context).textTheme.titleMedium?.copyWith(
                   color: context.colors.onSurface.withValues(alpha: 0.7),
@@ -410,7 +448,7 @@ class _LoginFormState extends State<_LoginForm> {
                               height: 20,
                               child: CircularProgressIndicator(strokeWidth: 2),
                             )
-                          : Text(l10n.loginButton),
+                          : Text(widget.buttonLabel),
                     ),
                   );
                 },

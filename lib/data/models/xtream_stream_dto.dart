@@ -9,6 +9,8 @@ class XtreamStreamDto {
     this.number,
     this.logo,
     this.epgChannelId,
+    this.hasArchive = false,
+    this.archiveDurationDays,
   });
 
   final int streamId;
@@ -17,6 +19,8 @@ class XtreamStreamDto {
   final int? number;
   final String? logo;
   final String? epgChannelId;
+  final bool hasArchive;
+  final int? archiveDurationDays;
 
   factory XtreamStreamDto.fromJson(Map<String, dynamic> json) {
     return XtreamStreamDto(
@@ -26,6 +30,10 @@ class XtreamStreamDto {
       number: int.tryParse(json['num']?.toString() ?? ''),
       logo: json['stream_icon'] as String?,
       epgChannelId: json['epg_channel_id'] as String?,
+      hasArchive: _asBool(json['tv_archive']),
+      archiveDurationDays: int.tryParse(
+        json['tv_archive_duration']?.toString() ?? '',
+      ),
     );
   }
 
@@ -36,5 +44,13 @@ class XtreamStreamDto {
     number: number,
     logo: logo,
     epgChannelId: epgChannelId,
+    hasArchive: hasArchive,
+    archiveDurationDays: archiveDurationDays,
   );
+
+  static bool _asBool(Object? value) {
+    if (value == true || value == 1) return true;
+    final String text = value?.toString().toLowerCase() ?? '';
+    return text == '1' || text == 'true' || text == 'yes';
+  }
 }

@@ -3,10 +3,15 @@ import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:go_router/go_router.dart';
 
 import '../../../app.dart';
+import '../../../core/media/playback_controller.dart';
+import '../../../core/media/playback_request.dart';
 import '../../../core/theme/app_theme.dart';
 import '../../../domain/entities/content_type.dart';
+import '../../../domain/entities/episode.dart';
 import '../../../domain/entities/favorite_item.dart';
+import '../../../domain/entities/season.dart';
 import '../../../domain/entities/series.dart';
+import '../../../domain/entities/series_info.dart';
 import '../../../domain/repositories/iptv_repository.dart';
 import '../../../l10n/app_localizations.dart';
 import '../../blocs/favorites/favorites_bloc.dart';
@@ -20,7 +25,10 @@ import '../../shared_widgets/catalog_search_field.dart';
 import '../../shared_widgets/category_sidebar.dart';
 import '../../shared_widgets/media_poster.dart';
 import '../../shared_widgets/resume_row.dart';
+import '../../shared_widgets/tv_context_menu.dart';
 import '../../shared_widgets/tv_focusable.dart';
+import '../../shared_widgets/tv_marquee_text.dart';
+import '../player/playback_scope.dart';
 
 /// Catálogo de series con rejilla de portadas y categorías.
 class SeriesScreen extends StatefulWidget {
@@ -34,6 +42,9 @@ class _SeriesScreenState extends State<SeriesScreen> {
   final TextEditingController _searchController = TextEditingController();
   final FocusNode _firstResultFocus = FocusNode();
   final FocusNode _firstCategoryFocus = FocusNode();
+
+  PlaybackController? _playback;
+  bool _wasPlaying = false;
 
   @override
   void initState() {
@@ -50,7 +61,37 @@ class _SeriesScreenState extends State<SeriesScreen> {
   }
 
   @override
+  void didChangeDependencies() {
+    super.didChangeDependencies();
+    final PlaybackController controller = PlaybackScope.of(context);
+    if (!identical(controller, _playback)) {
+      _playback?.removeListener(_onPlaybackChanged);
+      _playback = controller..addListener(_onPlaybackChanged);
+      _wasPlaying = controller.isPlaying;
+    }
+  }
+
+  /// Si al cerrar el reproductor el overlay no pudo devolver el foco a la
+  /// tarjeta, deja el foco en la categoría seleccionada para que el D-Pad siga
+  /// respondiendo.
+  void _onPlaybackChanged() {
+    final bool playing = _playback?.isPlaying ?? false;
+    if (playing == _wasPlaying) return;
+    _wasPlaying = playing;
+    if (playing) return;
+    Future<void>.delayed(const Duration(milliseconds: 220), () {
+      if (!mounted) return;
+      if (ModalRoute.of(context)?.isCurrent != true) return;
+      if (FocusScope.of(context).hasFocus) return;
+      if (_firstCategoryFocus.context != null) {
+        _firstCategoryFocus.requestFocus();
+      }
+    });
+  }
+
+  @override
   void dispose() {
+    _playback?.removeListener(_onPlaybackChanged);
     _searchController.dispose();
     _firstResultFocus.dispose();
     _firstCategoryFocus.dispose();
@@ -213,7 +254,7 @@ class _SeriesContent extends StatelessWidget {
                               return _SeriesCard(
                                 series: series,
                                 isFavorite: favoriteIds.contains(series.id),
-                                autofocus: index == 0,
+                                autofocus: false,
                                 focusNode: index == 0 ? firstResultFocus : null,
                               );
                             },
@@ -229,8 +270,11 @@ class _SeriesContent extends StatelessWidget {
   }
 }
 
+/// Acciones del menú contextual de una tarjeta de serie.
+enum _SeriesAction { play, favorite, details }
+
 /// Tarjeta de serie con portada, título y favorito.
-class _SeriesCard extends StatelessWidget {
+class _SeriesCard extends StatefulWidget {
   const _SeriesCard({
     required this.series,
     this.isFavorite = false,
@@ -244,17 +288,40 @@ class _SeriesCard extends StatelessWidget {
   final FocusNode? focusNode;
 
   @override
+  State<_SeriesCard> createState() => _SeriesCardState();
+}
+
+class _SeriesCardState extends State<_SeriesCard> {
+  FocusNode? _internalFocusNode;
+
+  FocusNode get _cardFocusNode =>
+      widget.focusNode ??
+      (_internalFocusNode ??= FocusNode(debugLabel: 'series-card'));
+
+  @override
+  void dispose() {
+    _internalFocusNode?.dispose();
+    super.dispose();
+  }
+
+  void _openDetails() {
+    context.push(Routes.seriesDetail, extra: widget.series);
+  }
+
+  @override
   Widget build(BuildContext context) {
     return TvFocusable(
-      autofocus: autofocus,
-      focusNode: focusNode,
+      autofocus: widget.autofocus,
+      focusNode: _cardFocusNode,
       borderRadius: BorderRadius.circular(8),
-      onPressed: () => context.push(Routes.seriesDetail, extra: series),
+      onPressed: _openDetails,
+      onLongPress: _showContextMenu,
       child: InkWell(
+        canRequestFocus: false,
         borderRadius: BorderRadius.circular(8),
-        onTap: () => context.push(Routes.seriesDetail, extra: series),
-        onLongPress: () => _toggleFavorite(context),
-        onSecondaryTap: () => _toggleFavorite(context),
+        onTap: _openDetails,
+        onLongPress: _showContextMenu,
+        onSecondaryTap: _showContextMenu,
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: <Widget>[
@@ -262,14 +329,17 @@ class _SeriesCard extends StatelessWidget {
               child: Stack(
                 fit: StackFit.expand,
                 children: <Widget>[
-                  MediaPoster(url: series.cover, fallbackIcon: Icons.theaters),
+                  MediaPoster(
+                    url: widget.series.cover,
+                    fallbackIcon: Icons.theaters,
+                  ),
                   Positioned(
                     top: 4,
                     left: 4,
                     child: Icon(
                       Icons.favorite,
                       size: 18,
-                      color: isFavorite
+                      color: widget.isFavorite
                           ? context.colors.secondary
                           : Colors.transparent,
                       semanticLabel: AppLocalizations.of(context)!.favorites,
@@ -279,10 +349,9 @@ class _SeriesCard extends StatelessWidget {
               ),
             ),
             const SizedBox(height: 6),
-            Text(
-              series.name,
+            TvMarqueeText(
+              text: widget.series.name,
               maxLines: 2,
-              overflow: TextOverflow.ellipsis,
               style: Theme.of(context).textTheme.bodySmall,
             ),
           ],
@@ -291,22 +360,114 @@ class _SeriesCard extends StatelessWidget {
     );
   }
 
-  Future<void> _toggleFavorite(BuildContext context) async {
+  Future<void> _showContextMenu() async {
+    final AppLocalizations l10n = AppLocalizations.of(context)!;
+    final _SeriesAction? action = await showTvContextMenu<_SeriesAction>(
+      context: context,
+      entries: <TvContextMenuEntry<_SeriesAction>>[
+        TvContextMenuEntry<_SeriesAction>(
+          value: _SeriesAction.play,
+          icon: Icons.play_arrow,
+          label: l10n.play,
+        ),
+        TvContextMenuEntry<_SeriesAction>(
+          value: _SeriesAction.favorite,
+          icon: widget.isFavorite ? Icons.favorite : Icons.favorite_border,
+          iconColor: widget.isFavorite ? context.colors.secondary : null,
+          label: l10n.favorites,
+        ),
+        TvContextMenuEntry<_SeriesAction>(
+          value: _SeriesAction.details,
+          icon: Icons.info_outline,
+          label: l10n.viewDetails,
+        ),
+      ],
+    );
+
+    if (!mounted) return;
+    // El foco vuelve a la tarjeta antes de reproducir para que el reproductor
+    // guarde este nodo y lo restaure al cerrar el vídeo.
+    _cardFocusNode.requestFocus();
+    switch (action) {
+      case _SeriesAction.play:
+        await _play();
+      case _SeriesAction.favorite:
+        await _toggleFavorite();
+      case _SeriesAction.details:
+        _openDetails();
+      case null:
+        break;
+    }
+  }
+
+  /// Reproduce el primer episodio disponible de la serie.
+  ///
+  /// Una serie no tiene un stream único; para el acceso rápido se usa el primer
+  /// episodio (la ficha permite elegir cualquier otro).
+  Future<void> _play() async {
+    final IptvRepository repository = context.read<IptvRepository>();
+    final PlaybackController playback = PlaybackScope.of(context);
+    final AppLocalizations l10n = AppLocalizations.of(context)!;
+    final ScaffoldMessengerState messenger = ScaffoldMessenger.of(context);
+    try {
+      final SeriesInfo info = await repository.fetchSeriesInfo(
+        widget.series.id,
+      );
+      final List<Season> seasons = List<Season>.of(info.seasons)
+        ..sort((Season a, Season b) => a.number.compareTo(b.number));
+      Episode? first;
+      for (final Season season in seasons) {
+        if (season.episodes.isEmpty) continue;
+        final List<Episode> episodes = List<Episode>.of(season.episodes)
+          ..sort(
+            (Episode a, Episode b) =>
+                a.episodeNumber.compareTo(b.episodeNumber),
+          );
+        first = episodes.first;
+        break;
+      }
+      if (first == null) {
+        messenger.showSnackBar(
+          SnackBar(content: Text(l10n.seriesDetailLoadError)),
+        );
+        return;
+      }
+      final Episode episode = first;
+      final String episodeName = episode.name.isEmpty
+          ? 'E${episode.episodeNumber}'
+          : episode.name;
+      playback.play(
+        PlaybackRequest(
+          title: '${widget.series.name} — $episodeName',
+          urlBuilder: () => repository.buildEpisodeStreamUrl(episode),
+          contentType: 'series',
+          contentId: episode.id,
+          logo: widget.series.cover,
+        ),
+      );
+    } catch (_) {
+      messenger.showSnackBar(
+        SnackBar(content: Text(l10n.seriesDetailLoadError)),
+      );
+    }
+  }
+
+  Future<void> _toggleFavorite() async {
     final IptvRepository repository = context.read<IptvRepository>();
     final FavoritesBloc favoritesBloc = context.read<FavoritesBloc>();
     final AppLocalizations l10n = AppLocalizations.of(context)!;
     final ScaffoldMessengerState messenger = ScaffoldMessenger.of(context);
 
     final bool isFav = await repository.isFavorite(
-      series.id,
+      widget.series.id,
       ContentType.series,
     );
     favoritesBloc.add(
       FavoritesToggled(
-        series.id,
+        widget.series.id,
         ContentType.series.name,
-        series.name,
-        series.cover,
+        widget.series.name,
+        widget.series.cover,
       ),
     );
     favoritesBloc.add(FavoritesStarted());

@@ -8,7 +8,16 @@ import 'package:go_router/go_router.dart';
 import '../../../app.dart';
 import '../../../core/media/playback_controller.dart';
 import '../../../core/theme/app_theme.dart';
+import '../../../core/utils/clock_format.dart';
 import '../../../l10n/app_localizations.dart';
+import '../../blocs/auth/auth_bloc.dart';
+import '../../blocs/auth/auth_state.dart';
+import '../../blocs/epg/epg_bloc.dart';
+import '../../blocs/epg/epg_event.dart';
+import '../../blocs/favorites/favorites_bloc.dart';
+import '../../blocs/favorites/favorites_event.dart';
+import '../../blocs/history/history_bloc.dart';
+import '../../blocs/history/history_event.dart';
 import '../../blocs/live/live_bloc.dart';
 import '../../blocs/live/live_event.dart';
 import '../../blocs/live/live_state.dart';
@@ -51,53 +60,75 @@ class _HomeShellScreenState extends State<HomeShellScreen> {
     final AppLocalizations l10n = AppLocalizations.of(context)!;
     final bool inSection = _section != null;
 
-    return PopScope(
-      canPop: false,
-      onPopInvokedWithResult: (bool didPop, Object? result) async {
-        if (didPop) return;
-        final bool shouldExit = await _handleBack();
-        if (shouldExit && context.mounted) {
-          // GoRouter no puede hacer pop desde la raíz; salida del sistema.
-          SystemNavigator.pop();
-        }
-      },
-      child: Scaffold(
-        appBar: AppBar(
-          // Reloj centrado en la barra superior (visible en el selector y en
-          // todas las secciones). El reproductor a pantalla completa lo tapa.
-          flexibleSpace: const _AppClock(),
-          leading: inSection
-              ? IconButton(
-                  tooltip: MaterialLocalizations.of(context).backButtonTooltip,
-                  icon: const Icon(Icons.arrow_back),
-                  onPressed: _goToSections,
-                )
-              : null,
-          title: Text(_sectionTitle(l10n, _section)),
-          actions: <Widget>[
-            if (inSection) _buildSearchAction(l10n),
-            IconButton(
-              tooltip: l10n.favorites,
-              icon: const Icon(Icons.favorite_border),
-              onPressed: () => context.push(Routes.favorites),
-            ),
-            IconButton(
-              tooltip: l10n.history,
-              icon: const Icon(Icons.history),
-              onPressed: () => context.push(Routes.history),
-            ),
-            IconButton(
-              tooltip: l10n.settings,
-              icon: const Icon(Icons.settings_outlined),
-              onPressed: () => context.push(Routes.settings),
-            ),
-          ],
+    return BlocListener<AuthBloc, AuthState>(
+      listenWhen: (AuthState previous, AuthState current) =>
+          current is AuthAuthenticated &&
+          (previous is! AuthAuthenticated ||
+              previous.activeAccountId != current.activeAccountId),
+      listener: (BuildContext context, AuthState state) => _onAccountChanged(),
+      child: PopScope(
+        canPop: false,
+        onPopInvokedWithResult: (bool didPop, Object? result) async {
+          if (didPop) return;
+          final bool shouldExit = await _handleBack();
+          if (shouldExit && context.mounted) {
+            // GoRouter no puede hacer pop desde la raíz; salida del sistema.
+            SystemNavigator.pop();
+          }
+        },
+        child: Scaffold(
+          appBar: AppBar(
+            // Reloj centrado en la barra superior (visible en el selector y en
+            // todas las secciones). El reproductor a pantalla completa lo tapa.
+            flexibleSpace: const _AppClock(),
+            leading: inSection
+                ? IconButton(
+                    tooltip: MaterialLocalizations.of(context)
+                        .backButtonTooltip,
+                    icon: const Icon(Icons.arrow_back),
+                    onPressed: _goToSections,
+                  )
+                : null,
+            title: Text(_sectionTitle(l10n, _section)),
+            actions: <Widget>[
+              if (inSection) _buildSearchAction(l10n),
+              IconButton(
+                tooltip: l10n.favorites,
+                icon: const Icon(Icons.favorite_border),
+                onPressed: () => context.push(Routes.favorites),
+              ),
+              IconButton(
+                tooltip: l10n.history,
+                icon: const Icon(Icons.history),
+                onPressed: () => context.push(Routes.history),
+              ),
+              IconButton(
+                tooltip: l10n.settings,
+                icon: const Icon(Icons.settings_outlined),
+                onPressed: () => context.push(Routes.settings),
+              ),
+            ],
+          ),
+          body: _section == null
+              ? _SectionsHome(onSelected: _openSection)
+              : _buildSection(_section!),
         ),
-        body: _section == null
-            ? _SectionsHome(onSelected: _openSection)
-            : _buildSection(_section!),
       ),
     );
+  }
+
+  /// Al cambiar de cuenta: corta la reproducción y vacía los catálogos/EPG
+  /// para que la siguiente sección cargue los datos de la cuenta activa.
+  void _onAccountChanged() {
+    PlaybackScope.of(context).stop();
+    context.read<SearchVisibilityCubit>().hide();
+    setState(() => _section = null);
+    context.read<LiveBloc>().add(const LiveStarted());
+    context.read<VodBloc>().add(const VodStarted());
+    context.read<SeriesBloc>().add(const SeriesStarted());
+    context.read<FavoritesBloc>().add(const FavoritesStarted());
+    context.read<HistoryBloc>().add(const HistoryStarted());
+    context.read<EpgBloc>().add(const EpgCleared());
   }
 
   String _sectionTitle(AppLocalizations l10n, _DashboardSection? section) {
@@ -288,62 +319,72 @@ class _SectionsHome extends StatelessWidget {
 
     return LayoutBuilder(
       builder: (context, constraints) {
-        final double cardWidth = (constraints.maxWidth * 0.2).clamp(
-          160.0,
-          300.0,
+        final double cardWidth = (constraints.maxWidth * 0.22).clamp(
+          180.0,
+          320.0,
         );
+        // Centra el selector verticalmente en la pantalla (con margen para el
+        // padding). En pantallas bajas el contenido sigue siendo desplazable.
+        final double minHeight =
+            constraints.hasBoundedHeight && constraints.maxHeight > 64
+            ? constraints.maxHeight - 64
+            : 0;
         return SingleChildScrollView(
           padding: const EdgeInsets.all(32),
-          child: Center(
-            child: Wrap(
-              alignment: WrapAlignment.center,
-              spacing: 24,
-              runSpacing: 24,
-              children: <Widget>[
-                for (int i = 0; i < sections.length; i++)
-                  SizedBox(
-                    width: cardWidth,
-                    height: cardWidth * 0.78,
-                    child: TvFocusable(
-                      autofocus: i == 0,
-                      borderRadius: BorderRadius.circular(18),
-                      onPressed: () => onSelected(sections[i].$1),
-                      child: Material(
-                        color: context.colors.surface,
+          child: ConstrainedBox(
+            constraints: BoxConstraints(minHeight: minHeight),
+            child: Center(
+              child: Wrap(
+                alignment: WrapAlignment.center,
+                spacing: 24,
+                runSpacing: 24,
+                children: <Widget>[
+                  for (int i = 0; i < sections.length; i++)
+                    SizedBox(
+                      width: cardWidth,
+                      height: cardWidth * 0.78,
+                      child: TvFocusable(
+                        autofocus: i == 0,
                         borderRadius: BorderRadius.circular(18),
-                        clipBehavior: Clip.antiAlias,
-                        child: InkWell(
-                          onTap: () => onSelected(sections[i].$1),
-                          child: Column(
-                            mainAxisAlignment: MainAxisAlignment.center,
-                            children: <Widget>[
-                              Icon(
-                                sections[i].$2,
-                                size: cardWidth * 0.28,
-                                color: context.colors.primary,
-                              ),
-                              const SizedBox(height: 12),
-                              Padding(
-                                padding: const EdgeInsets.symmetric(
-                                  horizontal: 12,
+                        onPressed: () => onSelected(sections[i].$1),
+                        child: Material(
+                          color: context.colors.surface,
+                          borderRadius: BorderRadius.circular(18),
+                          clipBehavior: Clip.antiAlias,
+                          child: InkWell(
+                            canRequestFocus: false,
+                            onTap: () => onSelected(sections[i].$1),
+                            child: Column(
+                              mainAxisAlignment: MainAxisAlignment.center,
+                              children: <Widget>[
+                                Icon(
+                                  sections[i].$2,
+                                  size: cardWidth * 0.28,
+                                  color: context.colors.primary,
                                 ),
-                                child: Text(
-                                  sections[i].$3,
-                                  textAlign: TextAlign.center,
-                                  maxLines: 2,
-                                  overflow: TextOverflow.ellipsis,
-                                  style: Theme.of(context)
-                                      .textTheme
-                                      .titleMedium,
+                                const SizedBox(height: 12),
+                                Padding(
+                                  padding: const EdgeInsets.symmetric(
+                                    horizontal: 12,
+                                  ),
+                                  child: Text(
+                                    sections[i].$3,
+                                    textAlign: TextAlign.center,
+                                    maxLines: 2,
+                                    overflow: TextOverflow.ellipsis,
+                                    style: Theme.of(context)
+                                        .textTheme
+                                        .titleMedium,
+                                  ),
                                 ),
-                              ),
-                            ],
+                              ],
+                            ),
                           ),
                         ),
                       ),
                     ),
-                  ),
-              ],
+                ],
+              ),
             ),
           ),
         );
@@ -402,20 +443,12 @@ class _AppClockState extends State<_AppClock> {
   @override
   Widget build(BuildContext context) {
     return BlocBuilder<SettingsBloc, SettingsState>(
-      buildWhen: (SettingsState previous, SettingsState current) {
-        final bool previous24h = previous is SettingsLoaded
-            ? previous.clock24h
-            : true;
-        final bool current24h = current is SettingsLoaded
-            ? current.clock24h
-            : true;
-        return previous24h != current24h;
-      },
       builder: (context, state) {
         final bool clock24h = state is SettingsLoaded ? state.clock24h : true;
-        final String time = MaterialLocalizations.of(context).formatTimeOfDay(
+        final String time = formatClockTime(
           TimeOfDay.fromDateTime(_now),
-          alwaysUse24HourFormat: clock24h,
+          clock24h: clock24h,
+          localizations: MaterialLocalizations.of(context),
         );
         final AppColors colors = context.colors;
         return IgnorePointer(

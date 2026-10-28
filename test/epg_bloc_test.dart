@@ -68,8 +68,10 @@ class _FakeRepo implements IptvRepository {
   List<EpgEntry> short = <EpgEntry>[];
 
   @override
-  Future<UserAccount> login(IptvAuthConfig config) async =>
-      throw UnimplementedError();
+  Future<UserAccount> login(
+    IptvAuthConfig config, {
+    bool activate = true,
+  }) async => throw UnimplementedError();
 
   @override
   Future<UserAccount?> restoreSession() async => null;
@@ -88,11 +90,18 @@ class _FakeRepo implements IptvRepository {
   Future<String> buildStreamUrl(Channel channel) async => '';
 
   @override
+  Future<String?> buildCatchupUrl({
+    required int streamId,
+    required bool hasArchive,
+    int? archiveDurationDays,
+    required EpgEntry program,
+  }) async => null;
+
+  @override
   Future<List<Category>> fetchVodCategories() async => <Category>[];
 
   @override
-  Future<List<Movie>> fetchVodStreams({int? categoryId}) async =>
-      <Movie>[];
+  Future<List<Movie>> fetchVodStreams({int? categoryId}) async => <Movie>[];
 
   @override
   Future<String> buildVodStreamUrl(Movie movie) async => '';
@@ -101,8 +110,7 @@ class _FakeRepo implements IptvRepository {
   Future<List<Category>> fetchSeriesCategories() async => <Category>[];
 
   @override
-  Future<List<Series>> fetchSeries({int? categoryId}) async =>
-      <Series>[];
+  Future<List<Series>> fetchSeries({int? categoryId}) async => <Series>[];
 
   @override
   Future<SeriesInfo> fetchSeriesInfo(int seriesId) async =>
@@ -143,7 +151,10 @@ class _FakeRepo implements IptvRepository {
   Future<void> clearHistory() async {}
 
   @override
-  Future<void> removeFromHistory(int contentId, domain.ContentType type) async {}
+  Future<void> removeFromHistory(
+    int contentId,
+    domain.ContentType type,
+  ) async {}
 
   @override
   Future<void> refreshCatalog() async {}
@@ -151,4 +162,3 @@ class _FakeRepo implements IptvRepository {
   @override
   Future<void> clearCatalogCache() async {}
 }
-

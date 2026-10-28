@@ -70,6 +70,37 @@ class AppLocalizationsIt extends AppLocalizations {
   String get changeAccount => 'Cambia account';
 
   @override
+  String get addAccount => 'Aggiungi account';
+
+  @override
+  String get addAccountFromPhone => 'Aggiungi dal telefono';
+
+  @override
+  String get webImportInstructions =>
+      'Scansiona il QR con un telefono connesso alla stessa Wi-Fi. Puoi anche aprire l\'indirizzo nel browser.';
+
+  @override
+  String get webImportStarting => 'Avvio del server locale…';
+
+  @override
+  String get webImportError =>
+      'Impossibile avviare il server locale. Controlla che TV e telefono siano sulla stessa Wi-Fi.';
+
+  @override
+  String get webImportLocalOnly =>
+      'Solo rete locale: niente Internet né HTTPS. Host, utente e password non si possono modificare dal web; solo l\'etichetta o l\'eliminazione dell\'account.';
+
+  @override
+  String get playFromStart => 'Riproduci dall\'inizio';
+
+  @override
+  String get catchupUnavailable =>
+      'Questo programma non è disponibile in catch-up.';
+
+  @override
+  String get selectAccount => 'Seleziona account';
+
+  @override
   String get fullscreen => 'Schermo intero';
 
   @override
@@ -144,6 +175,9 @@ class AppLocalizationsIt extends AppLocalizations {
   String endsAt(String time) {
     return 'Termina alle $time';
   }
+
+  @override
+  String get viewDetails => 'Vedi scheda';
 
   @override
   String get settingsSectionAccount => 'Account';

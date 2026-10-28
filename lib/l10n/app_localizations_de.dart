@@ -70,6 +70,37 @@ class AppLocalizationsDe extends AppLocalizations {
   String get changeAccount => 'Konto wechseln';
 
   @override
+  String get addAccount => 'Konto hinzufügen';
+
+  @override
+  String get addAccountFromPhone => 'Vom Telefon hinzufügen';
+
+  @override
+  String get webImportInstructions =>
+      'Scannen Sie den QR-Code mit einem Telefon im selben WLAN. Sie können die Adresse auch im Browser öffnen.';
+
+  @override
+  String get webImportStarting => 'Lokaler Server startet…';
+
+  @override
+  String get webImportError =>
+      'Der lokale Server konnte nicht gestartet werden. Prüfen Sie, ob TV und Telefon im selben WLAN sind.';
+
+  @override
+  String get webImportLocalOnly =>
+      'Nur lokales Netzwerk: kein Internet, kein HTTPS. Host, Benutzer und Passwort können im Web nicht geändert werden; nur die Bezeichnung oder das Löschen des Kontos.';
+
+  @override
+  String get playFromStart => 'Von Anfang an abspielen';
+
+  @override
+  String get catchupUnavailable =>
+      'Diese Sendung ist nicht als Catch-up verfügbar.';
+
+  @override
+  String get selectAccount => 'Konto auswählen';
+
+  @override
   String get fullscreen => 'Vollbild';
 
   @override
@@ -144,6 +175,9 @@ class AppLocalizationsDe extends AppLocalizations {
   String endsAt(String time) {
     return 'Endet um $time';
   }
+
+  @override
+  String get viewDetails => 'Details ansehen';
 
   @override
   String get settingsSectionAccount => 'Konto';

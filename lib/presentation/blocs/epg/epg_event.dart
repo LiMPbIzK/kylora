@@ -29,3 +29,8 @@ final class EpgGuideRequested extends EpgEvent {
   @override
   List<Object?> get props => <Object?>[streamId, channelName];
 }
+
+/// Vacía las cachés de EPG al cambiar de cuenta.
+final class EpgCleared extends EpgEvent {
+  const EpgCleared();
+}

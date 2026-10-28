@@ -74,7 +74,43 @@
   },
   "changeAccount": "Changer de compte",
   "@changeAccount": {
-    "description": "Bouton pour fermer la session et revenir à la connexion afin de changer de compte ou de source."
+    "description": "Bouton pour ouvrir la liste des comptes enregistrés et en activer un autre."
+  },
+  "addAccount": "Ajouter un compte",
+  "@addAccount": {
+    "description": "Titre et bouton pour ajouter un nouveau compte."
+  },
+  "addAccountFromPhone": "Ajouter depuis le téléphone",
+  "@addAccountFromPhone": {
+    "description": "Bouton et titre pour l'import de comptes par réseau local."
+  },
+  "webImportInstructions": "Scannez le QR avec un téléphone connecté au même Wi-Fi. Vous pouvez aussi ouvrir l'adresse dans un navigateur.",
+  "@webImportInstructions": {
+    "description": "Instructions pour ouvrir la page locale des comptes."
+  },
+  "webImportStarting": "Démarrage du serveur local…",
+  "@webImportStarting": {
+    "description": "Message pendant le démarrage du serveur local."
+  },
+  "webImportError": "Impossible de démarrer le serveur local. Vérifiez que la TV et le téléphone sont sur le même Wi-Fi.",
+  "@webImportError": {
+    "description": "Erreur de démarrage du serveur local."
+  },
+  "webImportLocalOnly": "Réseau local uniquement : sans Internet ni HTTPS. L'hôte, l'utilisateur et le mot de passe ne peuvent pas être modifiés depuis le web ; seulement l'étiquette ou la suppression du compte.",
+  "@webImportLocalOnly": {
+    "description": "Avis de sécurité de l'import web local."
+  },
+  "playFromStart": "Lire depuis le début",
+  "@playFromStart": {
+    "description": "Action pour lire un programme passé depuis l'archive de la chaîne."
+  },
+  "catchupUnavailable": "Ce programme n'est pas disponible en catch-up.",
+  "@catchupUnavailable": {
+    "description": "Message quand le catch-up n'est pas disponible."
+  },
+  "selectAccount": "Sélectionner un compte",
+  "@selectAccount": {
+    "description": "Titre du dialogue pour choisir le compte actif."
   },
   "fullscreen": "Plein écran",
   "@fullscreen": {
@@ -185,6 +221,10 @@
         "type": "String"
       }
     }
+  },
+  "viewDetails": "Voir la fiche",
+  "@viewDetails": {
+    "description": "Action du menu contextuel pour ouvrir la fiche détaillée."
   },
   "settingsSectionAccount": "Compte",
   "@settingsSectionAccount": {

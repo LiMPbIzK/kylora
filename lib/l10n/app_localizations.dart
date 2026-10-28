@@ -214,11 +214,65 @@ abstract class AppLocalizations {
   /// **'Sign out'**
   String get signOut;
 
-  /// Button to close the session and return to the login to change account or source.
+  /// Button to open the saved accounts list and activate another one.
   ///
   /// In en, this message translates to:
   /// **'Change account'**
   String get changeAccount;
+
+  /// Title and button to add a new account.
+  ///
+  /// In en, this message translates to:
+  /// **'Add account'**
+  String get addAccount;
+
+  /// Button and title for local network account import.
+  ///
+  /// In en, this message translates to:
+  /// **'Add from phone'**
+  String get addAccountFromPhone;
+
+  /// Instructions to open the local accounts page.
+  ///
+  /// In en, this message translates to:
+  /// **'Scan the QR with a phone connected to the same Wi-Fi. You can also open the address in a browser.'**
+  String get webImportInstructions;
+
+  /// Message while the local server starts.
+  ///
+  /// In en, this message translates to:
+  /// **'Starting local server…'**
+  String get webImportStarting;
+
+  /// Error starting the local import server.
+  ///
+  /// In en, this message translates to:
+  /// **'Could not start the local server. Check that the TV and phone are on the same Wi-Fi network.'**
+  String get webImportError;
+
+  /// Security and scope notice for the local web import.
+  ///
+  /// In en, this message translates to:
+  /// **'Local network only: no Internet or HTTPS. Host, username and password cannot be changed from the web; only the label or deleting the account.'**
+  String get webImportLocalOnly;
+
+  /// Action to play a past programme from the channel archive.
+  ///
+  /// In en, this message translates to:
+  /// **'Play from start'**
+  String get playFromStart;
+
+  /// Message when catch-up is not available.
+  ///
+  /// In en, this message translates to:
+  /// **'This programme is not available in catch-up.'**
+  String get catchupUnavailable;
+
+  /// Title of the dialog to choose the active account.
+  ///
+  /// In en, this message translates to:
+  /// **'Select account'**
+  String get selectAccount;
 
   /// Tooltip for the fullscreen button in the player.
   ///
@@ -357,6 +411,12 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'Ends at {time}'**
   String endsAt(String time);
+
+  /// Context menu action to open the detail page.
+  ///
+  /// In en, this message translates to:
+  /// **'View details'**
+  String get viewDetails;
 
   /// Header of the account section in settings.
   ///

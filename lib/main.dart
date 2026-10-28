@@ -47,9 +47,14 @@ Future<void> main() async {
   // TEMPORAL (desarrollo): deja una sesión sembrada para entrar solo al
   // arrancar. ELIMINAR este bloque cuando no se necesite.
   await _seedDefaultSession(authStore);
-  final IptvRepository repository = await _buildRepository(dio, authStore, database);
+  final IptvRepository repository = await _buildRepository(
+    dio,
+    authStore,
+    database,
+  );
 
-  final AuthBloc authBloc = AuthBloc(repository)..add(const AuthStarted());
+  final AuthBloc authBloc = AuthBloc(repository, accountStore: authStore)
+    ..add(const AuthStarted());
   final LiveBloc liveBloc = LiveBloc(repository);
   final VodBloc vodBloc = VodBloc(repository);
   final SeriesBloc seriesBloc = SeriesBloc(repository);
@@ -84,8 +89,10 @@ const String _devPassword = 'REDACTED';
 /// Si no hay una sesión guardada, escribe las credenciales de desarrollo para
 /// que `AuthStarted` restaure la sesión automáticamente al arrancar.
 Future<void> _seedDefaultSession(AuthStore authStore) async {
-  final StoredCredentials? existing = await authStore.read();
-  if (existing != null) return;
+  // No sembrar credenciales de desarrollo si ya hay cuentas guardadas, aunque
+  // la sesión esté cerrada: así el logout no reactiva la cuenta de pruebas.
+  final List<StoredAccount> existing = await authStore.readAll();
+  if (existing.isNotEmpty) return;
   await authStore.write(
     const StoredCredentials(
       serverUrl: _devServerUrl,
@@ -105,7 +112,12 @@ Future<IptvRepository> _buildRepository(
 ) async {
   final LiveCacheStore cache = LiveCacheStore(database);
   return MultiSourceRepository(
-    xtream: XtreamRepository(XtreamApiClient(dio), authStore, database, cache: cache),
+    xtream: XtreamRepository(
+      XtreamApiClient(dio),
+      authStore,
+      database,
+      cache: cache,
+    ),
     m3u: M3uRepository(M3uDownloader(dio), authStore, database, cache: cache),
     authStore: authStore,
   );

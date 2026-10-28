@@ -31,6 +31,7 @@ import 'presentation/screens/live/program_guide_screen.dart';
 import 'presentation/screens/player/playback_overlay.dart';
 import 'presentation/screens/player/playback_scope.dart';
 import 'presentation/screens/series/series_detail_screen.dart';
+import 'presentation/screens/settings/account_web_import_screen.dart';
 import 'presentation/screens/settings/settings_screen.dart';
 import 'presentation/screens/splash/splash_screen.dart';
 import 'presentation/screens/vod/movie_detail_screen.dart';
@@ -48,12 +49,16 @@ abstract final class AppRouter {
       refreshListenable: refresh,
       redirect: (context, state) {
         final AuthState auth = authBloc.state;
+        final bool addingAccount = state.matchedLocation == Routes.accountAdd;
         return switch (auth) {
-          AuthChecking() => Routes.splash,
-          AuthUnauthenticated() || AuthFailure() => Routes.login,
+          AuthChecking() => addingAccount ? null : Routes.splash,
+          AuthUnauthenticated() ||
+          AuthFailure() => addingAccount ? null : Routes.login,
           AuthAuthenticated() =>
-            state.matchedLocation == Routes.splash ||
-                    state.matchedLocation == Routes.login
+            addingAccount
+                ? null
+                : state.matchedLocation == Routes.splash ||
+                      state.matchedLocation == Routes.login
                 ? Routes.dashboard
                 : null,
         };
@@ -102,6 +107,14 @@ abstract final class AppRouter {
           path: Routes.settings,
           builder: (context, state) => const SettingsScreen(),
         ),
+        GoRoute(
+          path: Routes.accountAdd,
+          builder: (context, state) => const LoginScreen(addAccount: true),
+        ),
+        GoRoute(
+          path: Routes.accountWebImport,
+          builder: (context, state) => const AccountWebImportScreen(),
+        ),
       ],
     );
   }
@@ -118,6 +131,8 @@ abstract final class Routes {
   static const String favorites = '/favorites';
   static const String history = '/history';
   static const String settings = '/settings';
+  static const String accountAdd = '/account-add';
+  static const String accountWebImport = '/account-import';
 }
 
 /// Adapta el stream del bloc a un [Listenable] para `go_router`.
@@ -180,7 +195,9 @@ class KyloraApp extends StatelessWidget {
         BlocProvider<FavoritesBloc>(create: (_) => favoritesBloc),
         BlocProvider<HistoryBloc>(create: (_) => historyBloc),
         BlocProvider<SettingsBloc>(create: (_) => settingsBloc),
-        BlocProvider<SearchVisibilityCubit>(create: (_) => SearchVisibilityCubit()),
+        BlocProvider<SearchVisibilityCubit>(
+          create: (_) => SearchVisibilityCubit(),
+        ),
       ],
       child: RepositoryProvider<IptvRepository>.value(
         value: repository,
@@ -200,8 +217,7 @@ class KyloraApp extends StatelessWidget {
                 debugShowCheckedModeBanner: false,
                 theme: theme,
                 routerConfig: router,
-                localizationsDelegates: const <
-                    LocalizationsDelegate<Object>>[
+                localizationsDelegates: const <LocalizationsDelegate<Object>>[
                   AppLocalizations.delegate,
                   GlobalMaterialLocalizations.delegate,
                   GlobalWidgetsLocalizations.delegate,
@@ -209,24 +225,37 @@ class KyloraApp extends StatelessWidget {
                 ],
                 supportedLocales: AppLocalizations.supportedLocales,
                 locale: locale,
-                localeResolutionCallback: (Locale? systemLocale, Iterable<Locale> supported) {
-                  // Si el usuario eligió un idioma manualmente, se respeta tal
-                  // cual (ya viene en `locale` y Flutter lo aplica).
-                  if (locale != null) return locale;
-                  // Sin idioma manual: resuelve el idioma del sistema.
-                  // Match por código de idioma (Android TV suele reportar
-                  // es_ES/es_419/etc.), con español como respaldo.
-                  if (systemLocale == null) return const Locale('es');
-                  final String code = systemLocale.languageCode;
-                  for (final Locale candidate in supported) {
-                    if (candidate.languageCode == code) return candidate;
-                  }
-                  return const Locale('es');
+                localeResolutionCallback:
+                    (Locale? systemLocale, Iterable<Locale> supported) {
+                      // Si el usuario eligió un idioma manualmente, se respeta tal
+                      // cual (ya viene en `locale` y Flutter lo aplica).
+                      if (locale != null) return locale;
+                      // Sin idioma manual: resuelve el idioma del sistema.
+                      // Match por código de idioma (Android TV suele reportar
+                      // es_ES/es_419/etc.), con español como respaldo.
+                      if (systemLocale == null) return const Locale('es');
+                      final String code = systemLocale.languageCode;
+                      for (final Locale candidate in supported) {
+                        if (candidate.languageCode == code) return candidate;
+                      }
+                      return const Locale('es');
+                    },
+                builder: (context, child) {
+                  // Navegación direccional (TV/mando): los sliders solo capturan
+                  // Izquierda/Derecha para cambiar el valor; Arriba/Abajo siguen
+                  // moviendo el foco fuera de ellos (sin quedar atrapado en la
+                  // barra de volumen o de progreso).
+                  final MediaQueryData media = MediaQuery.of(context);
+                  return MediaQuery(
+                    data: media.copyWith(
+                      navigationMode: NavigationMode.directional,
+                    ),
+                    child: PlaybackOverlay(
+                      controller: playbackController,
+                      child: child ?? const SizedBox.shrink(),
+                    ),
+                  );
                 },
-                builder: (context, child) => PlaybackOverlay(
-                  controller: playbackController,
-                  child: child ?? const SizedBox.shrink(),
-                ),
               );
             },
           ),

@@ -74,7 +74,43 @@
   },
   "changeAccount": "Change account",
   "@changeAccount": {
-    "description": "Button to close the session and return to the login to change account or source."
+    "description": "Button to open the saved accounts list and activate another one."
+  },
+  "addAccount": "Add account",
+  "@addAccount": {
+    "description": "Title and button to add a new account."
+  },
+  "addAccountFromPhone": "Add from phone",
+  "@addAccountFromPhone": {
+    "description": "Button and title for local network account import."
+  },
+  "webImportInstructions": "Scan the QR with a phone connected to the same Wi-Fi. You can also open the address in a browser.",
+  "@webImportInstructions": {
+    "description": "Instructions to open the local accounts page."
+  },
+  "webImportStarting": "Starting local server…",
+  "@webImportStarting": {
+    "description": "Message while the local server starts."
+  },
+  "webImportError": "Could not start the local server. Check that the TV and phone are on the same Wi-Fi network.",
+  "@webImportError": {
+    "description": "Error starting the local import server."
+  },
+  "webImportLocalOnly": "Local network only: no Internet or HTTPS. Host, username and password cannot be changed from the web; only the label or deleting the account.",
+  "@webImportLocalOnly": {
+    "description": "Security and scope notice for the local web import."
+  },
+  "playFromStart": "Play from start",
+  "@playFromStart": {
+    "description": "Action to play a past programme from the channel archive."
+  },
+  "catchupUnavailable": "This programme is not available in catch-up.",
+  "@catchupUnavailable": {
+    "description": "Message when catch-up is not available."
+  },
+  "selectAccount": "Select account",
+  "@selectAccount": {
+    "description": "Title of the dialog to choose the active account."
   },
   "fullscreen": "Fullscreen",
   "@fullscreen": {
@@ -185,6 +221,10 @@
         "type": "String"
       }
     }
+  },
+  "viewDetails": "View details",
+  "@viewDetails": {
+    "description": "Context menu action to open the detail page."
   },
   "settingsSectionAccount": "Account",
   "@settingsSectionAccount": {

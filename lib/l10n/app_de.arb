@@ -74,7 +74,43 @@
   },
   "changeAccount": "Konto wechseln",
   "@changeAccount": {
-    "description": "Schaltfläche zum Schließen der Sitzung und Rückkehr zur Anmeldung, um Konto oder Quelle zu wechseln."
+    "description": "Schaltfläche zum Öffnen der gespeicherten Konten und Aktivieren eines anderen."
+  },
+  "addAccount": "Konto hinzufügen",
+  "@addAccount": {
+    "description": "Titel und Schaltfläche zum Hinzufügen eines neuen Kontos."
+  },
+  "addAccountFromPhone": "Vom Telefon hinzufügen",
+  "@addAccountFromPhone": {
+    "description": "Schaltfläche und Titel für den lokalen Kontenimport."
+  },
+  "webImportInstructions": "Scannen Sie den QR-Code mit einem Telefon im selben WLAN. Sie können die Adresse auch im Browser öffnen.",
+  "@webImportInstructions": {
+    "description": "Anleitung zum Öffnen der lokalen Kontenseite."
+  },
+  "webImportStarting": "Lokaler Server startet…",
+  "@webImportStarting": {
+    "description": "Meldung während des Serverstarts."
+  },
+  "webImportError": "Der lokale Server konnte nicht gestartet werden. Prüfen Sie, ob TV und Telefon im selben WLAN sind.",
+  "@webImportError": {
+    "description": "Fehler beim Starten des lokalen Servers."
+  },
+  "webImportLocalOnly": "Nur lokales Netzwerk: kein Internet, kein HTTPS. Host, Benutzer und Passwort können im Web nicht geändert werden; nur die Bezeichnung oder das Löschen des Kontos.",
+  "@webImportLocalOnly": {
+    "description": "Sicherheitshinweis zum lokalen Webimport."
+  },
+  "playFromStart": "Von Anfang an abspielen",
+  "@playFromStart": {
+    "description": "Aktion zum Abspielen einer vergangenen Sendung aus dem Archiv."
+  },
+  "catchupUnavailable": "Diese Sendung ist nicht als Catch-up verfügbar.",
+  "@catchupUnavailable": {
+    "description": "Meldung, wenn Catch-up nicht verfügbar ist."
+  },
+  "selectAccount": "Konto auswählen",
+  "@selectAccount": {
+    "description": "Titel des Dialogs zur Auswahl des aktiven Kontos."
   },
   "fullscreen": "Vollbild",
   "@fullscreen": {
@@ -185,6 +221,10 @@
         "type": "String"
       }
     }
+  },
+  "viewDetails": "Details ansehen",
+  "@viewDetails": {
+    "description": "Kontextmenüaktion zum Öffnen der Detailseite."
   },
   "settingsSectionAccount": "Konto",
   "@settingsSectionAccount": {

@@ -27,12 +27,11 @@ class _FakeRepo implements IptvRepository {
   ];
 
   @override
-  Future<List<Movie>> fetchVodStreams({int? categoryId}) async =>
-      const <Movie>[
-        Movie(id: 1, name: 'Matrix', categoryId: 1),
-        Movie(id: 2, name: 'Titanic', categoryId: 1),
-        Movie(id: 3, name: 'Inception', categoryId: 1),
-      ];
+  Future<List<Movie>> fetchVodStreams({int? categoryId}) async => const <Movie>[
+    Movie(id: 1, name: 'Matrix', categoryId: 1),
+    Movie(id: 2, name: 'Titanic', categoryId: 1),
+    Movie(id: 3, name: 'Inception', categoryId: 1),
+  ];
 
   @override
   Future<List<Category>> fetchSeriesCategories() async => const <Category>[
@@ -40,16 +39,17 @@ class _FakeRepo implements IptvRepository {
   ];
 
   @override
-  Future<List<Series>> fetchSeries({int? categoryId}) async =>
-      const <Series>[
-        Series(id: 1, name: 'Breaking Bad', categoryId: 1),
-        Series(id: 2, name: 'Better Call Saul', categoryId: 1),
-        Series(id: 3, name: 'The Office', categoryId: 1),
-      ];
+  Future<List<Series>> fetchSeries({int? categoryId}) async => const <Series>[
+    Series(id: 1, name: 'Breaking Bad', categoryId: 1),
+    Series(id: 2, name: 'Better Call Saul', categoryId: 1),
+    Series(id: 3, name: 'The Office', categoryId: 1),
+  ];
 
   @override
-  Future<UserAccount> login(IptvAuthConfig config) async =>
-      throw UnimplementedError();
+  Future<UserAccount> login(
+    IptvAuthConfig config, {
+    bool activate = true,
+  }) async => throw UnimplementedError();
 
   @override
   Future<UserAccount?> restoreSession() async => null;
@@ -67,6 +67,14 @@ class _FakeRepo implements IptvRepository {
   @override
   Future<String> buildStreamUrl(Channel channel) async =>
       throw UnimplementedError();
+
+  @override
+  Future<String?> buildCatchupUrl({
+    required int streamId,
+    required bool hasArchive,
+    int? archiveDurationDays,
+    required EpgEntry program,
+  }) async => null;
 
   @override
   Future<String> buildVodStreamUrl(Movie movie) async =>
@@ -93,31 +101,33 @@ class _FakeRepo implements IptvRepository {
       throw UnimplementedError();
 
   @override
-  Future<void> removeFromFavorite(int contentId, domain.ContentType type) async =>
-      throw UnimplementedError();
+  Future<void> removeFromFavorite(
+    int contentId,
+    domain.ContentType type,
+  ) async => throw UnimplementedError();
 
   @override
   Future<bool> isFavorite(int contentId, domain.ContentType type) async =>
       throw UnimplementedError();
 
   @override
-  Future<List<FavoriteItem>> getFavorites() async =>
-      throw UnimplementedError();
+  Future<List<FavoriteItem>> getFavorites() async => throw UnimplementedError();
 
   @override
   Future<void> addToHistory(HistoryItem item) async =>
       throw UnimplementedError();
 
   @override
-  Future<List<HistoryItem>> getHistory() async =>
-      throw UnimplementedError();
+  Future<List<HistoryItem>> getHistory() async => throw UnimplementedError();
 
   @override
   Future<void> clearHistory() async => throw UnimplementedError();
 
   @override
-  Future<void> removeFromHistory(int contentId, domain.ContentType type) async =>
-      throw UnimplementedError();
+  Future<void> removeFromHistory(
+    int contentId,
+    domain.ContentType type,
+  ) async => throw UnimplementedError();
 
   @override
   Future<void> refreshCatalog() async => throw UnimplementedError();
@@ -181,5 +191,3 @@ void main() {
     await bloc.close();
   });
 }
-
-

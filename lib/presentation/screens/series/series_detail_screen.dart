@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 
+import '../../../core/media/playback_controller.dart';
 import '../../../core/media/playback_request.dart';
 import '../../../core/theme/app_theme.dart';
 import '../../../domain/entities/episode.dart';
@@ -36,6 +37,13 @@ class _SeriesDetailScreenState extends State<SeriesDetailScreen> {
 
   SeriesBloc get bloc => _bloc;
 
+  /// Foco del primer episodio: se restaura al cerrar el reproductor.
+  final FocusNode _firstEpisodeFocus = FocusNode(
+    debugLabel: 'series-first-episode',
+  );
+  PlaybackController? _playback;
+  bool _wasPlaying = false;
+
   @override
   void initState() {
     super.initState();
@@ -53,7 +61,37 @@ class _SeriesDetailScreenState extends State<SeriesDetailScreen> {
   }
 
   @override
+  void didChangeDependencies() {
+    super.didChangeDependencies();
+    final PlaybackController controller = PlaybackScope.of(context);
+    if (!identical(controller, _playback)) {
+      _playback?.removeListener(_onPlaybackChanged);
+      _playback = controller..addListener(_onPlaybackChanged);
+      _wasPlaying = controller.isPlaying;
+    }
+  }
+
+  /// Al cerrar el reproductor, devuelve el foco al primer episodio para que el
+  /// D-Pad siga funcionando en la ficha (solo si el overlay no lo restauró).
+  void _onPlaybackChanged() {
+    final bool playing = _playback?.isPlaying ?? false;
+    if (playing == _wasPlaying) return;
+    _wasPlaying = playing;
+    if (playing) return;
+    Future<void>.delayed(const Duration(milliseconds: 220), () {
+      if (!mounted) return;
+      if (ModalRoute.of(context)?.isCurrent != true) return;
+      if (FocusScope.of(context).hasFocus) return;
+      if (_firstEpisodeFocus.context != null) {
+        _firstEpisodeFocus.requestFocus();
+      }
+    });
+  }
+
+  @override
   void dispose() {
+    _playback?.removeListener(_onPlaybackChanged);
+    _firstEpisodeFocus.dispose();
     // Al salir del detalle, devolvemos el bloc al catálogo para que la rejilla
     // del tab vuelva a mostrarse (sin cerrar el bloc compartido).
     _bloc.add(const SeriesDetailClosed());
@@ -68,15 +106,15 @@ class _SeriesDetailScreenState extends State<SeriesDetailScreen> {
         bloc: _bloc,
         builder: (context, state) {
           return switch (state) {
-            SeriesDetailLoading() =>
-              const Center(child: CircularProgressIndicator()),
+            SeriesDetailLoading() => const Center(
+              child: CircularProgressIndicator(),
+            ),
             SeriesDetailFailure() => _ErrorView(
               series: widget.series,
               message: AppLocalizations.of(context)!.seriesDetailLoadError,
               bloc: _bloc,
             ),
-            SeriesDetailLoaded() =>
-              _buildDetail(context, state.info),
+            SeriesDetailLoaded() => _buildDetail(context, state.info),
             _ => const SizedBox.shrink(),
           };
         },
@@ -96,6 +134,7 @@ class _SeriesDetailScreenState extends State<SeriesDetailScreen> {
       series: widget.series,
       info: info,
       selectedSeason: effective,
+      firstEpisodeFocus: _firstEpisodeFocus,
       onSeasonSelected: (int value) => setState(() => _selectedSeason = value),
     );
   }
@@ -107,12 +146,14 @@ class _DetailContent extends StatelessWidget {
     required this.series,
     required this.info,
     required this.selectedSeason,
+    required this.firstEpisodeFocus,
     required this.onSeasonSelected,
   });
 
   final Series series;
   final SeriesInfo info;
   final int selectedSeason;
+  final FocusNode firstEpisodeFocus;
   final ValueChanged<int> onSeasonSelected;
 
   @override
@@ -131,7 +172,10 @@ class _DetailContent extends StatelessWidget {
             SizedBox(
               width: 110,
               height: 165,
-              child: MediaPoster(url: series.cover, fallbackIcon: Icons.theaters),
+              child: MediaPoster(
+                url: series.cover,
+                fallbackIcon: Icons.theaters,
+              ),
             ),
             const SizedBox(width: 16),
             Expanded(
@@ -140,16 +184,18 @@ class _DetailContent extends StatelessWidget {
                 children: <Widget>[
                   Text(
                     series.name,
-                    style: Theme.of(context)
-                        .textTheme
-                        .titleMedium
+                    style: Theme.of(context).textTheme.titleMedium
                         ?.copyWith(fontWeight: FontWeight.bold),
                   ),
                   if ((series.rating ?? '').isNotEmpty) ...<Widget>[
                     const SizedBox(height: 6),
                     Row(
                       children: <Widget>[
-                        Icon(Icons.star, size: 16, color: context.colors.secondary),
+                        Icon(
+                          Icons.star,
+                          size: 16,
+                          color: context.colors.secondary,
+                        ),
                         const SizedBox(width: 4),
                         Text('${l10n.rating}: ${series.rating}'),
                       ],
@@ -157,7 +203,11 @@ class _DetailContent extends StatelessWidget {
                   ],
                   if (info.plot != null && info.plot!.isNotEmpty) ...<Widget>[
                     const SizedBox(height: 10),
-                    Text(info.plot!, maxLines: 6, overflow: TextOverflow.ellipsis),
+                    Text(
+                      info.plot!,
+                      maxLines: 6,
+                      overflow: TextOverflow.ellipsis,
+                    ),
                   ],
                 ],
               ),
@@ -195,6 +245,7 @@ class _DetailContent extends StatelessWidget {
               series: series,
               episode: episodes[index],
               autofocus: index == 0,
+              focusNode: index == 0 ? firstEpisodeFocus : null,
             ),
         ],
       ],
@@ -221,33 +272,39 @@ class _EpisodeTile extends StatelessWidget {
     required this.series,
     required this.episode,
     this.autofocus = false,
+    this.focusNode,
   });
 
   final Series series;
   final Episode episode;
   final bool autofocus;
+  final FocusNode? focusNode;
 
   @override
   Widget build(BuildContext context) {
     return TvFocusable(
       autofocus: autofocus,
+      focusNode: focusNode,
       borderRadius: BorderRadius.circular(8),
       onPressed: () => _play(context),
-      child: ListTile(
-        contentPadding: EdgeInsets.zero,
-        leading: _EpisodeNumber(number: episode.episodeNumber),
-        title: Text(
-          episode.name.isEmpty
-              ? '${series.name} E${episode.episodeNumber}'
-              : episode.name,
-          maxLines: 2,
-          overflow: TextOverflow.ellipsis,
-        ),
-        trailing: Icon(
-          Icons.play_circle_outline,
-          color: context.colors.primary,
-        ),
+      child: InkWell(
+        canRequestFocus: false,
         onTap: () => _play(context),
+        child: ListTile(
+          contentPadding: EdgeInsets.zero,
+          leading: _EpisodeNumber(number: episode.episodeNumber),
+          title: Text(
+            episode.name.isEmpty
+                ? '${series.name} E${episode.episodeNumber}'
+                : episode.name,
+            maxLines: 2,
+            overflow: TextOverflow.ellipsis,
+          ),
+          trailing: Icon(
+            Icons.play_circle_outline,
+            color: context.colors.primary,
+          ),
+        ),
       ),
     );
   }

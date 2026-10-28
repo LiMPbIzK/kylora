@@ -1,6 +1,7 @@
 import 'package:flutter/foundation.dart' hide Category;
 import 'package:flutter_bloc/flutter_bloc.dart';
 
+import '../../../core/utils/category_grouping.dart';
 import '../../../core/utils/radio.dart';
 import '../../../domain/entities/category.dart';
 import '../../../domain/entities/channel.dart';
@@ -39,7 +40,7 @@ class LiveBloc extends Bloc<LiveEvent, LiveState> {
     try {
       final List<Category> categories = await _repository.fetchLiveCategories();
       final List<Channel> channels = await _repository.fetchLiveChannels();
-      _categories = categories;
+      _categories = groupCategoriesByRegionAndCountry(categories);
       _allChannels = channels;
       _query = '';
       emit(_buildLoaded(selectedCategoryId: _initialCategoryId));
@@ -58,7 +59,7 @@ class LiveBloc extends Bloc<LiveEvent, LiveState> {
     try {
       final List<Category> categories = await _repository.fetchLiveCategories();
       final List<Channel> channels = await _repository.fetchLiveChannels();
-      _categories = categories;
+      _categories = groupCategoriesByRegionAndCountry(categories);
       _allChannels = channels;
       _query = '';
       emit(_buildLoaded(selectedCategoryId: _initialCategoryId));

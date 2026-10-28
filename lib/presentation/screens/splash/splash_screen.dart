@@ -9,16 +9,24 @@ class SplashScreen extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
+      backgroundColor: const Color(0xFF0F1117),
       body: Center(
         child: Column(
           mainAxisAlignment: MainAxisAlignment.center,
           children: <Widget>[
-            Icon(Icons.live_tv, size: 96, color: context.colors.primary),
-            const SizedBox(height: 24),
-            const SizedBox(
+            Image.asset(
+              'assets/images/kylora_banner.png',
+              width: 260,
+              fit: BoxFit.contain,
+            ),
+            const SizedBox(height: 28),
+            SizedBox(
               width: 28,
               height: 28,
-              child: CircularProgressIndicator(strokeWidth: 3),
+              child: CircularProgressIndicator(
+                strokeWidth: 3,
+                color: context.colors.primary,
+              ),
             ),
           ],
         ),

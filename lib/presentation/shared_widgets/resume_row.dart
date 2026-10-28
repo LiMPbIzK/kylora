@@ -10,6 +10,7 @@ import '../../../l10n/app_localizations.dart';
 import '../screens/player/playback_scope.dart';
 import 'media_poster.dart';
 import 'tv_focusable.dart';
+import 'tv_marquee_text.dart';
 
 /// Vista "Continuar visualización": rejilla de contenido en progreso.
 ///
@@ -158,10 +159,9 @@ class _ResumeCard extends StatelessWidget {
               ),
             ),
             const SizedBox(height: 6),
-            Text(
-              item.name,
+            TvMarqueeText(
+              text: item.name,
               maxLines: 2,
-              overflow: TextOverflow.ellipsis,
               style: Theme.of(context).textTheme.bodySmall,
             ),
             const SizedBox(height: 6),

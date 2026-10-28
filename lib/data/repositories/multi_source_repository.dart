@@ -45,13 +45,17 @@ class MultiSourceRepository implements IptvRepository {
   }
 
   @override
-  Future<UserAccount> login(IptvAuthConfig config) async {
+  Future<UserAccount> login(
+    IptvAuthConfig config, {
+    bool activate = true,
+  }) async {
     final IptvRepository repo = await _forConfig(config);
-    return repo.login(config);
+    return repo.login(config, activate: activate);
   }
 
   @override
-  Future<UserAccount?> restoreSession() => _active().then((r) => r.restoreSession());
+  Future<UserAccount?> restoreSession() =>
+      _active().then((r) => r.restoreSession());
 
   @override
   Future<void> logout() async {
@@ -71,6 +75,21 @@ class MultiSourceRepository implements IptvRepository {
   @override
   Future<String> buildStreamUrl(Channel channel) =>
       _active().then((r) => r.buildStreamUrl(channel));
+
+  @override
+  Future<String?> buildCatchupUrl({
+    required int streamId,
+    required bool hasArchive,
+    int? archiveDurationDays,
+    required EpgEntry program,
+  }) => _active().then(
+    (r) => r.buildCatchupUrl(
+      streamId: streamId,
+      hasArchive: hasArchive,
+      archiveDurationDays: archiveDurationDays,
+      program: program,
+    ),
+  );
 
   @override
   Future<List<Category>> fetchVodCategories() =>
@@ -143,5 +162,6 @@ class MultiSourceRepository implements IptvRepository {
   Future<void> refreshCatalog() => _active().then((r) => r.refreshCatalog());
 
   @override
-  Future<void> clearCatalogCache() => _active().then((r) => r.clearCatalogCache());
+  Future<void> clearCatalogCache() =>
+      _active().then((r) => r.clearCatalogCache());
 }

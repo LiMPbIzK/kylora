@@ -27,6 +27,53 @@ class PlaybackOverlay extends StatefulWidget {
 class _PlaybackOverlayState extends State<PlaybackOverlay> {
   OverlayEntry? _entry;
   bool _started = false;
+  bool _wasPlaying = false;
+
+  /// Nodo que tenía el foco antes de empezar a reproducir (botón Reproducir,
+  /// tarjeta de canal/episodio…). Se restaura al cerrar el reproductor para que
+  /// el D-Pad siga funcionando sin tener que volver atrás.
+  FocusNode? _focusBeforePlayback;
+
+  @override
+  void initState() {
+    super.initState();
+    _wasPlaying = widget.controller.isPlaying;
+    widget.controller.addListener(_onPlaybackChanged);
+  }
+
+  @override
+  void dispose() {
+    widget.controller.removeListener(_onPlaybackChanged);
+    super.dispose();
+  }
+
+  void _onPlaybackChanged() {
+    final bool playing = widget.controller.isPlaying;
+    if (playing == _wasPlaying) return;
+    _wasPlaying = playing;
+    if (playing) {
+      _focusBeforePlayback = FocusManager.instance.primaryFocus;
+      return;
+    }
+    final FocusNode? previous = _focusBeforePlayback;
+    _focusBeforePlayback = null;
+    if (previous == null) return;
+    // Se espera al siguiente frame: para entonces el reproductor ya está
+    // oculto y el foco de la app de debajo vuelve a estar habilitado.
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      if (!mounted) return;
+      if (previous.context != null && previous.canRequestFocus) {
+        previous.requestFocus();
+      }
+      // Segundo intento por si el cierre visual del overlay aún lo pisó.
+      Future<void>.delayed(const Duration(milliseconds: 120), () {
+        if (!mounted || previous.context == null) return;
+        if (previous.canRequestFocus && !previous.hasFocus) {
+          previous.requestFocus();
+        }
+      });
+    });
+  }
 
   @override
   Widget build(BuildContext context) {

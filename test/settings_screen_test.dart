@@ -1,8 +1,10 @@
 import 'package:flutter/material.dart';
+import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:flutter_test/flutter_test.dart';
 
 import 'package:kylora/app.dart';
 import 'package:kylora/core/media/playback_controller.dart';
+import 'package:kylora/core/utils/clock_format.dart';
 import 'package:kylora/data/datasources/local/settings_store.dart';
 import 'package:kylora/domain/entities/category.dart';
 import 'package:kylora/domain/entities/channel.dart';
@@ -29,6 +31,7 @@ import 'package:kylora/presentation/blocs/settings/settings_bloc.dart';
 import 'package:kylora/presentation/blocs/settings/settings_event.dart';
 import 'package:kylora/presentation/blocs/vod/vod_bloc.dart';
 import 'package:kylora/presentation/screens/auth/login_screen.dart';
+import 'package:kylora/presentation/screens/dashboard/home_shell_screen.dart';
 import 'package:kylora/presentation/screens/settings/settings_screen.dart';
 
 class _MemSettingsStore implements AppSettingsStorage {
@@ -56,8 +59,10 @@ class _FakeRepo implements IptvRepository {
   bool failRefresh = false;
 
   @override
-  Future<UserAccount> login(IptvAuthConfig config) async =>
-      throw UnimplementedError();
+  Future<UserAccount> login(
+    IptvAuthConfig config, {
+    bool activate = true,
+  }) async => throw UnimplementedError();
 
   @override
   Future<UserAccount?> restoreSession() async => storedAccount;
@@ -76,6 +81,14 @@ class _FakeRepo implements IptvRepository {
 
   @override
   Future<String> buildStreamUrl(Channel channel) async => '';
+
+  @override
+  Future<String?> buildCatchupUrl({
+    required int streamId,
+    required bool hasArchive,
+    int? archiveDurationDays,
+    required EpgEntry program,
+  }) async => null;
 
   @override
   Future<List<Category>> fetchVodCategories() async => const <Category>[];
@@ -202,11 +215,32 @@ void main() {
     expect(find.byType(SettingsScreen), findsOneWidget);
     expect(find.text('http://server:8080'), findsOneWidget);
     expect(find.text('user'), findsOneWidget);
-    expect(find.text('Account status'), findsOneWidget);
+    expect(find.text('ACCOUNT STATUS'), findsOneWidget);
 
     await tester.tap(find.byIcon(Icons.logout));
     await tester.pumpAndSettle();
     expect(find.byType(LoginScreen), findsOneWidget);
+  });
+
+  testWidgets('Ajustes abre el formulario para añadir una cuenta', (
+    WidgetTester tester,
+  ) async {
+    await pumpSettings(
+      tester,
+      account: const UserAccount(
+        serverUrl: 'http://server:8080',
+        username: 'user',
+        password: 'pass',
+        status: 'Active',
+      ),
+    );
+
+    await tester.tap(find.text('Add account'));
+    await tester.pumpAndSettle();
+
+    expect(find.byType(LoginScreen), findsOneWidget);
+    expect(find.text('Connect to IPTV'), findsNothing);
+    expect(find.text('Add account'), findsWidgets);
   });
 
   testWidgets('Ajustes muestra datos M3U', (WidgetTester tester) async {
@@ -340,6 +374,19 @@ void main() {
     await tester.pumpAndSettle();
 
     expect(store.values['clock_24h'], 'false');
+
+    // Al volver al dashboard, el reloj principal ya usa el formato de 12 h.
+    await tester.pageBack();
+    await tester.pumpAndSettle();
+    final BuildContext homeContext = tester.element(
+      find.byType(HomeShellScreen),
+    );
+    final String time12 = formatClockTime(
+      TimeOfDay.now(),
+      clock24h: false,
+      localizations: MaterialLocalizations.of(homeContext),
+    );
+    expect(find.text(time12), findsOneWidget);
   });
 
   testWidgets('Cambiar tema dispara SettingsThemeChanged', (
@@ -365,5 +412,58 @@ void main() {
     await tester.pumpAndSettle();
 
     expect(store.values['theme_id'], 'canvas');
+  });
+
+  testWidgets('El reloj principal cambia de formato al cambiar el ajuste', (
+    WidgetTester tester,
+  ) async {
+    final _MemSettingsStore store = _MemSettingsStore();
+    // En español el formato regional es 24 h: el ajuste 12 h debe imponerse
+    // igualmente (es el caso real del usuario).
+    store.values['locale'] = 'es';
+    await pumpSettings(
+      tester,
+      account: const UserAccount(
+        serverUrl: 'http://server:8080',
+        username: 'user',
+        password: 'pass',
+        status: 'Active',
+      ),
+      store: store,
+    );
+
+    // Volver al dashboard para ver el reloj principal (la app está en español,
+    // así que `pageBack` no encuentra el tooltip inglés del botón).
+    await tester.tap(find.byIcon(Icons.arrow_back));
+    await tester.pumpAndSettle();
+
+    final BuildContext homeContext = tester.element(
+      find.byType(HomeShellScreen),
+    );
+    final SettingsBloc settingsBloc = BlocProvider.of<SettingsBloc>(
+      homeContext,
+    );
+    final MaterialLocalizations localizations = MaterialLocalizations.of(
+      homeContext,
+    );
+    final TimeOfDay now = TimeOfDay.now();
+    final String time24 = formatClockTime(
+      now,
+      clock24h: true,
+      localizations: localizations,
+    );
+    final String time12 = formatClockTime(
+      now,
+      clock24h: false,
+      localizations: localizations,
+    );
+
+    expect(time24, isNot(time12));
+    expect(find.text(time24), findsOneWidget);
+
+    settingsBloc.add(const SettingsClockFormatChanged(false));
+    await tester.pumpAndSettle();
+
+    expect(find.text(time12), findsOneWidget);
   });
 }

@@ -16,6 +16,7 @@ import '../../blocs/favorites/favorites_bloc.dart';
 import '../../blocs/favorites/favorites_event.dart';
 import '../../blocs/favorites/favorites_state.dart';
 import '../../shared_widgets/tv_focusable.dart';
+import '../../shared_widgets/tv_marquee_text.dart';
 import '../player/playback_scope.dart';
 
 /// Pantalla de favoritos con lista de contenido guardado.
@@ -44,11 +45,14 @@ class _FavoritesScreenState extends State<FavoritesScreen> {
       body: BlocBuilder<FavoritesBloc, FavoritesState>(
         builder: (context, state) {
           return switch (state) {
-            FavoritesLoading() => const Center(child: CircularProgressIndicator()),
+            FavoritesLoading() => const Center(
+              child: CircularProgressIndicator(),
+            ),
             FavoritesFailure() => _EmptyView(message: l10n.favoritesLoadError),
-            FavoritesLoaded() => state.items.isEmpty
-                ? _EmptyView(message: l10n.noFavorites)
-                : _FavoritesList(items: state.items),
+            FavoritesLoaded() =>
+              state.items.isEmpty
+                  ? _EmptyView(message: l10n.noFavorites)
+                  : _FavoritesList(items: state.items),
           };
         },
       ),
@@ -93,63 +97,69 @@ class _FavoriteTile extends StatelessWidget {
     return TvFocusable(
       autofocus: autofocus,
       borderRadius: BorderRadius.circular(8),
-      child: ListTile(
-        leading: _Logo(logo: item.logo, icon: icon),
-        title: Text(item.name, maxLines: 1, overflow: TextOverflow.ellipsis),
-        subtitle: Text(_typeLabel(context, item.contentType.name)),
-        trailing: IconButton(
-          icon: Icon(Icons.favorite, color: context.colors.primary),
-          onPressed: () {
-            context.read<FavoritesBloc>().add(
-              FavoritesToggled(
-                item.contentId,
-                item.contentType.name,
-                item.name,
-                item.logo,
-              ),
-            );
-          },
+      onPressed: () => _open(context),
+      child: GestureDetector(
+        behavior: HitTestBehavior.opaque,
+        onTap: () => _open(context),
+        child: ListTile(
+          leading: _Logo(logo: item.logo, icon: icon),
+          title: TvMarqueeText(text: item.name, maxLines: 1),
+          subtitle: Text(_typeLabel(context, item.contentType.name)),
+          trailing: IconButton(
+            icon: Icon(Icons.favorite, color: context.colors.primary),
+            onPressed: () {
+              context.read<FavoritesBloc>().add(
+                FavoritesToggled(
+                  item.contentId,
+                  item.contentType.name,
+                  item.name,
+                  item.logo,
+                ),
+              );
+            },
+          ),
         ),
-        onTap: () {
-          switch (item.contentType.name) {
-            case 'live':
-              final IptvRepository repository = context.read<IptvRepository>();
-              PlaybackScope.of(context).play(
-                PlaybackRequest(
-                  title: item.name,
-                  urlBuilder: () => repository.buildStreamUrl(
-                    Channel(
-                      id: item.contentId,
-                      name: item.name,
-                      categoryId: 0,
-                      logo: item.logo,
-                    ),
-                  ),
-                  contentType: item.contentType.name,
-                  contentId: item.contentId,
-                ),
-              );
-            case 'vod':
-              // Abrir la ficha de la película para poder reproducirla.
-              context.push(
-                Routes.movieDetail,
-                extra: Movie(
-                  id: item.contentId,
-                  name: item.name,
-                  categoryId: 0,
-                  streamIcon: item.logo,
-                ),
-              );
-            case 'series':
-              // Abrir la ficha de la serie para poder reproducir episodios.
-              context.push(
-                Routes.seriesDetail,
-                extra: Series(id: item.contentId, name: item.name, cover: item.logo),
-              );
-          }
-        },
       ),
     );
+  }
+
+  void _open(BuildContext context) {
+    switch (item.contentType.name) {
+      case 'live':
+        final IptvRepository repository = context.read<IptvRepository>();
+        PlaybackScope.of(context).play(
+          PlaybackRequest(
+            title: item.name,
+            urlBuilder: () => repository.buildStreamUrl(
+              Channel(
+                id: item.contentId,
+                name: item.name,
+                categoryId: 0,
+                logo: item.logo,
+              ),
+            ),
+            contentType: item.contentType.name,
+            contentId: item.contentId,
+          ),
+        );
+      case 'vod':
+        // Abrir la ficha de la película para poder reproducirla.
+        context.push(
+          Routes.movieDetail,
+          extra: Movie(
+            id: item.contentId,
+            name: item.name,
+            categoryId: 0,
+            streamIcon: item.logo,
+          ),
+        );
+      case 'series':
+        // Abrir la ficha de la serie para poder reproducir episodios.
+        context.push(
+          Routes.seriesDetail,
+          extra: Series(id: item.contentId, name: item.name, cover: item.logo),
+        );
+    }
   }
 
   String _typeLabel(BuildContext context, String type) {
@@ -211,7 +221,11 @@ class _EmptyView extends StatelessWidget {
       child: Column(
         mainAxisAlignment: MainAxisAlignment.center,
         children: <Widget>[
-          Icon(Icons.favorite_border, size: 56, color: context.colors.surfaceVariant),
+          Icon(
+            Icons.favorite_border,
+            size: 56,
+            color: context.colors.surfaceVariant,
+          ),
           const SizedBox(height: 12),
           Text(message, textAlign: TextAlign.center),
         ],

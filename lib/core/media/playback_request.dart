@@ -9,6 +9,9 @@ class PlaybackRequest {
     this.openGuide = false,
     this.startPosition,
     this.logo,
+    this.hasArchive = false,
+    this.archiveDurationDays,
+    this.channelTitle,
   });
 
   /// Título del contenido que se reproduce.
@@ -32,4 +35,13 @@ class PlaybackRequest {
 
   /// URL del póster/logo para el historial y la vista de reanudación.
   final String? logo;
+
+  /// El canal soporta catch-up; el reproductor puede ofrecerlo en la guía.
+  final bool hasArchive;
+
+  /// Días de archivo del canal, si el proveedor los informa.
+  final int? archiveDurationDays;
+
+  /// Nombre del canal, separado del título del programa en catch-up.
+  final String? channelTitle;
 }

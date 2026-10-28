@@ -36,13 +36,17 @@ import 'package:kylora/presentation/screens/live/live_screen.dart';
 import 'package:kylora/presentation/screens/series/series_screen.dart';
 import 'package:kylora/presentation/screens/settings/settings_screen.dart';
 import 'package:kylora/presentation/screens/vod/vod_screen.dart';
+import 'package:kylora/presentation/shared_widgets/tv_focusable.dart';
 
 /// Repositorio falso con cuenta de prueba.
 class _FakeRepository implements IptvRepository {
   UserAccount? storedAccount;
 
   @override
-  Future<UserAccount> login(IptvAuthConfig config) async {
+  Future<UserAccount> login(
+    IptvAuthConfig config, {
+    bool activate = true,
+  }) async {
     final XtreamAuthConfig xtream = config as XtreamAuthConfig;
     return UserAccount(
       serverUrl: xtream.serverUrl,
@@ -99,6 +103,14 @@ class _FakeRepository implements IptvRepository {
   Future<String> buildStreamUrl(Channel channel) async {
     return 'http://server:8080/live/user/pass/${channel.id}.ts';
   }
+
+  @override
+  Future<String?> buildCatchupUrl({
+    required int streamId,
+    required bool hasArchive,
+    int? archiveDurationDays,
+    required EpgEntry program,
+  }) async => null;
 
   @override
   Future<List<Category>> fetchVodCategories() async => const <Category>[
@@ -364,9 +376,19 @@ void main() {
 
     expect(find.byType(LiveScreen), findsOneWidget);
     await tester.pump(const Duration(seconds: 1));
-    // Sin "Todas": arranca en la primera categoría (Deportes).
+    // Sin "Todas": arranca en la primera categoría (Deportes) y con el foco en
+    // la categoría seleccionada (no en la primera tarjeta).
     expect(find.text('Sports 1'), findsOneWidget);
     expect(find.text('Deportes'), findsOneWidget);
+    final TvFocusable selectedCategory = tester.widget<TvFocusable>(
+      find
+          .ancestor(
+            of: find.text('Deportes'),
+            matching: find.byType(TvFocusable),
+          )
+          .first,
+    );
+    expect(selectedCategory.focusNode?.hasFocus, isTrue);
     expect(find.text('News 24'), findsNothing);
     // Cambiar a otra categoría muestra sus canales.
     await tester.tap(find.text('Noticias'));
@@ -401,6 +423,33 @@ void main() {
     await tester.tap(find.text('Drama'));
     await tester.pumpAndSettle();
     expect(find.text('Titanic'), findsOneWidget);
+  });
+
+  testWidgets('La ficha de película enfoca Reproducir al abrirse', (
+    WidgetTester tester,
+  ) async {
+    await pumpApp(
+      tester,
+      stored: const UserAccount(
+        serverUrl: 'http://server:8080',
+        username: 'user',
+        password: 'pass',
+        status: 'Active',
+      ),
+    );
+
+    // Abrir la sección de películas y la ficha de Matrix.
+    await tester.tap(find.text('Movies'));
+    await tester.pumpAndSettle();
+    await tester.pump(const Duration(seconds: 1));
+    await tester.tap(find.text('Matrix'));
+    await tester.pumpAndSettle();
+
+    // En TV, OK debe reproducir directamente: el botón Reproducir tiene foco.
+    final FilledButton playButton = tester.widget<FilledButton>(
+      find.widgetWithText(FilledButton, 'Play'),
+    );
+    expect(playButton.focusNode?.hasFocus, isTrue);
   });
 
   testWidgets('Desde el dashboard se abre el catálogo de series', (
@@ -472,7 +521,10 @@ class _FailingRepository implements IptvRepository {
   const _FailingRepository();
 
   @override
-  Future<UserAccount> login(IptvAuthConfig config) async {
+  Future<UserAccount> login(
+    IptvAuthConfig config, {
+    bool activate = true,
+  }) async {
     throw const XtreamAuthException('invalid');
   }
 
@@ -493,6 +545,14 @@ class _FailingRepository implements IptvRepository {
   @override
   Future<String> buildStreamUrl(Channel channel) async =>
       throw UnimplementedError();
+
+  @override
+  Future<String?> buildCatchupUrl({
+    required int streamId,
+    required bool hasArchive,
+    int? archiveDurationDays,
+    required EpgEntry program,
+  }) async => null;
 
   @override
   Future<List<Category>> fetchVodCategories() async =>
