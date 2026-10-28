@@ -11,6 +11,7 @@ import 'package:kylora/domain/entities/channel.dart';
 import 'package:kylora/domain/entities/content_type.dart' as domain;
 import 'package:kylora/domain/entities/epg.dart';
 import 'package:kylora/domain/entities/episode.dart';
+import 'package:kylora/domain/entities/favorite_channel_group.dart';
 import 'package:kylora/domain/entities/favorite_item.dart';
 import 'package:kylora/domain/entities/history_item.dart';
 import 'package:kylora/domain/entities/iptv_auth_config.dart';
@@ -121,6 +122,19 @@ class _FakeRepo implements IptvRepository {
 
   @override
   Future<void> addToFavorite(FavoriteItem item) async {}
+
+  @override
+  Future<void> addFavoriteGroup(FavoriteChannelGroup group) async {}
+
+  @override
+  Future<void> removeFavoriteGroup(int categoryId) async {}
+
+  @override
+  Future<List<FavoriteChannelGroup>> getFavoriteGroups() async =>
+      const <FavoriteChannelGroup>[];
+
+  @override
+  Future<bool> isFavoriteGroup(int categoryId) async => false;
 
   @override
   Future<void> removeFromFavorite(

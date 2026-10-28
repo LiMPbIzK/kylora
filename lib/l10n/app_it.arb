@@ -194,6 +194,11 @@
     "description": "Sezione del pannello per le serie."
   },
   "favorites": "Preferiti",
+  "favoriteGroups": "Gruppi preferiti",
+  "addGroupToFavorites": "Aggiungi gruppo ai preferiti",
+  "removeGroupFromFavorites": "Rimuovi gruppo dai preferiti",
+  "groupFavoriteAdded": "Gruppo aggiunto ai preferiti",
+  "groupFavoriteRemoved": "Gruppo rimosso dai preferiti",
   "@favorites": {
     "description": "Sezione del pannello per i contenuti preferiti."
   },

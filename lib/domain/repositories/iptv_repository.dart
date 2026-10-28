@@ -3,6 +3,7 @@ import '../entities/channel.dart';
 import '../entities/content_type.dart';
 import '../entities/epg.dart';
 import '../entities/episode.dart';
+import '../entities/favorite_channel_group.dart';
 import '../entities/favorite_item.dart';
 import '../entities/history_item.dart';
 import '../entities/iptv_auth_config.dart';
@@ -73,6 +74,18 @@ abstract interface class IptvRepository {
 
   /// Añade un elemento a favoritos.
   Future<void> addToFavorite(FavoriteItem item);
+
+  /// Añade una categoría/grupo de canales a favoritos.
+  Future<void> addFavoriteGroup(FavoriteChannelGroup group);
+
+  /// Elimina una categoría/grupo de canales de favoritos.
+  Future<void> removeFavoriteGroup(int categoryId);
+
+  /// Obtiene los grupos de canales favoritos.
+  Future<List<FavoriteChannelGroup>> getFavoriteGroups();
+
+  /// Comprueba si una categoría está guardada como grupo favorito.
+  Future<bool> isFavoriteGroup(int categoryId);
 
   /// Elimina un elemento de favoritos.
   Future<void> removeFromFavorite(int contentId, ContentType type);

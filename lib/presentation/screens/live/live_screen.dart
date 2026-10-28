@@ -7,9 +7,11 @@ import '../../../app.dart';
 import '../../../core/media/playback_controller.dart';
 import '../../../core/media/playback_request.dart';
 import '../../../core/theme/app_theme.dart';
+import '../../../domain/entities/category.dart';
 import '../../../domain/entities/channel.dart';
 import '../../../domain/entities/content_type.dart';
 import '../../../domain/entities/epg.dart';
+import '../../../domain/entities/favorite_channel_group.dart';
 import '../../../domain/entities/favorite_item.dart';
 import '../../../domain/repositories/iptv_repository.dart';
 import '../../../l10n/app_localizations.dart';
@@ -63,7 +65,9 @@ class _LiveScreenState extends State<LiveScreen> {
     // La carga se dispara al montar la pantalla para no depender de la navegación.
     final bool radio = widget.radio;
     WidgetsBinding.instance.addPostFrameCallback((_) {
-      if (mounted) context.read<LiveBloc>().add(LiveStarted(radio: radio));
+      if (!mounted) return;
+      context.read<LiveBloc>().add(LiveStarted(radio: radio));
+      context.read<FavoritesBloc>().add(const FavoritesStarted());
     });
   }
 
@@ -132,6 +136,7 @@ class _LiveScreenState extends State<LiveScreen> {
               firstResultFocus: _firstResultFocus,
               firstCategoryFocus: _firstCategoryFocus,
               showEpg: !widget.radio,
+              radio: widget.radio,
             ),
           };
         },
@@ -148,6 +153,7 @@ class _LiveContent extends StatelessWidget {
     required this.firstResultFocus,
     required this.firstCategoryFocus,
     required this.showEpg,
+    required this.radio,
   });
 
   final LiveLoaded state;
@@ -157,6 +163,47 @@ class _LiveContent extends StatelessWidget {
 
   /// `false` en la sección Radio: no se consulta ni muestra EPG.
   final bool showEpg;
+  final bool radio;
+
+  Future<void> _showGroupMenu(BuildContext context, Category category) async {
+    final AppLocalizations l10n = AppLocalizations.of(context)!;
+    final FavoritesState favoritesState = context.read<FavoritesBloc>().state;
+    final bool isFavorite =
+        favoritesState is FavoritesLoaded &&
+        favoritesState.groups.any(
+          (FavoriteChannelGroup group) => group.categoryId == category.id,
+        );
+    final bool? selected = await showTvContextMenu<bool>(
+      context: context,
+      entries: <TvContextMenuEntry<bool>>[
+        TvContextMenuEntry<bool>(
+          value: true,
+          icon: isFavorite ? Icons.star : Icons.star_border,
+          label: isFavorite
+              ? l10n.removeGroupFromFavorites
+              : l10n.addGroupToFavorites,
+        ),
+      ],
+    );
+    if (selected == null || !context.mounted) return;
+    context.read<FavoritesBloc>().add(
+      FavoriteGroupToggled(
+        FavoriteChannelGroup(
+          categoryId: category.id,
+          name: category.name,
+          isRadio: radio,
+          addedAt: DateTime.now(),
+        ),
+      ),
+    );
+    ScaffoldMessenger.of(context).showSnackBar(
+      SnackBar(
+        content: Text(
+          isFavorite ? l10n.groupFavoriteRemoved : l10n.groupFavoriteAdded,
+        ),
+      ),
+    );
+  }
 
   /// Devuelve el foco a la primera sección tras cerrar el buscador.
   void _focusFirstCategory() {
@@ -197,12 +244,28 @@ class _LiveContent extends StatelessWidget {
           child: Row(
             crossAxisAlignment: CrossAxisAlignment.stretch,
             children: <Widget>[
-              CategorySidebar(
-                categories: state.categories,
-                selectedCategoryId: state.selectedCategoryId,
-                onCategorySelected: (int? id) =>
-                    context.read<LiveBloc>().add(LiveCategorySelected(id)),
-                firstCategoryFocus: firstCategoryFocus,
+              BlocBuilder<FavoritesBloc, FavoritesState>(
+                buildWhen: (previous, current) => current is FavoritesLoaded,
+                builder: (context, favoritesState) {
+                  final Set<int> favoriteGroupIds =
+                      favoritesState is FavoritesLoaded
+                      ? favoritesState.groups
+                            .map(
+                              (FavoriteChannelGroup group) => group.categoryId,
+                            )
+                            .toSet()
+                      : const <int>{};
+                  return CategorySidebar(
+                    categories: state.categories,
+                    selectedCategoryId: state.selectedCategoryId,
+                    favoriteGroupIds: favoriteGroupIds,
+                    onCategorySelected: (int? id) =>
+                        context.read<LiveBloc>().add(LiveCategorySelected(id)),
+                    onCategoryLongPress: (Category category) =>
+                        _showGroupMenu(context, category),
+                    firstCategoryFocus: firstCategoryFocus,
+                  );
+                },
               ),
               const VerticalDivider(width: 1),
               Expanded(

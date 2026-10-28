@@ -8,6 +8,7 @@ import 'package:go_router/go_router.dart';
 import 'core/media/playback_controller.dart';
 import 'core/theme/app_theme.dart';
 import 'domain/entities/channel.dart';
+import 'domain/entities/favorite_channel_group.dart';
 import 'domain/entities/movie.dart';
 import 'domain/entities/series.dart';
 import 'domain/repositories/iptv_repository.dart';
@@ -25,6 +26,7 @@ import 'presentation/blocs/search/search_visibility_cubit.dart';
 import 'presentation/blocs/vod/vod_bloc.dart';
 import 'presentation/screens/auth/login_screen.dart';
 import 'presentation/screens/dashboard/home_shell_screen.dart';
+import 'presentation/screens/favorites/favorite_group_screen.dart';
 import 'presentation/screens/favorites/favorites_screen.dart';
 import 'presentation/screens/history/history_screen.dart';
 import 'presentation/screens/live/program_guide_screen.dart';
@@ -105,6 +107,14 @@ abstract final class AppRouter {
           builder: (context, state) => const FavoritesScreen(),
         ),
         GoRoute(
+          path: Routes.favoriteGroup,
+          builder: (context, state) {
+            final FavoriteChannelGroup group =
+                state.extra! as FavoriteChannelGroup;
+            return FavoriteGroupScreen(group: group);
+          },
+        ),
+        GoRoute(
           path: Routes.history,
           builder: (context, state) => const HistoryScreen(),
         ),
@@ -135,6 +145,7 @@ abstract final class Routes {
   static const String programGuide = '/program-guide';
   static const String search = '/search';
   static const String favorites = '/favorites';
+  static const String favoriteGroup = '/favorite-group';
   static const String history = '/history';
   static const String settings = '/settings';
   static const String accountAdd = '/account-add';

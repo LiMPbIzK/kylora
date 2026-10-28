@@ -194,6 +194,11 @@
     "description": "Panel-Abschnitt für Serien."
   },
   "favorites": "Favoriten",
+  "favoriteGroups": "Favoritengruppen",
+  "addGroupToFavorites": "Gruppe zu Favoriten hinzufügen",
+  "removeGroupFromFavorites": "Gruppe aus Favoriten entfernen",
+  "groupFavoriteAdded": "Gruppe zu Favoriten hinzugefügt",
+  "groupFavoriteRemoved": "Gruppe aus Favoriten entfernt",
   "@favorites": {
     "description": "Panel-Abschnitt für bevorzugte Inhalte."
   },

@@ -504,6 +504,11 @@
   "@favorites": {
     "description": "Panel section for favorite content."
   },
+  "favoriteGroups": "Favorite groups",
+  "addGroupToFavorites": "Add group to favorites",
+  "removeGroupFromFavorites": "Remove group from favorites",
+  "groupFavoriteAdded": "Group added to favorites",
+  "groupFavoriteRemoved": "Group removed from favorites",
   "history": "History",
   "@history": {
     "description": "Panel section for the playback history."

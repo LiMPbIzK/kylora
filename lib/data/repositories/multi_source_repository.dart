@@ -3,6 +3,7 @@ import '../../domain/entities/channel.dart';
 import '../../domain/entities/content_type.dart';
 import '../../domain/entities/epg.dart';
 import '../../domain/entities/episode.dart';
+import '../../domain/entities/favorite_channel_group.dart';
 import '../../domain/entities/favorite_item.dart';
 import '../../domain/entities/history_item.dart';
 import '../../domain/entities/iptv_auth_config.dart';
@@ -126,6 +127,22 @@ class MultiSourceRepository implements IptvRepository {
   @override
   Future<List<EpgEntry>> fetchFullEpg(int streamId) =>
       _active().then((r) => r.fetchFullEpg(streamId));
+
+  @override
+  Future<void> addFavoriteGroup(FavoriteChannelGroup group) =>
+      _active().then((r) => r.addFavoriteGroup(group));
+
+  @override
+  Future<void> removeFavoriteGroup(int categoryId) =>
+      _active().then((r) => r.removeFavoriteGroup(categoryId));
+
+  @override
+  Future<List<FavoriteChannelGroup>> getFavoriteGroups() =>
+      _active().then((r) => r.getFavoriteGroups());
+
+  @override
+  Future<bool> isFavoriteGroup(int categoryId) =>
+      _active().then((r) => r.isFavoriteGroup(categoryId));
 
   @override
   Future<void> addToFavorite(FavoriteItem item) =>

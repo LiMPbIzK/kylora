@@ -1,5 +1,6 @@
 import 'package:equatable/equatable.dart';
 
+import '../../../domain/entities/favorite_channel_group.dart';
 import '../../../domain/entities/favorite_item.dart';
 
 /// Estados del bloc de favoritos.
@@ -17,12 +18,16 @@ final class FavoritesLoading extends FavoritesState {
 
 /// Favoritos cargados.
 final class FavoritesLoaded extends FavoritesState {
-  const FavoritesLoaded(this.items);
+  const FavoritesLoaded(
+    this.items, {
+    this.groups = const <FavoriteChannelGroup>[],
+  });
 
   final List<FavoriteItem> items;
+  final List<FavoriteChannelGroup> groups;
 
   @override
-  List<Object?> get props => <Object?>[items];
+  List<Object?> get props => <Object?>[items, groups];
 }
 
 /// Error al cargar favoritos.

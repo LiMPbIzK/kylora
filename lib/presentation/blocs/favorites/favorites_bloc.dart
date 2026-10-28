@@ -2,6 +2,7 @@ import 'package:flutter/foundation.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 
 import '../../../domain/entities/content_type.dart';
+import '../../../domain/entities/favorite_channel_group.dart';
 import '../../../domain/entities/favorite_item.dart';
 import '../../../domain/repositories/iptv_repository.dart';
 import 'favorites_event.dart';
@@ -12,6 +13,7 @@ class FavoritesBloc extends Bloc<FavoritesEvent, FavoritesState> {
   FavoritesBloc(this._repository) : super(const FavoritesLoading()) {
     on<FavoritesStarted>(_onStarted);
     on<FavoritesToggled>(_onToggled);
+    on<FavoriteGroupToggled>(_onGroupToggled);
   }
 
   final IptvRepository _repository;
@@ -23,7 +25,9 @@ class FavoritesBloc extends Bloc<FavoritesEvent, FavoritesState> {
     emit(const FavoritesLoading());
     try {
       final List<FavoriteItem> items = await _repository.getFavorites();
-      emit(FavoritesLoaded(items));
+      final List<FavoriteChannelGroup> groups = await _repository
+          .getFavoriteGroups();
+      emit(FavoritesLoaded(items, groups: groups));
     } catch (e) {
       if (kDebugMode) debugPrint('FavoritesBloc error: $e');
       emit(const FavoritesFailure('favoritesLoadError'));
@@ -48,11 +52,29 @@ class FavoritesBloc extends Bloc<FavoritesEvent, FavoritesState> {
         ),
       );
     }
-    // Recarga la lista tras el toggle.
-    final List<FavoriteItem> items = await _repository.getFavorites();
-    if (state is FavoritesLoaded) {
-      emit(FavoritesLoaded(items));
+    await _reload(emit);
+  }
+
+  Future<void> _onGroupToggled(
+    FavoriteGroupToggled event,
+    Emitter<FavoritesState> emit,
+  ) async {
+    final bool isFav = await _repository.isFavoriteGroup(
+      event.group.categoryId,
+    );
+    if (isFav) {
+      await _repository.removeFavoriteGroup(event.group.categoryId);
+    } else {
+      await _repository.addFavoriteGroup(event.group);
     }
+    await _reload(emit);
+  }
+
+  Future<void> _reload(Emitter<FavoritesState> emit) async {
+    final List<FavoriteItem> items = await _repository.getFavorites();
+    final List<FavoriteChannelGroup> groups = await _repository
+        .getFavoriteGroups();
+    emit(FavoritesLoaded(items, groups: groups));
   }
 
   ContentType _parseType(String value) {

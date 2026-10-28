@@ -8,6 +8,7 @@ import '../../domain/entities/channel.dart';
 import '../../domain/entities/content_type.dart' as domain;
 import '../../domain/entities/epg.dart';
 import '../../domain/entities/episode.dart';
+import '../../domain/entities/favorite_channel_group.dart';
 import '../../domain/entities/favorite_item.dart';
 import '../../domain/entities/history_item.dart';
 import '../../domain/entities/iptv_auth_config.dart';
@@ -202,6 +203,34 @@ class M3uRepository implements IptvRepository {
     final Channel? channel = await _channelByStreamId(streamId);
     if (channel == null) return <EpgEntry>[];
     return _epgForChannel(channel);
+  }
+
+  @override
+  Future<void> addFavoriteGroup(FavoriteChannelGroup group) async {
+    final StoredCredentials? stored = await _authStore.read();
+    if (stored == null) return;
+    await _cache.addFavoriteGroup(stored.fingerprint, group);
+  }
+
+  @override
+  Future<void> removeFavoriteGroup(int categoryId) async {
+    final StoredCredentials? stored = await _authStore.read();
+    if (stored == null) return;
+    await _cache.removeFavoriteGroup(stored.fingerprint, categoryId);
+  }
+
+  @override
+  Future<List<FavoriteChannelGroup>> getFavoriteGroups() async {
+    final StoredCredentials? stored = await _authStore.read();
+    if (stored == null) return const <FavoriteChannelGroup>[];
+    return _cache.getFavoriteGroups(stored.fingerprint);
+  }
+
+  @override
+  Future<bool> isFavoriteGroup(int categoryId) async {
+    final StoredCredentials? stored = await _authStore.read();
+    if (stored == null) return false;
+    return _cache.isFavoriteGroup(stored.fingerprint, categoryId);
   }
 
   @override

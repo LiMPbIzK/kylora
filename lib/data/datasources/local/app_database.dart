@@ -113,6 +113,18 @@ class Favorites extends Table {
   DateTimeColumn get addedAt => dateTime()();
 }
 
+/// Grupos/categorías de canales favoritos, por cuenta.
+class FavoriteGroups extends Table {
+  TextColumn get accountKey => text().withDefault(const Constant(''))();
+  IntColumn get categoryId => integer()();
+  TextColumn get name => text()();
+  BoolColumn get isRadio => boolean().withDefault(const Constant(false))();
+  DateTimeColumn get addedAt => dateTime()();
+
+  @override
+  Set<Column<Object>> get primaryKey => {accountKey, categoryId};
+}
+
 /// Historial de reproducción (persistente, por cuenta).
 class History extends Table {
   /// Id de la cuenta (fingerprint) a la que pertenece la fila.
@@ -149,6 +161,7 @@ class AppSettings extends Table {
     SeriesCategories,
     SeriesCache,
     Favorites,
+    FavoriteGroups,
     History,
     AppSettings,
   ],
@@ -167,7 +180,7 @@ class AppDatabase extends _$AppDatabase {
   }
 
   @override
-  int get schemaVersion => 7;
+  int get schemaVersion => 8;
 
   @override
   MigrationStrategy get migration {
@@ -213,6 +226,10 @@ class AppDatabase extends _$AppDatabase {
           await m.createTable(vodMovies);
           await m.createTable(seriesCategories);
           await m.createTable(seriesCache);
+        }
+        if (from < 8) {
+          // V8: grupos/categorías favoritas.
+          await m.createTable(favoriteGroups);
         }
       },
     );

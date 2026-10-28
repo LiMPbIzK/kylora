@@ -3722,6 +3722,375 @@ class FavoritesCompanion extends UpdateCompanion<Favorite> {
   }
 }
 
+class $FavoriteGroupsTable extends FavoriteGroups
+    with TableInfo<$FavoriteGroupsTable, FavoriteGroup> {
+  @override
+  final GeneratedDatabase attachedDatabase;
+  final String? _alias;
+  $FavoriteGroupsTable(this.attachedDatabase, [this._alias]);
+  static const VerificationMeta _accountKeyMeta = const VerificationMeta(
+    'accountKey',
+  );
+  @override
+  late final GeneratedColumn<String> accountKey = GeneratedColumn<String>(
+    'account_key',
+    aliasedName,
+    false,
+    type: DriftSqlType.string,
+    requiredDuringInsert: false,
+    defaultValue: const Constant(''),
+  );
+  static const VerificationMeta _categoryIdMeta = const VerificationMeta(
+    'categoryId',
+  );
+  @override
+  late final GeneratedColumn<int> categoryId = GeneratedColumn<int>(
+    'category_id',
+    aliasedName,
+    false,
+    type: DriftSqlType.int,
+    requiredDuringInsert: true,
+  );
+  static const VerificationMeta _nameMeta = const VerificationMeta('name');
+  @override
+  late final GeneratedColumn<String> name = GeneratedColumn<String>(
+    'name',
+    aliasedName,
+    false,
+    type: DriftSqlType.string,
+    requiredDuringInsert: true,
+  );
+  static const VerificationMeta _isRadioMeta = const VerificationMeta(
+    'isRadio',
+  );
+  @override
+  late final GeneratedColumn<bool> isRadio = GeneratedColumn<bool>(
+    'is_radio',
+    aliasedName,
+    false,
+    type: DriftSqlType.bool,
+    requiredDuringInsert: false,
+    defaultConstraints: GeneratedColumn.constraintIsAlways(
+      'CHECK ("is_radio" IN (0, 1))',
+    ),
+    defaultValue: const Constant(false),
+  );
+  static const VerificationMeta _addedAtMeta = const VerificationMeta(
+    'addedAt',
+  );
+  @override
+  late final GeneratedColumn<DateTime> addedAt = GeneratedColumn<DateTime>(
+    'added_at',
+    aliasedName,
+    false,
+    type: DriftSqlType.dateTime,
+    requiredDuringInsert: true,
+  );
+  @override
+  List<GeneratedColumn> get $columns => [
+    accountKey,
+    categoryId,
+    name,
+    isRadio,
+    addedAt,
+  ];
+  @override
+  String get aliasedName => _alias ?? actualTableName;
+  @override
+  String get actualTableName => $name;
+  static const String $name = 'favorite_groups';
+  @override
+  VerificationContext validateIntegrity(
+    Insertable<FavoriteGroup> instance, {
+    bool isInserting = false,
+  }) {
+    final context = VerificationContext();
+    final data = instance.toColumns(true);
+    if (data.containsKey('account_key')) {
+      context.handle(
+        _accountKeyMeta,
+        accountKey.isAcceptableOrUnknown(data['account_key']!, _accountKeyMeta),
+      );
+    }
+    if (data.containsKey('category_id')) {
+      context.handle(
+        _categoryIdMeta,
+        categoryId.isAcceptableOrUnknown(data['category_id']!, _categoryIdMeta),
+      );
+    } else if (isInserting) {
+      context.missing(_categoryIdMeta);
+    }
+    if (data.containsKey('name')) {
+      context.handle(
+        _nameMeta,
+        name.isAcceptableOrUnknown(data['name']!, _nameMeta),
+      );
+    } else if (isInserting) {
+      context.missing(_nameMeta);
+    }
+    if (data.containsKey('is_radio')) {
+      context.handle(
+        _isRadioMeta,
+        isRadio.isAcceptableOrUnknown(data['is_radio']!, _isRadioMeta),
+      );
+    }
+    if (data.containsKey('added_at')) {
+      context.handle(
+        _addedAtMeta,
+        addedAt.isAcceptableOrUnknown(data['added_at']!, _addedAtMeta),
+      );
+    } else if (isInserting) {
+      context.missing(_addedAtMeta);
+    }
+    return context;
+  }
+
+  @override
+  Set<GeneratedColumn> get $primaryKey => {accountKey, categoryId};
+  @override
+  FavoriteGroup map(Map<String, dynamic> data, {String? tablePrefix}) {
+    final effectivePrefix = tablePrefix != null ? '$tablePrefix.' : '';
+    return FavoriteGroup(
+      accountKey: attachedDatabase.typeMapping.read(
+        DriftSqlType.string,
+        data['${effectivePrefix}account_key'],
+      )!,
+      categoryId: attachedDatabase.typeMapping.read(
+        DriftSqlType.int,
+        data['${effectivePrefix}category_id'],
+      )!,
+      name: attachedDatabase.typeMapping.read(
+        DriftSqlType.string,
+        data['${effectivePrefix}name'],
+      )!,
+      isRadio: attachedDatabase.typeMapping.read(
+        DriftSqlType.bool,
+        data['${effectivePrefix}is_radio'],
+      )!,
+      addedAt: attachedDatabase.typeMapping.read(
+        DriftSqlType.dateTime,
+        data['${effectivePrefix}added_at'],
+      )!,
+    );
+  }
+
+  @override
+  $FavoriteGroupsTable createAlias(String alias) {
+    return $FavoriteGroupsTable(attachedDatabase, alias);
+  }
+}
+
+class FavoriteGroup extends DataClass implements Insertable<FavoriteGroup> {
+  final String accountKey;
+  final int categoryId;
+  final String name;
+  final bool isRadio;
+  final DateTime addedAt;
+  const FavoriteGroup({
+    required this.accountKey,
+    required this.categoryId,
+    required this.name,
+    required this.isRadio,
+    required this.addedAt,
+  });
+  @override
+  Map<String, Expression> toColumns(bool nullToAbsent) {
+    final map = <String, Expression>{};
+    map['account_key'] = Variable<String>(accountKey);
+    map['category_id'] = Variable<int>(categoryId);
+    map['name'] = Variable<String>(name);
+    map['is_radio'] = Variable<bool>(isRadio);
+    map['added_at'] = Variable<DateTime>(addedAt);
+    return map;
+  }
+
+  FavoriteGroupsCompanion toCompanion(bool nullToAbsent) {
+    return FavoriteGroupsCompanion(
+      accountKey: Value(accountKey),
+      categoryId: Value(categoryId),
+      name: Value(name),
+      isRadio: Value(isRadio),
+      addedAt: Value(addedAt),
+    );
+  }
+
+  factory FavoriteGroup.fromJson(
+    Map<String, dynamic> json, {
+    ValueSerializer? serializer,
+  }) {
+    serializer ??= driftRuntimeOptions.defaultSerializer;
+    return FavoriteGroup(
+      accountKey: serializer.fromJson<String>(json['accountKey']),
+      categoryId: serializer.fromJson<int>(json['categoryId']),
+      name: serializer.fromJson<String>(json['name']),
+      isRadio: serializer.fromJson<bool>(json['isRadio']),
+      addedAt: serializer.fromJson<DateTime>(json['addedAt']),
+    );
+  }
+  @override
+  Map<String, dynamic> toJson({ValueSerializer? serializer}) {
+    serializer ??= driftRuntimeOptions.defaultSerializer;
+    return <String, dynamic>{
+      'accountKey': serializer.toJson<String>(accountKey),
+      'categoryId': serializer.toJson<int>(categoryId),
+      'name': serializer.toJson<String>(name),
+      'isRadio': serializer.toJson<bool>(isRadio),
+      'addedAt': serializer.toJson<DateTime>(addedAt),
+    };
+  }
+
+  FavoriteGroup copyWith({
+    String? accountKey,
+    int? categoryId,
+    String? name,
+    bool? isRadio,
+    DateTime? addedAt,
+  }) => FavoriteGroup(
+    accountKey: accountKey ?? this.accountKey,
+    categoryId: categoryId ?? this.categoryId,
+    name: name ?? this.name,
+    isRadio: isRadio ?? this.isRadio,
+    addedAt: addedAt ?? this.addedAt,
+  );
+  FavoriteGroup copyWithCompanion(FavoriteGroupsCompanion data) {
+    return FavoriteGroup(
+      accountKey: data.accountKey.present
+          ? data.accountKey.value
+          : this.accountKey,
+      categoryId: data.categoryId.present
+          ? data.categoryId.value
+          : this.categoryId,
+      name: data.name.present ? data.name.value : this.name,
+      isRadio: data.isRadio.present ? data.isRadio.value : this.isRadio,
+      addedAt: data.addedAt.present ? data.addedAt.value : this.addedAt,
+    );
+  }
+
+  @override
+  String toString() {
+    return (StringBuffer('FavoriteGroup(')
+          ..write('accountKey: $accountKey, ')
+          ..write('categoryId: $categoryId, ')
+          ..write('name: $name, ')
+          ..write('isRadio: $isRadio, ')
+          ..write('addedAt: $addedAt')
+          ..write(')'))
+        .toString();
+  }
+
+  @override
+  int get hashCode =>
+      Object.hash(accountKey, categoryId, name, isRadio, addedAt);
+  @override
+  bool operator ==(Object other) =>
+      identical(this, other) ||
+      (other is FavoriteGroup &&
+          other.accountKey == this.accountKey &&
+          other.categoryId == this.categoryId &&
+          other.name == this.name &&
+          other.isRadio == this.isRadio &&
+          other.addedAt == this.addedAt);
+}
+
+class FavoriteGroupsCompanion extends UpdateCompanion<FavoriteGroup> {
+  final Value<String> accountKey;
+  final Value<int> categoryId;
+  final Value<String> name;
+  final Value<bool> isRadio;
+  final Value<DateTime> addedAt;
+  final Value<int> rowid;
+  const FavoriteGroupsCompanion({
+    this.accountKey = const Value.absent(),
+    this.categoryId = const Value.absent(),
+    this.name = const Value.absent(),
+    this.isRadio = const Value.absent(),
+    this.addedAt = const Value.absent(),
+    this.rowid = const Value.absent(),
+  });
+  FavoriteGroupsCompanion.insert({
+    this.accountKey = const Value.absent(),
+    required int categoryId,
+    required String name,
+    this.isRadio = const Value.absent(),
+    required DateTime addedAt,
+    this.rowid = const Value.absent(),
+  }) : categoryId = Value(categoryId),
+       name = Value(name),
+       addedAt = Value(addedAt);
+  static Insertable<FavoriteGroup> custom({
+    Expression<String>? accountKey,
+    Expression<int>? categoryId,
+    Expression<String>? name,
+    Expression<bool>? isRadio,
+    Expression<DateTime>? addedAt,
+    Expression<int>? rowid,
+  }) {
+    return RawValuesInsertable({
+      if (accountKey != null) 'account_key': accountKey,
+      if (categoryId != null) 'category_id': categoryId,
+      if (name != null) 'name': name,
+      if (isRadio != null) 'is_radio': isRadio,
+      if (addedAt != null) 'added_at': addedAt,
+      if (rowid != null) 'rowid': rowid,
+    });
+  }
+
+  FavoriteGroupsCompanion copyWith({
+    Value<String>? accountKey,
+    Value<int>? categoryId,
+    Value<String>? name,
+    Value<bool>? isRadio,
+    Value<DateTime>? addedAt,
+    Value<int>? rowid,
+  }) {
+    return FavoriteGroupsCompanion(
+      accountKey: accountKey ?? this.accountKey,
+      categoryId: categoryId ?? this.categoryId,
+      name: name ?? this.name,
+      isRadio: isRadio ?? this.isRadio,
+      addedAt: addedAt ?? this.addedAt,
+      rowid: rowid ?? this.rowid,
+    );
+  }
+
+  @override
+  Map<String, Expression> toColumns(bool nullToAbsent) {
+    final map = <String, Expression>{};
+    if (accountKey.present) {
+      map['account_key'] = Variable<String>(accountKey.value);
+    }
+    if (categoryId.present) {
+      map['category_id'] = Variable<int>(categoryId.value);
+    }
+    if (name.present) {
+      map['name'] = Variable<String>(name.value);
+    }
+    if (isRadio.present) {
+      map['is_radio'] = Variable<bool>(isRadio.value);
+    }
+    if (addedAt.present) {
+      map['added_at'] = Variable<DateTime>(addedAt.value);
+    }
+    if (rowid.present) {
+      map['rowid'] = Variable<int>(rowid.value);
+    }
+    return map;
+  }
+
+  @override
+  String toString() {
+    return (StringBuffer('FavoriteGroupsCompanion(')
+          ..write('accountKey: $accountKey, ')
+          ..write('categoryId: $categoryId, ')
+          ..write('name: $name, ')
+          ..write('isRadio: $isRadio, ')
+          ..write('addedAt: $addedAt, ')
+          ..write('rowid: $rowid')
+          ..write(')'))
+        .toString();
+  }
+}
+
 class $HistoryTable extends History with TableInfo<$HistoryTable, HistoryData> {
   @override
   final GeneratedDatabase attachedDatabase;
@@ -4552,6 +4921,7 @@ abstract class _$AppDatabase extends GeneratedDatabase {
   );
   late final $SeriesCacheTable seriesCache = $SeriesCacheTable(this);
   late final $FavoritesTable favorites = $FavoritesTable(this);
+  late final $FavoriteGroupsTable favoriteGroups = $FavoriteGroupsTable(this);
   late final $HistoryTable history = $HistoryTable(this);
   late final $AppSettingsTable appSettings = $AppSettingsTable(this);
   late final Index liveChannelsNameIdx = Index(
@@ -4578,6 +4948,7 @@ abstract class _$AppDatabase extends GeneratedDatabase {
     seriesCategories,
     seriesCache,
     favorites,
+    favoriteGroups,
     history,
     appSettings,
     liveChannelsNameIdx,
@@ -6462,6 +6833,212 @@ typedef $$FavoritesTableProcessedTableManager =
       Favorite,
       PrefetchHooks Function()
     >;
+typedef $$FavoriteGroupsTableCreateCompanionBuilder =
+    FavoriteGroupsCompanion Function({
+      Value<String> accountKey,
+      required int categoryId,
+      required String name,
+      Value<bool> isRadio,
+      required DateTime addedAt,
+      Value<int> rowid,
+    });
+typedef $$FavoriteGroupsTableUpdateCompanionBuilder =
+    FavoriteGroupsCompanion Function({
+      Value<String> accountKey,
+      Value<int> categoryId,
+      Value<String> name,
+      Value<bool> isRadio,
+      Value<DateTime> addedAt,
+      Value<int> rowid,
+    });
+
+class $$FavoriteGroupsTableFilterComposer
+    extends Composer<_$AppDatabase, $FavoriteGroupsTable> {
+  $$FavoriteGroupsTableFilterComposer({
+    required super.$db,
+    required super.$table,
+    super.joinBuilder,
+    super.$addJoinBuilderToRootComposer,
+    super.$removeJoinBuilderFromRootComposer,
+  });
+  ColumnFilters<String> get accountKey => $composableBuilder(
+    column: $table.accountKey,
+    builder: (column) => ColumnFilters(column),
+  );
+
+  ColumnFilters<int> get categoryId => $composableBuilder(
+    column: $table.categoryId,
+    builder: (column) => ColumnFilters(column),
+  );
+
+  ColumnFilters<String> get name => $composableBuilder(
+    column: $table.name,
+    builder: (column) => ColumnFilters(column),
+  );
+
+  ColumnFilters<bool> get isRadio => $composableBuilder(
+    column: $table.isRadio,
+    builder: (column) => ColumnFilters(column),
+  );
+
+  ColumnFilters<DateTime> get addedAt => $composableBuilder(
+    column: $table.addedAt,
+    builder: (column) => ColumnFilters(column),
+  );
+}
+
+class $$FavoriteGroupsTableOrderingComposer
+    extends Composer<_$AppDatabase, $FavoriteGroupsTable> {
+  $$FavoriteGroupsTableOrderingComposer({
+    required super.$db,
+    required super.$table,
+    super.joinBuilder,
+    super.$addJoinBuilderToRootComposer,
+    super.$removeJoinBuilderFromRootComposer,
+  });
+  ColumnOrderings<String> get accountKey => $composableBuilder(
+    column: $table.accountKey,
+    builder: (column) => ColumnOrderings(column),
+  );
+
+  ColumnOrderings<int> get categoryId => $composableBuilder(
+    column: $table.categoryId,
+    builder: (column) => ColumnOrderings(column),
+  );
+
+  ColumnOrderings<String> get name => $composableBuilder(
+    column: $table.name,
+    builder: (column) => ColumnOrderings(column),
+  );
+
+  ColumnOrderings<bool> get isRadio => $composableBuilder(
+    column: $table.isRadio,
+    builder: (column) => ColumnOrderings(column),
+  );
+
+  ColumnOrderings<DateTime> get addedAt => $composableBuilder(
+    column: $table.addedAt,
+    builder: (column) => ColumnOrderings(column),
+  );
+}
+
+class $$FavoriteGroupsTableAnnotationComposer
+    extends Composer<_$AppDatabase, $FavoriteGroupsTable> {
+  $$FavoriteGroupsTableAnnotationComposer({
+    required super.$db,
+    required super.$table,
+    super.joinBuilder,
+    super.$addJoinBuilderToRootComposer,
+    super.$removeJoinBuilderFromRootComposer,
+  });
+  GeneratedColumn<String> get accountKey => $composableBuilder(
+    column: $table.accountKey,
+    builder: (column) => column,
+  );
+
+  GeneratedColumn<int> get categoryId => $composableBuilder(
+    column: $table.categoryId,
+    builder: (column) => column,
+  );
+
+  GeneratedColumn<String> get name =>
+      $composableBuilder(column: $table.name, builder: (column) => column);
+
+  GeneratedColumn<bool> get isRadio =>
+      $composableBuilder(column: $table.isRadio, builder: (column) => column);
+
+  GeneratedColumn<DateTime> get addedAt =>
+      $composableBuilder(column: $table.addedAt, builder: (column) => column);
+}
+
+class $$FavoriteGroupsTableTableManager
+    extends
+        RootTableManager<
+          _$AppDatabase,
+          $FavoriteGroupsTable,
+          FavoriteGroup,
+          $$FavoriteGroupsTableFilterComposer,
+          $$FavoriteGroupsTableOrderingComposer,
+          $$FavoriteGroupsTableAnnotationComposer,
+          $$FavoriteGroupsTableCreateCompanionBuilder,
+          $$FavoriteGroupsTableUpdateCompanionBuilder,
+          (
+            FavoriteGroup,
+            BaseReferences<_$AppDatabase, $FavoriteGroupsTable, FavoriteGroup>,
+          ),
+          FavoriteGroup,
+          PrefetchHooks Function()
+        > {
+  $$FavoriteGroupsTableTableManager(
+    _$AppDatabase db,
+    $FavoriteGroupsTable table,
+  ) : super(
+        TableManagerState(
+          db: db,
+          table: table,
+          createFilteringComposer: () =>
+              $$FavoriteGroupsTableFilterComposer($db: db, $table: table),
+          createOrderingComposer: () =>
+              $$FavoriteGroupsTableOrderingComposer($db: db, $table: table),
+          createComputedFieldComposer: () =>
+              $$FavoriteGroupsTableAnnotationComposer($db: db, $table: table),
+          updateCompanionCallback:
+              ({
+                Value<String> accountKey = const Value.absent(),
+                Value<int> categoryId = const Value.absent(),
+                Value<String> name = const Value.absent(),
+                Value<bool> isRadio = const Value.absent(),
+                Value<DateTime> addedAt = const Value.absent(),
+                Value<int> rowid = const Value.absent(),
+              }) => FavoriteGroupsCompanion(
+                accountKey: accountKey,
+                categoryId: categoryId,
+                name: name,
+                isRadio: isRadio,
+                addedAt: addedAt,
+                rowid: rowid,
+              ),
+          createCompanionCallback:
+              ({
+                Value<String> accountKey = const Value.absent(),
+                required int categoryId,
+                required String name,
+                Value<bool> isRadio = const Value.absent(),
+                required DateTime addedAt,
+                Value<int> rowid = const Value.absent(),
+              }) => FavoriteGroupsCompanion.insert(
+                accountKey: accountKey,
+                categoryId: categoryId,
+                name: name,
+                isRadio: isRadio,
+                addedAt: addedAt,
+                rowid: rowid,
+              ),
+          withReferenceMapper: (p0) => p0
+              .map((e) => (e.readTable(table), BaseReferences(db, table, e)))
+              .toList(),
+          prefetchHooksCallback: null,
+        ),
+      );
+}
+
+typedef $$FavoriteGroupsTableProcessedTableManager =
+    ProcessedTableManager<
+      _$AppDatabase,
+      $FavoriteGroupsTable,
+      FavoriteGroup,
+      $$FavoriteGroupsTableFilterComposer,
+      $$FavoriteGroupsTableOrderingComposer,
+      $$FavoriteGroupsTableAnnotationComposer,
+      $$FavoriteGroupsTableCreateCompanionBuilder,
+      $$FavoriteGroupsTableUpdateCompanionBuilder,
+      (
+        FavoriteGroup,
+        BaseReferences<_$AppDatabase, $FavoriteGroupsTable, FavoriteGroup>,
+      ),
+      FavoriteGroup,
+      PrefetchHooks Function()
+    >;
 typedef $$HistoryTableCreateCompanionBuilder = HistoryCompanion Function({
   Value<String> accountKey,
   Value<int> id,
@@ -6906,6 +7483,8 @@ class $AppDatabaseManager {
       $$SeriesCacheTableTableManager(_db, _db.seriesCache);
   $$FavoritesTableTableManager get favorites =>
       $$FavoritesTableTableManager(_db, _db.favorites);
+  $$FavoriteGroupsTableTableManager get favoriteGroups =>
+      $$FavoriteGroupsTableTableManager(_db, _db.favoriteGroups);
   $$HistoryTableTableManager get history =>
       $$HistoryTableTableManager(_db, _db.history);
   $$AppSettingsTableTableManager get appSettings =>

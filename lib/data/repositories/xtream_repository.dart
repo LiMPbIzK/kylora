@@ -6,6 +6,7 @@ import '../../domain/entities/channel.dart';
 import '../../domain/entities/content_type.dart' as domain;
 import '../../domain/entities/epg.dart';
 import '../../domain/entities/episode.dart';
+import '../../domain/entities/favorite_channel_group.dart';
 import '../../domain/entities/favorite_item.dart';
 import '../../domain/entities/history_item.dart';
 import '../../domain/entities/iptv_auth_config.dart';
@@ -302,6 +303,30 @@ class XtreamRepository implements IptvRepository {
       password: credentials.password,
       streamId: streamId,
     );
+  }
+
+  @override
+  Future<void> addFavoriteGroup(FavoriteChannelGroup group) async {
+    final StoredCredentials credentials = await _requireCredentials();
+    await _cache.addFavoriteGroup(credentials.fingerprint, group);
+  }
+
+  @override
+  Future<void> removeFavoriteGroup(int categoryId) async {
+    final StoredCredentials credentials = await _requireCredentials();
+    await _cache.removeFavoriteGroup(credentials.fingerprint, categoryId);
+  }
+
+  @override
+  Future<List<FavoriteChannelGroup>> getFavoriteGroups() async {
+    final StoredCredentials credentials = await _requireCredentials();
+    return _cache.getFavoriteGroups(credentials.fingerprint);
+  }
+
+  @override
+  Future<bool> isFavoriteGroup(int categoryId) async {
+    final StoredCredentials credentials = await _requireCredentials();
+    return _cache.isFavoriteGroup(credentials.fingerprint, categoryId);
   }
 
   @override

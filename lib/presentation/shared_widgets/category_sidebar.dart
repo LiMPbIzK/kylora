@@ -19,6 +19,8 @@ class CategorySidebar extends StatelessWidget {
     required this.categories,
     required this.selectedCategoryId,
     required this.onCategorySelected,
+    this.onCategoryLongPress,
+    this.favoriteGroupIds = const <int>{},
     this.icon = Icons.live_tv,
     this.width = 200,
     this.resumeLabel,
@@ -30,6 +32,8 @@ class CategorySidebar extends StatelessWidget {
   final List<Category> categories;
   final int? selectedCategoryId;
   final ValueChanged<int?> onCategorySelected;
+  final ValueChanged<Category>? onCategoryLongPress;
+  final Set<int> favoriteGroupIds;
   final IconData icon;
   final double width;
 
@@ -78,7 +82,11 @@ class CategorySidebar extends StatelessWidget {
                       i == (selectedIndex >= 0 ? selectedIndex : 0)
                   ? firstCategoryFocus
                   : null,
+              isGroupFavorite: favoriteGroupIds.contains(categories[i].id),
               onTap: () => onCategorySelected(categories[i].id),
+              onLongPress: onCategoryLongPress == null
+                  ? null
+                  : () => onCategoryLongPress!(categories[i]),
             ),
         ],
       ),
@@ -93,6 +101,8 @@ class _SidebarButton extends StatelessWidget {
     required this.icon,
     required this.selected,
     required this.onTap,
+    this.onLongPress,
+    this.isGroupFavorite = false,
     this.autofocus = false,
     this.focusNode,
   });
@@ -101,6 +111,8 @@ class _SidebarButton extends StatelessWidget {
   final IconData icon;
   final bool selected;
   final VoidCallback onTap;
+  final VoidCallback? onLongPress;
+  final bool isGroupFavorite;
   final bool autofocus;
   final FocusNode? focusNode;
 
@@ -112,6 +124,7 @@ class _SidebarButton extends StatelessWidget {
       focusNode: focusNode,
       borderRadius: BorderRadius.circular(8),
       onPressed: onTap,
+      onLongPress: onLongPress,
       child: Material(
         color: selected ? colors.primary : Colors.transparent,
         borderRadius: BorderRadius.circular(8),
@@ -142,6 +155,15 @@ class _SidebarButton extends StatelessWidget {
                     ),
                   ),
                 ),
+                if (isGroupFavorite)
+                  Padding(
+                    padding: const EdgeInsets.only(left: 6),
+                    child: Icon(
+                      Icons.star,
+                      size: 15,
+                      color: selected ? colors.onPrimary : colors.secondary,
+                    ),
+                  ),
               ],
             ),
           ),

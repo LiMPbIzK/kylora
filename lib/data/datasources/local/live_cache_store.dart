@@ -2,6 +2,7 @@ import 'package:drift/drift.dart';
 
 import '../../../domain/entities/category.dart';
 import '../../../domain/entities/channel.dart';
+import '../../../domain/entities/favorite_channel_group.dart';
 import 'app_database.dart';
 
 /// Caché local del catálogo en directo usando Drift.
@@ -74,6 +75,61 @@ class LiveCacheStore {
       await _db.delete(_db.liveCategories).go();
       await _db.delete(_db.liveChannels).go();
     });
+  }
+
+  Future<List<FavoriteChannelGroup>> getFavoriteGroups(
+    String accountKey,
+  ) async {
+    final List<FavoriteGroup> rows =
+        await (_db.select(_db.favoriteGroups)
+              ..where((FavoriteGroups t) => t.accountKey.equals(accountKey))
+              ..orderBy(<OrderingTerm Function(FavoriteGroups)>[
+                (FavoriteGroups t) => OrderingTerm.asc(t.name),
+              ]))
+            .get();
+    return rows
+        .map(
+          (FavoriteGroup row) => FavoriteChannelGroup(
+            categoryId: row.categoryId,
+            name: row.name,
+            isRadio: row.isRadio,
+            addedAt: row.addedAt,
+          ),
+        )
+        .toList();
+  }
+
+  Future<void> addFavoriteGroup(
+    String accountKey,
+    FavoriteChannelGroup group,
+  ) async {
+    await _db
+        .into(_db.favoriteGroups)
+        .insertOnConflictUpdate(
+          FavoriteGroupsCompanion.insert(
+            accountKey: Value(accountKey),
+            categoryId: group.categoryId,
+            name: group.name,
+            isRadio: Value(group.isRadio),
+            addedAt: group.addedAt,
+          ),
+        );
+  }
+
+  Future<void> removeFavoriteGroup(String accountKey, int categoryId) async {
+    await (_db.delete(_db.favoriteGroups)
+          ..where((FavoriteGroups t) => t.accountKey.equals(accountKey))
+          ..where((FavoriteGroups t) => t.categoryId.equals(categoryId)))
+        .go();
+  }
+
+  Future<bool> isFavoriteGroup(String accountKey, int categoryId) async {
+    final List<FavoriteGroup> rows =
+        await (_db.select(_db.favoriteGroups)
+              ..where((FavoriteGroups t) => t.accountKey.equals(accountKey))
+              ..where((FavoriteGroups t) => t.categoryId.equals(categoryId)))
+            .get();
+    return rows.isNotEmpty;
   }
 
   Channel _toChannel(LiveChannel row) => Channel(

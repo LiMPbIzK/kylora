@@ -409,6 +409,21 @@ class AppLocalizationsFr extends AppLocalizations {
   String get language => 'Langue';
 
   @override
+  String get favoriteGroups => 'Groupes favoris';
+
+  @override
+  String get addGroupToFavorites => 'Ajouter le groupe aux favoris';
+
+  @override
+  String get removeGroupFromFavorites => 'Retirer le groupe des favoris';
+
+  @override
+  String get groupFavoriteAdded => 'Groupe ajouté aux favoris';
+
+  @override
+  String get groupFavoriteRemoved => 'Groupe retiré des favoris';
+
+  @override
   String get history => 'Historique';
 
   @override

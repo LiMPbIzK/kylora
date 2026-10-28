@@ -7,6 +7,7 @@ import '../../../app.dart';
 import '../../../core/media/playback_request.dart';
 import '../../../core/theme/app_theme.dart';
 import '../../../domain/entities/channel.dart';
+import '../../../domain/entities/favorite_channel_group.dart';
 import '../../../domain/entities/favorite_item.dart';
 import '../../../domain/entities/movie.dart';
 import '../../../domain/entities/series.dart';
@@ -50,9 +51,9 @@ class _FavoritesScreenState extends State<FavoritesScreen> {
             ),
             FavoritesFailure() => _EmptyView(message: l10n.favoritesLoadError),
             FavoritesLoaded() =>
-              state.items.isEmpty
+              state.items.isEmpty && state.groups.isEmpty
                   ? _EmptyView(message: l10n.noFavorites)
-                  : _FavoritesList(items: state.items),
+                  : _FavoritesList(items: state.items, groups: state.groups),
           };
         },
       ),
@@ -62,18 +63,84 @@ class _FavoritesScreenState extends State<FavoritesScreen> {
 
 /// Lista de elementos favoritos.
 class _FavoritesList extends StatelessWidget {
-  const _FavoritesList({required this.items});
+  const _FavoritesList({required this.items, required this.groups});
 
   final List<FavoriteItem> items;
+  final List<FavoriteChannelGroup> groups;
 
   @override
   Widget build(BuildContext context) {
-    return ListView.builder(
+    final AppLocalizations l10n = AppLocalizations.of(context)!;
+    final bool hasGroups = groups.isNotEmpty;
+    final bool hasItems = items.isNotEmpty;
+    return ListView(
       padding: const EdgeInsets.symmetric(vertical: 8),
-      itemCount: items.length,
-      itemBuilder: (context, index) {
-        return _FavoriteTile(item: items[index], autofocus: index == 0);
-      },
+      children: <Widget>[
+        if (hasGroups) ...<Widget>[
+          _SectionLabel(label: l10n.favoriteGroups),
+          for (int i = 0; i < groups.length; i++)
+            _FavoriteGroupTile(group: groups[i], autofocus: i == 0),
+        ],
+        if (hasItems) ...<Widget>[
+          if (hasGroups) _SectionLabel(label: l10n.favorites),
+          for (int i = 0; i < items.length; i++)
+            _FavoriteTile(item: items[i], autofocus: !hasGroups && i == 0),
+        ],
+      ],
+    );
+  }
+}
+
+class _SectionLabel extends StatelessWidget {
+  const _SectionLabel({required this.label});
+
+  final String label;
+
+  @override
+  Widget build(BuildContext context) {
+    return Padding(
+      padding: const EdgeInsets.fromLTRB(16, 16, 16, 6),
+      child: Text(
+        label,
+        style: Theme.of(context).textTheme.titleSmall?.copyWith(
+          color: context.colors.primary,
+          fontWeight: FontWeight.bold,
+        ),
+      ),
+    );
+  }
+}
+
+/// Grupo/categoría favorita: al pulsar se abre la lista de sus canales.
+class _FavoriteGroupTile extends StatelessWidget {
+  const _FavoriteGroupTile({required this.group, this.autofocus = false});
+
+  final FavoriteChannelGroup group;
+  final bool autofocus;
+
+  @override
+  Widget build(BuildContext context) {
+    final AppLocalizations l10n = AppLocalizations.of(context)!;
+    return TvFocusable(
+      autofocus: autofocus,
+      borderRadius: BorderRadius.circular(8),
+      onPressed: () => context.push(Routes.favoriteGroup, extra: group),
+      child: ListTile(
+        leading: Icon(
+          group.isRadio ? Icons.radio : Icons.folder_special,
+          color: context.colors.primary,
+        ),
+        title: TvMarqueeText(text: group.name, maxLines: 1),
+        subtitle: Text(l10n.favoriteGroups),
+        trailing: IconButton(
+          tooltip: l10n.removeGroupFromFavorites,
+          icon: Icon(Icons.star, color: context.colors.primary),
+          onPressed: () {
+            context.read<FavoritesBloc>().add(FavoriteGroupToggled(group));
+          },
+        ),
+        onTap: () => context.push(Routes.favoriteGroup, extra: group),
+      ),
     );
   }
 }

@@ -856,6 +856,36 @@ abstract class AppLocalizations {
   /// **'Language'**
   String get language;
 
+  /// No description provided for @favoriteGroups.
+  ///
+  /// In en, this message translates to:
+  /// **'Favorite groups'**
+  String get favoriteGroups;
+
+  /// No description provided for @addGroupToFavorites.
+  ///
+  /// In en, this message translates to:
+  /// **'Add group to favorites'**
+  String get addGroupToFavorites;
+
+  /// No description provided for @removeGroupFromFavorites.
+  ///
+  /// In en, this message translates to:
+  /// **'Remove group from favorites'**
+  String get removeGroupFromFavorites;
+
+  /// No description provided for @groupFavoriteAdded.
+  ///
+  /// In en, this message translates to:
+  /// **'Group added to favorites'**
+  String get groupFavoriteAdded;
+
+  /// No description provided for @groupFavoriteRemoved.
+  ///
+  /// In en, this message translates to:
+  /// **'Group removed from favorites'**
+  String get groupFavoriteRemoved;
+
   /// Panel section for the playback history.
   ///
   /// In en, this message translates to:
