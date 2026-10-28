@@ -35,6 +35,69 @@ class LiveChannels extends Table {
   IntColumn get archiveDurationDays => integer().nullable()();
 }
 
+/// Categorías de películas (VOD), por cuenta.
+class VodCategories extends Table {
+  TextColumn get accountKey => text().withDefault(const Constant(''))();
+  IntColumn get id => integer()();
+  TextColumn get name => text()();
+
+  @override
+  Set<Column<Object>> get primaryKey => {accountKey, id};
+}
+
+/// Películas (VOD) cacheadas, por cuenta.
+@TableIndex(name: 'vod_movies_name_idx', columns: {#name})
+class VodMovies extends Table {
+  TextColumn get accountKey => text().withDefault(const Constant(''))();
+  IntColumn get id => integer().autoIncrement()();
+  IntColumn get streamId => integer()();
+  TextColumn get name => text()();
+  IntColumn get categoryId => integer()();
+  IntColumn get number => integer().nullable()();
+  TextColumn get streamType => text().nullable()();
+  TextColumn get streamIcon => text().nullable()();
+  TextColumn get rating => text().nullable()();
+  TextColumn get rating5Based => text().nullable()();
+  TextColumn get added => text().nullable()();
+  TextColumn get containerExtension => text().nullable()();
+  TextColumn get customSkin => text().nullable()();
+  TextColumn get directSource => text().nullable()();
+}
+
+/// Categorías de series, por cuenta.
+class SeriesCategories extends Table {
+  TextColumn get accountKey => text().withDefault(const Constant(''))();
+  IntColumn get id => integer()();
+  TextColumn get name => text()();
+
+  @override
+  Set<Column<Object>> get primaryKey => {accountKey, id};
+}
+
+/// Series cacheadas, por cuenta.
+@TableIndex(name: 'series_cache_name_idx', columns: {#name})
+class SeriesCache extends Table {
+  TextColumn get accountKey => text().withDefault(const Constant(''))();
+  IntColumn get id => integer().autoIncrement()();
+  IntColumn get seriesId => integer()();
+  TextColumn get name => text()();
+  IntColumn get number => integer().nullable()();
+  IntColumn get season => integer().nullable()();
+  TextColumn get cover => text().nullable()();
+  TextColumn get plot => text().nullable()();
+  TextColumn get cast => text().nullable()();
+  TextColumn get director => text().nullable()();
+  TextColumn get genre => text().nullable()();
+  TextColumn get releaseDate => text().nullable()();
+  TextColumn get lastModified => text().nullable()();
+  TextColumn get rating => text().nullable()();
+  TextColumn get rating5Based => text().nullable()();
+  TextColumn get backdropPath => text().nullable()();
+  TextColumn get youtubeTrailer => text().nullable()();
+  TextColumn get episodeRunTime => text().nullable()();
+  IntColumn get categoryId => integer().nullable()();
+}
+
 /// Tipo de contenido para favoritos e historial.
 enum ContentType { live, vod, series }
 
@@ -78,7 +141,17 @@ class AppSettings extends Table {
 }
 
 @DriftDatabase(
-  tables: <Type>[LiveCategories, LiveChannels, Favorites, History, AppSettings],
+  tables: <Type>[
+    LiveCategories,
+    LiveChannels,
+    VodCategories,
+    VodMovies,
+    SeriesCategories,
+    SeriesCache,
+    Favorites,
+    History,
+    AppSettings,
+  ],
 )
 class AppDatabase extends _$AppDatabase {
   AppDatabase([QueryExecutor? executor])
@@ -94,7 +167,7 @@ class AppDatabase extends _$AppDatabase {
   }
 
   @override
-  int get schemaVersion => 6;
+  int get schemaVersion => 7;
 
   @override
   MigrationStrategy get migration {
@@ -133,6 +206,13 @@ class AppDatabase extends _$AppDatabase {
           // La caché anterior no tiene los nuevos campos; se re-descarga al
           // abrir el catálogo la próxima vez.
           await delete(liveChannels).go();
+        }
+        if (from < 7) {
+          // V7: caché de catálogos VOD y series.
+          await m.createTable(vodCategories);
+          await m.createTable(vodMovies);
+          await m.createTable(seriesCategories);
+          await m.createTable(seriesCache);
         }
       },
     );

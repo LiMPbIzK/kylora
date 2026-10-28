@@ -438,6 +438,11 @@
   "@audioTrack": {
     "description": "Player-Option zum Auswählen der Audiospur."
   },
+  "settingsSectionPlayback": "Wiedergabe",
+  "audioLanguage": "Audiosprache",
+  "audioLanguageAuto": "App-Sprache",
+  "subtitlesOff": "Aus",
+  "subtitlesAutomatic": "Automatisch (App-Sprache)",
   "subtitles": "Untertitel",
   "@subtitles": {
     "description": "Player-Option zum Auswählen von Untertiteln."
@@ -467,6 +472,7 @@
     "description": "Wird angezeigt, wenn die ausgewählte Kategorie keine Filme enthält."
   },
   "searchNoResults": "Keine Ergebnisse für deine Suche",
+  "searchLoadError": "Suche konnte nicht geladen werden. Prüfe die Verbindung.",
   "@searchNoResults": {
     "description": "Wird angezeigt, wenn eine Suche keine Ergebnisse liefert."
   },

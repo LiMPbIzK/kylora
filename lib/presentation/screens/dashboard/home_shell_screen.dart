@@ -30,6 +30,7 @@ import '../../blocs/settings/settings_state.dart';
 import '../../blocs/vod/vod_bloc.dart';
 import '../../blocs/vod/vod_event.dart';
 import '../../blocs/vod/vod_state.dart';
+import '../../shared_widgets/continue_watching_row.dart';
 import '../../shared_widgets/tv_focusable.dart';
 import '../live/live_screen.dart';
 import '../player/playback_scope.dart';
@@ -54,6 +55,14 @@ class HomeShellScreen extends StatefulWidget {
 class _HomeShellScreenState extends State<HomeShellScreen> {
   /// Sección abierta; `null` muestra el selector de secciones.
   _DashboardSection? _section;
+
+  @override
+  void initState() {
+    super.initState();
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      if (mounted) context.read<HistoryBloc>().add(const HistoryStarted());
+    });
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -91,7 +100,14 @@ class _HomeShellScreenState extends State<HomeShellScreen> {
                 : null,
             title: Text(_sectionTitle(l10n, _section)),
             actions: <Widget>[
-              if (inSection) _buildSearchAction(l10n),
+              if (inSection)
+                _buildSearchAction(l10n)
+              else
+                IconButton(
+                  tooltip: l10n.searchPlaceholder,
+                  icon: const Icon(Icons.search),
+                  onPressed: () => context.push(Routes.search),
+                ),
               IconButton(
                 tooltip: l10n.favorites,
                 icon: const Icon(Icons.favorite_border),
@@ -334,55 +350,62 @@ class _SectionsHome extends StatelessWidget {
           child: ConstrainedBox(
             constraints: BoxConstraints(minHeight: minHeight),
             child: Center(
-              child: Wrap(
-                alignment: WrapAlignment.center,
-                spacing: 24,
-                runSpacing: 24,
+              child: Column(
+                mainAxisSize: MainAxisSize.min,
+                crossAxisAlignment: CrossAxisAlignment.stretch,
                 children: <Widget>[
-                  for (int i = 0; i < sections.length; i++)
-                    SizedBox(
-                      width: cardWidth,
-                      height: cardWidth * 0.78,
-                      child: TvFocusable(
-                        autofocus: i == 0,
-                        borderRadius: BorderRadius.circular(18),
-                        onPressed: () => onSelected(sections[i].$1),
-                        child: Material(
-                          color: context.colors.surface,
-                          borderRadius: BorderRadius.circular(18),
-                          clipBehavior: Clip.antiAlias,
-                          child: InkWell(
-                            canRequestFocus: false,
-                            onTap: () => onSelected(sections[i].$1),
-                            child: Column(
-                              mainAxisAlignment: MainAxisAlignment.center,
-                              children: <Widget>[
-                                Icon(
-                                  sections[i].$2,
-                                  size: cardWidth * 0.28,
-                                  color: context.colors.primary,
+                  Wrap(
+                    alignment: WrapAlignment.center,
+                    spacing: 24,
+                    runSpacing: 24,
+                    children: <Widget>[
+                      for (int i = 0; i < sections.length; i++)
+                        SizedBox(
+                          width: cardWidth,
+                          height: cardWidth * 0.78,
+                          child: TvFocusable(
+                            autofocus: i == 0,
+                            borderRadius: BorderRadius.circular(18),
+                            onPressed: () => onSelected(sections[i].$1),
+                            child: Material(
+                              color: context.colors.surface,
+                              borderRadius: BorderRadius.circular(18),
+                              clipBehavior: Clip.antiAlias,
+                              child: InkWell(
+                                canRequestFocus: false,
+                                onTap: () => onSelected(sections[i].$1),
+                                child: Column(
+                                  mainAxisAlignment: MainAxisAlignment.center,
+                                  children: <Widget>[
+                                    Icon(
+                                      sections[i].$2,
+                                      size: cardWidth * 0.28,
+                                      color: context.colors.primary,
+                                    ),
+                                    const SizedBox(height: 12),
+                                    Padding(
+                                      padding: const EdgeInsets.symmetric(
+                                        horizontal: 12,
+                                      ),
+                                      child: Text(
+                                        sections[i].$3,
+                                        textAlign: TextAlign.center,
+                                        maxLines: 2,
+                                        overflow: TextOverflow.ellipsis,
+                                        style: Theme.of(context)
+                                            .textTheme
+                                            .titleMedium,
+                                      ),
+                                    ),
+                                  ],
                                 ),
-                                const SizedBox(height: 12),
-                                Padding(
-                                  padding: const EdgeInsets.symmetric(
-                                    horizontal: 12,
-                                  ),
-                                  child: Text(
-                                    sections[i].$3,
-                                    textAlign: TextAlign.center,
-                                    maxLines: 2,
-                                    overflow: TextOverflow.ellipsis,
-                                    style: Theme.of(context)
-                                        .textTheme
-                                        .titleMedium,
-                                  ),
-                                ),
-                              ],
+                              ),
                             ),
                           ),
                         ),
-                      ),
-                    ),
+                    ],
+                  ),
+                  const ContinueWatchingRow(),
                 ],
               ),
             ),

@@ -347,6 +347,21 @@ class AppLocalizationsDe extends AppLocalizations {
   String get audioTrack => 'Audiospur';
 
   @override
+  String get settingsSectionPlayback => 'Wiedergabe';
+
+  @override
+  String get audioLanguage => 'Audiosprache';
+
+  @override
+  String get audioLanguageAuto => 'App-Sprache';
+
+  @override
+  String get subtitlesOff => 'Aus';
+
+  @override
+  String get subtitlesAutomatic => 'Automatisch (App-Sprache)';
+
+  @override
   String get subtitles => 'Untertitel';
 
   @override
@@ -370,6 +385,10 @@ class AppLocalizationsDe extends AppLocalizations {
 
   @override
   String get searchNoResults => 'Keine Ergebnisse für deine Suche';
+
+  @override
+  String get searchLoadError =>
+      'Suche konnte nicht geladen werden. Prüfe die Verbindung.';
 
   @override
   String get rating => 'Bewertung';

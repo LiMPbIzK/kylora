@@ -45,3 +45,23 @@ final class SettingsClockFormatChanged extends SettingsEvent {
   @override
   List<Object?> get props => <Object?>[clock24h];
 }
+
+/// Cambia el idioma preferido para la pista de audio (`null` = idioma de la app).
+final class SettingsAudioLanguageChanged extends SettingsEvent {
+  const SettingsAudioLanguageChanged(this.languageCode);
+
+  final String? languageCode;
+
+  @override
+  List<Object?> get props => <Object?>[languageCode];
+}
+
+/// Activa o desactiva la selección automática de subtítulos.
+final class SettingsSubtitlesEnabledChanged extends SettingsEvent {
+  const SettingsSubtitlesEnabledChanged(this.enabled);
+
+  final bool enabled;
+
+  @override
+  List<Object?> get props => <Object?>[enabled];
+}

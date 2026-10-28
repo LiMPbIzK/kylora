@@ -20,6 +20,8 @@ class SettingsStore implements AppSettingsStorage {
   static const String kLocale = 'locale';
   static const String kThemeId = 'theme_id';
   static const String kClock24h = 'clock_24h';
+  static const String kAudioLanguage = 'audio_language';
+  static const String kSubtitlesEnabled = 'subtitles_enabled';
   static const String kPinEnabled = 'pin_enabled';
 
   @override

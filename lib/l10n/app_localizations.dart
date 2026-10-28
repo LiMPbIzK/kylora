@@ -736,6 +736,36 @@ abstract class AppLocalizations {
   /// **'Audio Track'**
   String get audioTrack;
 
+  /// No description provided for @settingsSectionPlayback.
+  ///
+  /// In en, this message translates to:
+  /// **'Playback'**
+  String get settingsSectionPlayback;
+
+  /// No description provided for @audioLanguage.
+  ///
+  /// In en, this message translates to:
+  /// **'Audio language'**
+  String get audioLanguage;
+
+  /// No description provided for @audioLanguageAuto.
+  ///
+  /// In en, this message translates to:
+  /// **'App language'**
+  String get audioLanguageAuto;
+
+  /// No description provided for @subtitlesOff.
+  ///
+  /// In en, this message translates to:
+  /// **'Off'**
+  String get subtitlesOff;
+
+  /// No description provided for @subtitlesAutomatic.
+  ///
+  /// In en, this message translates to:
+  /// **'Automatic (app language)'**
+  String get subtitlesAutomatic;
+
   /// Player option to select subtitles.
   ///
   /// In en, this message translates to:
@@ -783,6 +813,12 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'No results found for your search'**
   String get searchNoResults;
+
+  /// No description provided for @searchLoadError.
+  ///
+  /// In en, this message translates to:
+  /// **'Could not load search. Check your connection.'**
+  String get searchLoadError;
 
   /// Label for content rating.
   ///

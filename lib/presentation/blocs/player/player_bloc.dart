@@ -91,9 +91,7 @@ class PlayerBloc extends Bloc<PlayerEvent, PlayerState> {
       // y desbloquea los que sí lo requieren.
       final Media media = Media(
         url,
-        httpHeaders: <String, String>{
-          'User-Agent': AppConstants.userAgent,
-        },
+        httpHeaders: <String, String>{'User-Agent': AppConstants.userAgent},
         start: _startPosition,
       );
       _pendingOpen = _player.open(media);
@@ -112,9 +110,8 @@ class PlayerBloc extends Bloc<PlayerEvent, PlayerState> {
       WidgetsBinding.instance.addPostFrameCallback((_) {
         _forceVideoTrack();
       });
-      // Los subtítulos se desactivan por defecto; el usuario los activa
-      // manualmente desde el menú de pistas.
-      await _player.setSubtitleTrack(SubtitleTrack.no());
+      // La selección de audio/subtítulos la aplica PlayerScreen cuando recibe
+      // las pistas (preferencias de Ajustes o desactivados por defecto).
       emit(PlayerPlaying(streamUrl: url));
     } catch (_) {
       emit(const PlayerError(message: 'streamError'));

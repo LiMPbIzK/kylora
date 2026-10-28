@@ -341,10 +341,11 @@ void main() {
       store: store,
     );
 
-    await tester.ensureVisible(find.text('Spanish'));
+    final Finder spanish = find.text('Spanish').first;
+    await tester.ensureVisible(spanish);
     await tester.pumpAndSettle();
     await tester.tap(
-      find.ancestor(of: find.text('Spanish'), matching: find.byType(ListTile)),
+      find.ancestor(of: spanish, matching: find.byType(ListTile)),
     );
     await tester.pumpAndSettle();
 

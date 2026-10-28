@@ -25,6 +25,8 @@ import '../../../l10n/app_localizations.dart';
 import '../../blocs/epg/epg_bloc.dart';
 import '../../blocs/epg/epg_event.dart';
 import '../../blocs/epg/epg_state.dart';
+import '../../blocs/history/history_bloc.dart';
+import '../../blocs/history/history_event.dart';
 import '../../blocs/player/player_bloc.dart';
 import '../../blocs/player/player_event.dart';
 import '../../blocs/player/player_state.dart';
@@ -69,6 +71,8 @@ class _PlayerScreenState extends State<PlayerScreen> {
   StreamSubscription<Tracks>? _tracksSubscription;
   bool _audioPreferenceApplied = false;
   bool _audioPreferenceBlocked = false;
+  bool _subtitlePreferenceApplied = false;
+  bool _subtitlePreferenceBlocked = false;
   Timer? _historyTimer;
   PlaybackRequest? _historyRequest;
   Duration? _lastStartPosition;
@@ -178,16 +182,61 @@ class _PlayerScreenState extends State<PlayerScreen> {
   /// disponible (comportamiento por defecto de media_kit). Se ignora cuando el
   /// usuario elige manualmente la pista desde el OSD.
   void _onTracksChanged(Tracks tracks) {
-    if (!mounted || _audioPreferenceApplied || _audioPreferenceBlocked) return;
-    _audioPreferenceApplied = true;
-    final List<AudioTrack> audio = tracks.audio;
-    if (audio.isEmpty) return;
-    final String? appLang = Localizations.maybeLocaleOf(context)?.languageCode;
-    if (appLang == null) return;
-    final AudioTrack? match = _matchAudioTrack(audio, appLang);
-    if (match != null) {
-      _bloc.player.setAudioTrack(match);
+    if (!mounted) return;
+    final SettingsState settingsState = context.read<SettingsBloc>().state;
+    final SettingsLoaded? settings = settingsState is SettingsLoaded
+        ? settingsState
+        : null;
+    final String? preferredLanguage =
+        settings?.audioLanguage ??
+        Localizations.maybeLocaleOf(context)?.languageCode;
+
+    if (!_audioPreferenceApplied && !_audioPreferenceBlocked) {
+      _audioPreferenceApplied = true;
+      if (preferredLanguage != null && tracks.audio.isNotEmpty) {
+        final AudioTrack? match = _matchAudioTrack(
+          tracks.audio,
+          preferredLanguage,
+        );
+        if (match != null) {
+          _bloc.player.setAudioTrack(match);
+        }
+      }
     }
+
+    if (!_subtitlePreferenceApplied && !_subtitlePreferenceBlocked) {
+      _subtitlePreferenceApplied = true;
+      if (settings?.subtitlesEnabled == true && preferredLanguage != null) {
+        final SubtitleTrack? match = _matchSubtitleTrack(
+          tracks.subtitle,
+          preferredLanguage,
+        );
+        _bloc.player.setSubtitleTrack(match ?? SubtitleTrack.no());
+      } else {
+        _bloc.player.setSubtitleTrack(SubtitleTrack.no());
+      }
+    }
+  }
+
+  SubtitleTrack? _matchSubtitleTrack(
+    List<SubtitleTrack> subtitles,
+    String language,
+  ) {
+    final List<String> codes =
+        _audioLanguageCodes[language] ?? <String>[language];
+    for (final SubtitleTrack track in subtitles) {
+      if (track.id == 'no' || track.id == 'auto') continue;
+      final String lang = (track.language ?? '').toLowerCase();
+      final String title = (track.title ?? '').toLowerCase();
+      final bool match = codes.any(
+        (String code) =>
+            lang.contains(code) ||
+            lang.split('-').first.contains(code) ||
+            title.contains(code),
+      );
+      if (match) return track;
+    }
+    return null;
   }
 
   AudioTrack? _matchAudioTrack(List<AudioTrack> audio, String appLang) {
@@ -257,6 +306,8 @@ class _PlayerScreenState extends State<PlayerScreen> {
         _lastStartPosition = request.startPosition;
         _audioPreferenceApplied = false;
         _audioPreferenceBlocked = false;
+        _subtitlePreferenceApplied = false;
+        _subtitlePreferenceBlocked = false;
         _bloc.add(
           PlayerPlayRequested(
             request.urlBuilder,
@@ -432,6 +483,7 @@ class _PlayerScreenState extends State<PlayerScreen> {
     _stopHistoryTracking();
     _bloc.player.stop();
     _bloc.resetContent();
+    context.read<HistoryBloc>().add(const HistoryStarted());
     setState(() {
       _guideOpen = false;
       _picker = null;
@@ -1029,6 +1081,7 @@ class _PlayerScreenState extends State<PlayerScreen> {
         selected: selectedSubtitle.id == 'no',
         onTap: () {
           _closePicker();
+          _subtitlePreferenceBlocked = true;
           _bloc.player.setSubtitleTrack(SubtitleTrack.no());
         },
       );
@@ -1039,6 +1092,7 @@ class _PlayerScreenState extends State<PlayerScreen> {
           selected: selectedSubtitle.id == track.id,
           onTap: () {
             _closePicker();
+            _subtitlePreferenceBlocked = true;
             final SubtitleTrack? found = _firstOrNull<SubtitleTrack>(
               tracks.subtitle,
               (SubtitleTrack t) => t.id == track.id,

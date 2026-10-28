@@ -438,6 +438,11 @@
   "@audioTrack": {
     "description": "Opción del reproductor para seleccionar la pista de audio."
   },
+  "settingsSectionPlayback": "Reproducción",
+  "audioLanguage": "Idioma de audio",
+  "audioLanguageAuto": "Idioma de la aplicación",
+  "subtitlesOff": "Desactivados",
+  "subtitlesAutomatic": "Automáticos (idioma de la app)",
   "subtitles": "Subtítulos",
   "@subtitles": {
     "description": "Opción del reproductor para seleccionar subtítulos."
@@ -467,6 +472,7 @@
     "description": "Se muestra cuando la categoría seleccionada no tiene películas."
   },
   "searchNoResults": "No se encontraron resultados para tu búsqueda",
+  "searchLoadError": "No se pudo cargar el buscador. Revisa la conexión.",
   "@searchNoResults": {
     "description": "Se muestra cuando una búsqueda no devuelve resultados."
   },

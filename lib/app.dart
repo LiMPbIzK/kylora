@@ -30,6 +30,7 @@ import 'presentation/screens/history/history_screen.dart';
 import 'presentation/screens/live/program_guide_screen.dart';
 import 'presentation/screens/player/playback_overlay.dart';
 import 'presentation/screens/player/playback_scope.dart';
+import 'presentation/screens/search/global_search_screen.dart';
 import 'presentation/screens/series/series_detail_screen.dart';
 import 'presentation/screens/settings/account_web_import_screen.dart';
 import 'presentation/screens/settings/settings_screen.dart';
@@ -96,6 +97,10 @@ abstract final class AppRouter {
           },
         ),
         GoRoute(
+          path: Routes.search,
+          builder: (context, state) => const GlobalSearchScreen(),
+        ),
+        GoRoute(
           path: Routes.favorites,
           builder: (context, state) => const FavoritesScreen(),
         ),
@@ -128,6 +133,7 @@ abstract final class Routes {
   static const String movieDetail = '/movie';
   static const String seriesDetail = '/series-detail';
   static const String programGuide = '/program-guide';
+  static const String search = '/search';
   static const String favorites = '/favorites';
   static const String history = '/history';
   static const String settings = '/settings';

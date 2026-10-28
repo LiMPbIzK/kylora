@@ -20,6 +20,8 @@ final class SettingsLoaded extends SettingsState {
     required this.locale,
     required this.themeId,
     required this.clock24h,
+    this.audioLanguage,
+    this.subtitlesEnabled = false,
   });
 
   /// Idioma seleccionado (`null` = seguir el idioma del sistema).
@@ -31,6 +33,18 @@ final class SettingsLoaded extends SettingsState {
   /// `true` = reloj en formato 24 h; `false` = 12 h (AM/PM).
   final bool clock24h;
 
+  /// Idioma preferido de audio; `null` = idioma de la aplicación.
+  final String? audioLanguage;
+
+  /// Si es true, se intenta activar la pista de subtítulos del idioma preferido.
+  final bool subtitlesEnabled;
+
   @override
-  List<Object?> get props => <Object?>[locale, themeId, clock24h];
+  List<Object?> get props => <Object?>[
+    locale,
+    themeId,
+    clock24h,
+    audioLanguage,
+    subtitlesEnabled,
+  ];
 }

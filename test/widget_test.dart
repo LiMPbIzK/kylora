@@ -33,6 +33,7 @@ import 'package:kylora/presentation/blocs/vod/vod_bloc.dart';
 import 'package:kylora/presentation/screens/auth/login_screen.dart';
 import 'package:kylora/presentation/screens/dashboard/home_shell_screen.dart';
 import 'package:kylora/presentation/screens/live/live_screen.dart';
+import 'package:kylora/presentation/screens/search/global_search_screen.dart';
 import 'package:kylora/presentation/screens/series/series_screen.dart';
 import 'package:kylora/presentation/screens/settings/settings_screen.dart';
 import 'package:kylora/presentation/screens/vod/vod_screen.dart';
@@ -355,6 +356,28 @@ void main() {
 
     expect(bloc.state, isA<AuthUnauthenticated>());
     expect(find.byType(LoginScreen), findsOneWidget);
+  });
+
+  testWidgets('La búsqueda global se abre desde el selector', (
+    WidgetTester tester,
+  ) async {
+    await pumpApp(
+      tester,
+      stored: const UserAccount(
+        serverUrl: 'http://server:8080',
+        username: 'user',
+        password: 'pass',
+        status: 'Active',
+      ),
+    );
+
+    await tester.tap(find.byIcon(Icons.search));
+    await tester.pumpAndSettle();
+
+    expect(find.byType(GlobalSearchScreen), findsOneWidget);
+    await tester.enterText(find.byType(TextField), 'Matrix');
+    await tester.pump(const Duration(milliseconds: 350));
+    expect(find.text('Matrix'), findsWidgets);
   });
 
   testWidgets('Desde el dashboard se abre el catálogo en directo', (

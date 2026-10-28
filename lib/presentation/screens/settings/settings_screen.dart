@@ -64,6 +64,8 @@ class _SettingsScreenState extends State<SettingsScreen> {
                   _languageSection(context, l10n),
                   _SectionHeader(title: l10n.clock),
                   _clockSection(context, l10n),
+                  _SectionHeader(title: l10n.settingsSectionPlayback),
+                  _playbackSection(context, l10n),
                   _SectionHeader(title: l10n.settingsSectionAppearance),
                   _appearanceSection(context, l10n),
                   _SectionHeader(title: l10n.settingsSectionSecurity),
@@ -428,6 +430,112 @@ class _SettingsScreenState extends State<SettingsScreen> {
               selected: !clock24h,
               onTap: () => context.read<SettingsBloc>().add(
                 const SettingsClockFormatChanged(false),
+              ),
+            ),
+          ],
+        );
+      },
+    );
+  }
+
+  // ---------------------------------------------------------------------------
+  // Reproducción (audio y subtítulos)
+  // ---------------------------------------------------------------------------
+
+  Widget _playbackSection(BuildContext context, AppLocalizations l10n) {
+    return BlocBuilder<SettingsBloc, SettingsState>(
+      buildWhen: (previous, current) => current is SettingsLoaded,
+      builder: (context, state) {
+        final String? audioLanguage = state is SettingsLoaded
+            ? state.audioLanguage
+            : null;
+        final bool subtitlesEnabled = state is SettingsLoaded
+            ? state.subtitlesEnabled
+            : false;
+        return Column(
+          children: <Widget>[
+            Padding(
+              padding: const EdgeInsets.fromLTRB(16, 8, 16, 2),
+              child: Align(
+                alignment: Alignment.centerLeft,
+                child: Text(
+                  l10n.audioLanguage,
+                  style: Theme.of(context).textTheme.labelLarge,
+                ),
+              ),
+            ),
+            _choiceTile(
+              label: l10n.audioLanguageAuto,
+              selected: audioLanguage == null,
+              onTap: () => context.read<SettingsBloc>().add(
+                const SettingsAudioLanguageChanged(null),
+              ),
+            ),
+            _choiceTile(
+              label: l10n.languageSpanish,
+              selected: audioLanguage == 'es',
+              onTap: () => context.read<SettingsBloc>().add(
+                const SettingsAudioLanguageChanged('es'),
+              ),
+            ),
+            _choiceTile(
+              label: l10n.languageEnglish,
+              selected: audioLanguage == 'en',
+              onTap: () => context.read<SettingsBloc>().add(
+                const SettingsAudioLanguageChanged('en'),
+              ),
+            ),
+            _choiceTile(
+              label: l10n.languageFrench,
+              selected: audioLanguage == 'fr',
+              onTap: () => context.read<SettingsBloc>().add(
+                const SettingsAudioLanguageChanged('fr'),
+              ),
+            ),
+            _choiceTile(
+              label: l10n.languageGerman,
+              selected: audioLanguage == 'de',
+              onTap: () => context.read<SettingsBloc>().add(
+                const SettingsAudioLanguageChanged('de'),
+              ),
+            ),
+            _choiceTile(
+              label: l10n.languageItalian,
+              selected: audioLanguage == 'it',
+              onTap: () => context.read<SettingsBloc>().add(
+                const SettingsAudioLanguageChanged('it'),
+              ),
+            ),
+            _choiceTile(
+              label: l10n.languagePortuguese,
+              selected: audioLanguage == 'pt',
+              onTap: () => context.read<SettingsBloc>().add(
+                const SettingsAudioLanguageChanged('pt'),
+              ),
+            ),
+            const Divider(height: 24),
+            Padding(
+              padding: const EdgeInsets.fromLTRB(16, 0, 16, 2),
+              child: Align(
+                alignment: Alignment.centerLeft,
+                child: Text(
+                  l10n.subtitles,
+                  style: Theme.of(context).textTheme.labelLarge,
+                ),
+              ),
+            ),
+            _choiceTile(
+              label: l10n.subtitlesOff,
+              selected: !subtitlesEnabled,
+              onTap: () => context.read<SettingsBloc>().add(
+                const SettingsSubtitlesEnabledChanged(false),
+              ),
+            ),
+            _choiceTile(
+              label: l10n.subtitlesAutomatic,
+              selected: subtitlesEnabled,
+              onTap: () => context.read<SettingsBloc>().add(
+                const SettingsSubtitlesEnabledChanged(true),
               ),
             ),
           ],

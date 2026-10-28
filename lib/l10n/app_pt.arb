@@ -438,6 +438,11 @@
   "@audioTrack": {
     "description": "Opção do reprodutor para selecionar a faixa de áudio."
   },
+  "settingsSectionPlayback": "Reprodução",
+  "audioLanguage": "Idioma do áudio",
+  "audioLanguageAuto": "Idioma da aplicação",
+  "subtitlesOff": "Desativadas",
+  "subtitlesAutomatic": "Automáticas (idioma da app)",
   "subtitles": "Legendas",
   "@subtitles": {
     "description": "Opção do reprodutor para selecionar legendas."
@@ -467,6 +472,7 @@
     "description": "Exibido quando a categoria selecionada não tem filmes."
   },
   "searchNoResults": "Nenhum resultado para sua busca",
+  "searchLoadError": "Não foi possível carregar a busca. Verifique a ligação.",
   "@searchNoResults": {
     "description": "Exibido quando uma busca não retorna resultados."
   },

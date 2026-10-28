@@ -438,6 +438,11 @@
   "@audioTrack": {
     "description": "Player option to select the audio track."
   },
+  "settingsSectionPlayback": "Playback",
+  "audioLanguage": "Audio language",
+  "audioLanguageAuto": "App language",
+  "subtitlesOff": "Off",
+  "subtitlesAutomatic": "Automatic (app language)",
   "subtitles": "Subtitles",
   "@subtitles": {
     "description": "Player option to select subtitles."
@@ -467,6 +472,7 @@
     "description": "Shown when the selected category has no movies."
   },
   "searchNoResults": "No results found for your search",
+  "searchLoadError": "Could not load search. Check your connection.",
   "@searchNoResults": {
     "description": "Shown when a search returns no results."
   },

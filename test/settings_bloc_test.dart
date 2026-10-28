@@ -109,6 +109,39 @@ void main() {
     await bloc.close();
   });
 
+  test('SettingsBloc persiste audio y subtítulos', () async {
+    final _FakeSettingsStore store = _FakeSettingsStore();
+    final SettingsBloc bloc = SettingsBloc(store)..add(const SettingsStarted());
+    await bloc.stream.first;
+
+    bloc.add(const SettingsAudioLanguageChanged('en'));
+    await expectLater(
+      bloc.stream,
+      emitsInOrder(<dynamic>[
+        isA<SettingsLoaded>().having(
+          (s) => s.audioLanguage,
+          'audioLanguage',
+          'en',
+        ),
+      ]),
+    );
+    expect(store.values[SettingsStore.kAudioLanguage], 'en');
+
+    bloc.add(const SettingsSubtitlesEnabledChanged(true));
+    await expectLater(
+      bloc.stream,
+      emitsInOrder(<dynamic>[
+        isA<SettingsLoaded>().having(
+          (s) => s.subtitlesEnabled,
+          'subtitlesEnabled',
+          true,
+        ),
+      ]),
+    );
+    expect(store.values[SettingsStore.kSubtitlesEnabled], 'true');
+    await bloc.close();
+  });
+
   test('SettingsClockFormatChanged persiste el formato del reloj', () async {
     final _FakeSettingsStore store = _FakeSettingsStore();
     final SettingsBloc bloc = SettingsBloc(store)..add(const SettingsStarted());
