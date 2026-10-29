@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 
 import '../../../core/theme/app_theme.dart';
+import '../../../core/reminders/epg_reminder_service.dart';
 import '../../../core/utils/catchup.dart';
 import '../../../domain/entities/epg.dart';
 import '../../../l10n/app_localizations.dart';
@@ -18,6 +19,9 @@ class ProgramGuideList extends StatefulWidget {
     required this.hasArchive,
     this.archiveDurationDays,
     this.onPlay,
+    this.streamId,
+    this.channelName,
+    this.logo,
     this.compact = false,
   });
 
@@ -25,6 +29,9 @@ class ProgramGuideList extends StatefulWidget {
   final bool hasArchive;
   final int? archiveDurationDays;
   final ValueChanged<EpgEntry>? onPlay;
+  final int? streamId;
+  final String? channelName;
+  final String? logo;
 
   /// Variante compacta para la guía embebida del reproductor.
   final bool compact;
@@ -90,16 +97,21 @@ class _ProgramGuideListState extends State<ProgramGuideList> {
 
   @override
   Widget build(BuildContext context) {
-    final DateTime now = DateTime.now();
-    return SingleChildScrollView(
-      controller: _scrollController,
-      padding: const EdgeInsets.symmetric(vertical: 8),
-      child: Column(
-        children: <Widget>[
-          for (int index = 0; index < widget.entries.length; index++)
-            _buildTile(index, now),
-        ],
-      ),
+    return ListenableBuilder(
+      listenable: EpgReminderService.instance,
+      builder: (context, child) {
+        final DateTime now = DateTime.now();
+        return SingleChildScrollView(
+          controller: _scrollController,
+          padding: const EdgeInsets.symmetric(vertical: 8),
+          child: Column(
+            children: <Widget>[
+              for (int index = 0; index < widget.entries.length; index++)
+                _buildTile(index, now),
+            ],
+          ),
+        );
+      },
     );
   }
 
@@ -112,15 +124,44 @@ class _ProgramGuideListState extends State<ProgramGuideList> {
       program: entry,
       now: now,
     );
-    final VoidCallback? onPlay = available && widget.onPlay != null
+    final bool canRemind = entry.start.isAfter(now) && widget.streamId != null;
+    final EpgReminder? reminder = canRemind
+        ? EpgReminder(
+            streamId: widget.streamId!,
+            channelName: widget.channelName ?? '',
+            title: entry.title,
+            start: entry.start,
+            end: entry.end,
+            logo: widget.logo,
+          )
+        : null;
+    final bool reminderSet =
+        reminder != null && EpgReminderService.instance.isSet(reminder);
+    final VoidCallback? onPressed = available && widget.onPlay != null
         ? () => widget.onPlay!(entry)
+        : canRemind
+        ? () {
+            EpgReminderService.instance.toggle(reminder!);
+            final AppLocalizations l10n = AppLocalizations.of(context)!;
+            ScaffoldMessenger.of(context).showSnackBar(
+              SnackBar(
+                content: Text(
+                  EpgReminderService.instance.isSet(reminder)
+                      ? l10n.reminderSet
+                      : l10n.reminderRemoved,
+                ),
+              ),
+            );
+          }
         : null;
 
     return _GuideProgramTile(
       key: index == _currentIndex ? _currentKey : null,
       entry: entry,
       isOnAir: isOnAir,
-      onPlay: onPlay,
+      onPressed: onPressed,
+      isReminder: reminderSet,
+      isReminderAvailable: canRemind,
       autofocus: index == _currentIndex,
       compact: widget.compact,
     );
@@ -132,14 +173,18 @@ class _GuideProgramTile extends StatelessWidget {
     super.key,
     required this.entry,
     required this.isOnAir,
-    required this.onPlay,
+    required this.onPressed,
+    required this.isReminder,
+    required this.isReminderAvailable,
     required this.autofocus,
     required this.compact,
   });
 
   final EpgEntry entry;
   final bool isOnAir;
-  final VoidCallback? onPlay;
+  final VoidCallback? onPressed;
+  final bool isReminder;
+  final bool isReminderAvailable;
   final bool autofocus;
   final bool compact;
 
@@ -197,13 +242,21 @@ class _GuideProgramTile extends StatelessWidget {
               ],
             ),
           ),
-          if (onPlay != null)
+          if (onPressed != null)
             Padding(
               padding: const EdgeInsets.only(left: 8),
               child: Icon(
-                Icons.play_circle_outline,
+                isReminderAvailable
+                    ? (isReminder
+                          ? Icons.notifications
+                          : Icons.notifications_none)
+                    : Icons.play_circle_outline,
                 color: colors.primary,
-                semanticLabel: AppLocalizations.of(context)!.playFromStart,
+                semanticLabel: isReminderAvailable
+                    ? (isReminder
+                          ? AppLocalizations.of(context)!.reminderSet
+                          : AppLocalizations.of(context)!.reminderSet)
+                    : AppLocalizations.of(context)!.playFromStart,
               ),
             ),
         ],
@@ -212,7 +265,7 @@ class _GuideProgramTile extends StatelessWidget {
 
     return TvFocusable(
       autofocus: autofocus,
-      onPressed: onPlay,
+      onPressed: onPressed,
       borderRadius: BorderRadius.circular(8),
       onFocusChanged: (bool focused) {
         if (focused) {

@@ -652,6 +652,48 @@ abstract class AppLocalizations {
   /// **'Program guide'**
   String get epgGuide;
 
+  /// No description provided for @previous.
+  ///
+  /// In en, this message translates to:
+  /// **'Previous'**
+  String get previous;
+
+  /// No description provided for @next.
+  ///
+  /// In en, this message translates to:
+  /// **'Next'**
+  String get next;
+
+  /// No description provided for @today.
+  ///
+  /// In en, this message translates to:
+  /// **'Today'**
+  String get today;
+
+  /// No description provided for @reminderSet.
+  ///
+  /// In en, this message translates to:
+  /// **'Reminder set'**
+  String get reminderSet;
+
+  /// No description provided for @reminderRemoved.
+  ///
+  /// In en, this message translates to:
+  /// **'Reminder removed'**
+  String get reminderRemoved;
+
+  /// No description provided for @reminderDueTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Reminder'**
+  String get reminderDueTitle;
+
+  /// No description provided for @watchNow.
+  ///
+  /// In en, this message translates to:
+  /// **'Watch now'**
+  String get watchNow;
+
   /// Label of the currently on-air program in the channel list.
   ///
   /// In en, this message translates to:

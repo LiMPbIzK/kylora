@@ -387,6 +387,13 @@
   "@epgGuide": {
     "description": "Suggerimento del pulsante che apre la guida EPG completa di un canale."
   },
+  "previous": "Precedente",
+  "next": "Successivo",
+  "today": "Oggi",
+  "reminderSet": "Promemoria attivato",
+  "reminderRemoved": "Promemoria rimosso",
+  "reminderDueTitle": "Promemoria",
+  "watchNow": "Guarda ora",
   "nowEpg": "Ora",
   "@nowEpg": {
     "description": "Etichetta del programma in onda nell'elenco dei canali."

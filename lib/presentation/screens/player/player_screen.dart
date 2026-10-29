@@ -1025,6 +1025,8 @@ class _PlayerScreenState extends State<PlayerScreen> {
       entries: entries,
       hasArchive: _hasArchive,
       archiveDurationDays: _archiveDurationDays,
+      streamId: _liveContentId,
+      channelName: _channelTitle,
       onPlay: _playCatchupFromGuide,
       compact: true,
     );

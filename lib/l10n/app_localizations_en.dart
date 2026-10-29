@@ -302,6 +302,27 @@ class AppLocalizationsEn extends AppLocalizations {
   String get epgGuide => 'Program guide';
 
   @override
+  String get previous => 'Previous';
+
+  @override
+  String get next => 'Next';
+
+  @override
+  String get today => 'Today';
+
+  @override
+  String get reminderSet => 'Reminder set';
+
+  @override
+  String get reminderRemoved => 'Reminder removed';
+
+  @override
+  String get reminderDueTitle => 'Reminder';
+
+  @override
+  String get watchNow => 'Watch now';
+
+  @override
   String get nowEpg => 'Now';
 
   @override

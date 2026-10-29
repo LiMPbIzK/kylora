@@ -38,6 +38,7 @@ import 'presentation/screens/settings/account_web_import_screen.dart';
 import 'presentation/screens/settings/settings_screen.dart';
 import 'presentation/screens/splash/splash_screen.dart';
 import 'presentation/screens/vod/movie_detail_screen.dart';
+import 'presentation/shared_widgets/epg_reminder_host.dart';
 
 /// Configuración de navegación de la aplicación.
 abstract final class AppRouter {
@@ -48,6 +49,7 @@ abstract final class AppRouter {
     );
 
     return GoRouter(
+      navigatorKey: kyloraNavigatorKey,
       initialLocation: Routes.splash,
       refreshListenable: refresh,
       redirect: (context, state) {
@@ -167,6 +169,12 @@ class GoRouterRefreshListenable extends ChangeNotifier {
   }
 }
 
+/// Navigator global para que los avisos de recordatorios puedan abrir un
+/// diálogo aunque se originen fuera de una ruta concreta.
+final GlobalKey<NavigatorState> kyloraNavigatorKey = GlobalKey<NavigatorState>(
+  debugLabel: 'kylora-navigator',
+);
+
 /// Raíz de la aplicación: configura idioma, tema y router.
 class KyloraApp extends StatelessWidget {
   const KyloraApp({
@@ -263,13 +271,16 @@ class KyloraApp extends StatelessWidget {
                   // moviendo el foco fuera de ellos (sin quedar atrapado en la
                   // barra de volumen o de progreso).
                   final MediaQueryData media = MediaQuery.of(context);
-                  return MediaQuery(
-                    data: media.copyWith(
-                      navigationMode: NavigationMode.directional,
-                    ),
-                    child: PlaybackOverlay(
-                      controller: playbackController,
-                      child: child ?? const SizedBox.shrink(),
+                  return EpgReminderHost(
+                    navigatorKey: kyloraNavigatorKey,
+                    child: MediaQuery(
+                      data: media.copyWith(
+                        navigationMode: NavigationMode.directional,
+                      ),
+                      child: PlaybackOverlay(
+                        controller: playbackController,
+                        child: child ?? const SizedBox.shrink(),
+                      ),
                     ),
                   );
                 },

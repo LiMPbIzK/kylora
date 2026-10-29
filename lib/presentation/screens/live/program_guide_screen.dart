@@ -10,6 +10,7 @@ import '../../../l10n/app_localizations.dart';
 import '../../blocs/epg/epg_bloc.dart';
 import '../../blocs/epg/epg_event.dart';
 import '../../blocs/epg/epg_state.dart';
+import '../../shared_widgets/program_guide_grid.dart';
 import '../../shared_widgets/program_guide_list.dart';
 import '../player/playback_scope.dart';
 
@@ -102,11 +103,29 @@ class _ProgramGuideScreenState extends State<ProgramGuideScreen> {
           return switch (state) {
             EpgIdle() ||
             EpgLoading() => const Center(child: CircularProgressIndicator()),
-            EpgGuideLoaded() => ProgramGuideList(
-              entries: state.entries,
-              hasArchive: widget.channel.hasArchive,
-              archiveDurationDays: widget.channel.archiveDurationDays,
-              onPlay: _playCatchup,
+            EpgGuideLoaded() => LayoutBuilder(
+              builder: (BuildContext context, BoxConstraints constraints) {
+                if (constraints.maxWidth >= 700) {
+                  return ProgramGuideGrid(
+                    entries: state.entries,
+                    streamId: widget.channel.id,
+                    channelName: widget.channel.name,
+                    hasArchive: widget.channel.hasArchive,
+                    archiveDurationDays: widget.channel.archiveDurationDays,
+                    logo: widget.channel.logo,
+                    onPlay: _playCatchup,
+                  );
+                }
+                return ProgramGuideList(
+                  entries: state.entries,
+                  hasArchive: widget.channel.hasArchive,
+                  archiveDurationDays: widget.channel.archiveDurationDays,
+                  streamId: widget.channel.id,
+                  channelName: widget.channel.name,
+                  logo: widget.channel.logo,
+                  onPlay: _playCatchup,
+                );
+              },
             ),
             EpgEmpty() => _EmptyView(message: l10n.epgNoProgram),
             EpgNowNextLoaded() ||

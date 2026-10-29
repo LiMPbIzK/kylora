@@ -302,6 +302,27 @@ class AppLocalizationsFr extends AppLocalizations {
   String get epgGuide => 'Guide de programmation';
 
   @override
+  String get previous => 'Précédent';
+
+  @override
+  String get next => 'Suivant';
+
+  @override
+  String get today => 'Aujourd\'hui';
+
+  @override
+  String get reminderSet => 'Rappel activé';
+
+  @override
+  String get reminderRemoved => 'Rappel supprimé';
+
+  @override
+  String get reminderDueTitle => 'Rappel';
+
+  @override
+  String get watchNow => 'Regarder';
+
+  @override
   String get nowEpg => 'Maintenant';
 
   @override

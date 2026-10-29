@@ -387,6 +387,13 @@
   "@epgGuide": {
     "description": "Infobulle du bouton qui ouvre le guide EPG complet d'une chaîne."
   },
+  "previous": "Précédent",
+  "next": "Suivant",
+  "today": "Aujourd'hui",
+  "reminderSet": "Rappel activé",
+  "reminderRemoved": "Rappel supprimé",
+  "reminderDueTitle": "Rappel",
+  "watchNow": "Regarder",
   "nowEpg": "Maintenant",
   "@nowEpg": {
     "description": "Libellé du programme actuellement diffusé dans la liste des chaînes."

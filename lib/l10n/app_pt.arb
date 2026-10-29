@@ -387,6 +387,13 @@
   "@epgGuide": {
     "description": "Dica do botão que abre o guia EPG completo de um canal."
   },
+  "previous": "Anterior",
+  "next": "Seguinte",
+  "today": "Hoje",
+  "reminderSet": "Lembrete ativado",
+  "reminderRemoved": "Lembrete removido",
+  "reminderDueTitle": "Lembrete",
+  "watchNow": "Ver agora",
   "nowEpg": "Agora",
   "@nowEpg": {
     "description": "Rótulo do programa em exibição na lista de canais."

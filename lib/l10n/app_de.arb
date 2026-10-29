@@ -387,6 +387,13 @@
   "@epgGuide": {
     "description": "Tooltip der Schaltfläche, die den vollständigen EPG-Führer eines Kanals öffnet."
   },
+  "previous": "Zurück",
+  "next": "Weiter",
+  "today": "Heute",
+  "reminderSet": "Erinnerung aktiviert",
+  "reminderRemoved": "Erinnerung entfernt",
+  "reminderDueTitle": "Erinnerung",
+  "watchNow": "Jetzt ansehen",
   "nowEpg": "Jetzt",
   "@nowEpg": {
     "description": "Beschriftung des aktuell ausgestrahlten Programms in der Kanalliste."

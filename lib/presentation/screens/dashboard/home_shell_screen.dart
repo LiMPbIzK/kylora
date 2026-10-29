@@ -7,6 +7,7 @@ import 'package:go_router/go_router.dart';
 
 import '../../../app.dart';
 import '../../../core/media/playback_controller.dart';
+import '../../../core/reminders/epg_reminder_service.dart';
 import '../../../core/theme/app_theme.dart';
 import '../../../core/utils/clock_format.dart';
 import '../../../l10n/app_localizations.dart';
@@ -137,6 +138,7 @@ class _HomeShellScreenState extends State<HomeShellScreen> {
   /// para que la siguiente sección cargue los datos de la cuenta activa.
   void _onAccountChanged() {
     PlaybackScope.of(context).stop();
+    EpgReminderService.instance.clear();
     context.read<SearchVisibilityCubit>().hide();
     setState(() => _section = null);
     context.read<LiveBloc>().add(const LiveStarted());

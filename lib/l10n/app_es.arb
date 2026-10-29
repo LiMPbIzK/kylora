@@ -382,6 +382,13 @@
   "@epgGuide": {
     "description": "Tooltip del botón que abre la guía EPG completa de un canal."
   },
+  "previous": "Anterior",
+  "next": "Siguiente",
+  "today": "Hoy",
+  "reminderSet": "Recordatorio activado",
+  "reminderRemoved": "Recordatorio eliminado",
+  "reminderDueTitle": "Recordatorio",
+  "watchNow": "Ver ahora",
   "nowEpg": "Ahora",
   "@nowEpg": {
     "description": "Etiqueta del programa en emisión en la lista de canales."
