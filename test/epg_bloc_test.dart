@@ -7,6 +7,7 @@ import 'package:kylora/domain/entities/iptv_auth_config.dart';
 import 'package:kylora/domain/entities/user_account.dart';
 import 'package:kylora/domain/repositories/iptv_repository.dart';
 import 'package:kylora/domain/entities/category.dart';
+import 'package:kylora/domain/entities/category_preference.dart';
 import 'package:kylora/domain/entities/channel.dart';
 import 'package:kylora/domain/entities/content_type.dart' as domain;
 import 'package:kylora/domain/entities/episode.dart';
@@ -88,6 +89,15 @@ class _FakeRepo implements IptvRepository {
       <Channel>[];
 
   @override
+  Future<List<CategoryPreference>> getCategoryPreferences() async =>
+      const <CategoryPreference>[];
+
+  @override
+  Future<void> saveCategoryPreferences(
+    List<CategoryPreference> preferences,
+  ) async {}
+
+  @override
   Future<String> buildStreamUrl(Channel channel) async => '';
 
   @override
@@ -125,6 +135,11 @@ class _FakeRepo implements IptvRepository {
 
   @override
   Future<List<EpgEntry>> fetchFullEpg(int streamId) async => short;
+
+  @override
+  Future<Map<int, List<EpgEntry>>> fetchMultiChannelEpg(
+    List<Channel> channels,
+  ) async => <int, List<EpgEntry>>{};
 
   @override
   Future<void> addToFavorite(FavoriteItem item) async {}

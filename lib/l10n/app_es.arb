@@ -197,6 +197,12 @@
   "@favorites": {
     "description": "Sección del panel para contenido favorito."
   },
+  "manageCategories": "Gestionar categorías",
+  "multiChannelGuide": "Guía multi-canal",
+  "save": "Guardar",
+  "saveError": "No se pudieron guardar los cambios",
+  "moveUp": "Subir",
+  "moveDown": "Bajar",
   "settings": "Ajustes",
   "@settings": {
     "description": "Sección del panel para ajustes de la aplicación."

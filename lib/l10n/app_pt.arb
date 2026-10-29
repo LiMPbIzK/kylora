@@ -202,6 +202,12 @@
   "@favorites": {
     "description": "Seção do painel para conteúdo favorito."
   },
+  "manageCategories": "Gerir categorias",
+  "multiChannelGuide": "Guia multi-canal",
+  "save": "Guardar",
+  "saveError": "Não foi possível guardar as alterações",
+  "moveUp": "Mover para cima",
+  "moveDown": "Mover para baixo",
   "settings": "Ajustes",
   "@settings": {
     "description": "Seção do painel para ajustes do aplicativo."

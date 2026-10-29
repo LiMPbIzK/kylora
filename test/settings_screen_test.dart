@@ -7,6 +7,7 @@ import 'package:kylora/core/media/playback_controller.dart';
 import 'package:kylora/core/utils/clock_format.dart';
 import 'package:kylora/data/datasources/local/settings_store.dart';
 import 'package:kylora/domain/entities/category.dart';
+import 'package:kylora/domain/entities/category_preference.dart';
 import 'package:kylora/domain/entities/channel.dart';
 import 'package:kylora/domain/entities/content_type.dart' as domain;
 import 'package:kylora/domain/entities/epg.dart';
@@ -77,6 +78,16 @@ class _FakeRepo implements IptvRepository {
   Future<List<Category>> fetchLiveCategories() async => const <Category>[];
 
   @override
+  @override
+  Future<List<CategoryPreference>> getCategoryPreferences() async =>
+      const <CategoryPreference>[];
+
+  @override
+  Future<void> saveCategoryPreferences(
+    List<CategoryPreference> preferences,
+  ) async {}
+
+  @override
   Future<List<Channel>> fetchLiveChannels({int? categoryId}) async =>
       const <Channel>[];
 
@@ -119,6 +130,11 @@ class _FakeRepo implements IptvRepository {
 
   @override
   Future<List<EpgEntry>> fetchFullEpg(int streamId) async => <EpgEntry>[];
+
+  @override
+  Future<Map<int, List<EpgEntry>>> fetchMultiChannelEpg(
+    List<Channel> channels,
+  ) async => <int, List<EpgEntry>>{};
 
   @override
   Future<void> addToFavorite(FavoriteItem item) async {}

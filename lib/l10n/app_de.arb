@@ -202,6 +202,12 @@
   "@favorites": {
     "description": "Panel-Abschnitt für bevorzugte Inhalte."
   },
+  "manageCategories": "Kategorien verwalten",
+  "multiChannelGuide": "Mehrkanal-EPG",
+  "save": "Speichern",
+  "saveError": "Änderungen konnten nicht gespeichert werden",
+  "moveUp": "Nach oben",
+  "moveDown": "Nach unten",
   "settings": "Einstellungen",
   "@settings": {
     "description": "Panel-Abschnitt für Anwendungseinstellungen."

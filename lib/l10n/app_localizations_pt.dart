@@ -160,6 +160,24 @@ class AppLocalizationsPt extends AppLocalizations {
   String get favorites => 'Favoritos';
 
   @override
+  String get manageCategories => 'Gerir categorias';
+
+  @override
+  String get multiChannelGuide => 'Guia multi-canal';
+
+  @override
+  String get save => 'Guardar';
+
+  @override
+  String get saveError => 'Não foi possível guardar as alterações';
+
+  @override
+  String get moveUp => 'Mover para cima';
+
+  @override
+  String get moveDown => 'Mover para baixo';
+
+  @override
   String get settings => 'Ajustes';
 
   @override

@@ -6,6 +6,7 @@ import 'package:kylora/core/media/playback_controller.dart';
 import 'package:kylora/data/datasources/local/settings_store.dart';
 import 'package:kylora/data/datasources/remote/xtream_api_client.dart';
 import 'package:kylora/domain/entities/category.dart';
+import 'package:kylora/domain/entities/category_preference.dart';
 import 'package:kylora/domain/entities/channel.dart';
 import 'package:kylora/domain/entities/content_type.dart' as domain;
 import 'package:kylora/domain/entities/epg.dart';
@@ -72,6 +73,16 @@ class _FakeRepository implements IptvRepository {
     Category(id: 2, name: 'Noticias'),
     Category(id: 3, name: 'Radio'),
   ];
+
+  @override
+  @override
+  Future<List<CategoryPreference>> getCategoryPreferences() async =>
+      const <CategoryPreference>[];
+
+  @override
+  Future<void> saveCategoryPreferences(
+    List<CategoryPreference> preferences,
+  ) async {}
 
   @override
   Future<List<Channel>> fetchLiveChannels({int? categoryId}) async {
@@ -197,6 +208,11 @@ class _FakeRepository implements IptvRepository {
   Future<List<EpgEntry>> fetchFullEpg(int streamId) async {
     return <EpgEntry>[];
   }
+
+  @override
+  Future<Map<int, List<EpgEntry>>> fetchMultiChannelEpg(
+    List<Channel> channels,
+  ) async => <int, List<EpgEntry>>{};
 
   @override
   Future<void> addToFavorite(FavoriteItem item) async {}
@@ -580,6 +596,15 @@ class _FailingRepository implements IptvRepository {
       throw UnimplementedError();
 
   @override
+  Future<List<CategoryPreference>> getCategoryPreferences() async =>
+      const <CategoryPreference>[];
+
+  @override
+  Future<void> saveCategoryPreferences(
+    List<CategoryPreference> preferences,
+  ) async {}
+
+  @override
   Future<String> buildStreamUrl(Channel channel) async =>
       throw UnimplementedError();
 
@@ -626,6 +651,11 @@ class _FailingRepository implements IptvRepository {
   @override
   Future<List<EpgEntry>> fetchFullEpg(int streamId) async =>
       throw UnimplementedError();
+
+  @override
+  Future<Map<int, List<EpgEntry>>> fetchMultiChannelEpg(
+    List<Channel> channels,
+  ) async => <int, List<EpgEntry>>{};
 
   @override
   Future<void> addToFavorite(FavoriteItem item) async =>

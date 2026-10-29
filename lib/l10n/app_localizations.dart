@@ -382,6 +382,42 @@ abstract class AppLocalizations {
   /// **'Favorites'**
   String get favorites;
 
+  /// No description provided for @manageCategories.
+  ///
+  /// In en, this message translates to:
+  /// **'Manage categories'**
+  String get manageCategories;
+
+  /// No description provided for @multiChannelGuide.
+  ///
+  /// In en, this message translates to:
+  /// **'Multi-channel guide'**
+  String get multiChannelGuide;
+
+  /// No description provided for @save.
+  ///
+  /// In en, this message translates to:
+  /// **'Save'**
+  String get save;
+
+  /// No description provided for @saveError.
+  ///
+  /// In en, this message translates to:
+  /// **'Could not save changes'**
+  String get saveError;
+
+  /// No description provided for @moveUp.
+  ///
+  /// In en, this message translates to:
+  /// **'Move up'**
+  String get moveUp;
+
+  /// No description provided for @moveDown.
+  ///
+  /// In en, this message translates to:
+  /// **'Move down'**
+  String get moveDown;
+
   /// Panel section for application settings.
   ///
   /// In en, this message translates to:

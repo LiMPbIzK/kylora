@@ -160,6 +160,24 @@ class AppLocalizationsFr extends AppLocalizations {
   String get favorites => 'Favoris';
 
   @override
+  String get manageCategories => 'Gérer les catégories';
+
+  @override
+  String get multiChannelGuide => 'Guide multi-chaînes';
+
+  @override
+  String get save => 'Enregistrer';
+
+  @override
+  String get saveError => 'Impossible d\'enregistrer les modifications';
+
+  @override
+  String get moveUp => 'Monter';
+
+  @override
+  String get moveDown => 'Descendre';
+
+  @override
   String get settings => 'Réglages';
 
   @override

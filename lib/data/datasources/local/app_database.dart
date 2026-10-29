@@ -113,6 +113,17 @@ class Favorites extends Table {
   DateTimeColumn get addedAt => dateTime()();
 }
 
+/// Preferencias de visibilidad/orden de categorías, por cuenta.
+class CategoryPreferences extends Table {
+  TextColumn get accountKey => text().withDefault(const Constant(''))();
+  IntColumn get categoryId => integer()();
+  BoolColumn get hidden => boolean().withDefault(const Constant(false))();
+  IntColumn get sortOrder => integer().withDefault(const Constant(0))();
+
+  @override
+  Set<Column<Object>> get primaryKey => {accountKey, categoryId};
+}
+
 /// Grupos/categorías de canales favoritos, por cuenta.
 class FavoriteGroups extends Table {
   TextColumn get accountKey => text().withDefault(const Constant(''))();
@@ -161,6 +172,7 @@ class AppSettings extends Table {
     SeriesCategories,
     SeriesCache,
     Favorites,
+    CategoryPreferences,
     FavoriteGroups,
     History,
     AppSettings,
@@ -180,7 +192,7 @@ class AppDatabase extends _$AppDatabase {
   }
 
   @override
-  int get schemaVersion => 8;
+  int get schemaVersion => 9;
 
   @override
   MigrationStrategy get migration {
@@ -230,6 +242,10 @@ class AppDatabase extends _$AppDatabase {
         if (from < 8) {
           // V8: grupos/categorías favoritas.
           await m.createTable(favoriteGroups);
+        }
+        if (from < 9) {
+          // V9: visibilidad y orden de categorías por cuenta.
+          await m.createTable(categoryPreferences);
         }
       },
     );

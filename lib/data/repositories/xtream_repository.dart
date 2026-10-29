@@ -2,6 +2,7 @@ import 'package:drift/drift.dart';
 
 import '../../core/utils/catchup.dart';
 import '../../domain/entities/category.dart';
+import '../../domain/entities/category_preference.dart';
 import '../../domain/entities/channel.dart';
 import '../../domain/entities/content_type.dart' as domain;
 import '../../domain/entities/epg.dart';
@@ -16,7 +17,7 @@ import '../../domain/entities/series.dart';
 import '../../domain/entities/series_info.dart';
 import '../../domain/entities/user_account.dart';
 import '../../domain/repositories/iptv_repository.dart';
-import '../datasources/local/app_database.dart';
+import '../datasources/local/app_database.dart' hide CategoryPreference;
 import '../datasources/local/auth_store.dart';
 import '../datasources/local/live_cache_store.dart';
 import '../datasources/local/vod_cache_store.dart';
@@ -151,6 +152,23 @@ class XtreamRepository implements IptvRepository {
   }
 
   @override
+  Future<List<CategoryPreference>> getCategoryPreferences() async {
+    final StoredCredentials credentials = await _requireCredentials();
+    return _cache.getCategoryPreferences(credentials.fingerprint);
+  }
+
+  @override
+  Future<void> saveCategoryPreferences(
+    List<CategoryPreference> preferences,
+  ) async {
+    final StoredCredentials credentials = await _requireCredentials();
+    await _cache.replaceCategoryPreferences(
+      credentials.fingerprint,
+      preferences,
+    );
+  }
+
+  @override
   Future<List<Category>> fetchLiveCategories() async {
     final StoredCredentials credentials = await _requireCredentials();
     final List<Category> cached = await _cache.getCategories(
@@ -257,6 +275,43 @@ class XtreamRepository implements IptvRepository {
       categories: categories,
       series: series,
     );
+  }
+
+  @override
+  Future<Map<int, List<EpgEntry>>> fetchMultiChannelEpg(
+    List<Channel> channels,
+  ) async {
+    final StoredCredentials credentials = await _requireCredentials();
+    final Map<int, List<EpgEntry>> result = <int, List<EpgEntry>>{};
+    // Evita descargar el XMLTV completo del proveedor (puede superar 50 MB)
+    // para pintar solo las filas visibles. Se piden los canales en lotes
+    // pequeños para no saturar el límite de conexiones.
+    const int batchSize = 5;
+    for (int start = 0; start < channels.length; start += batchSize) {
+      final List<Channel> batch = channels.skip(start).take(batchSize).toList();
+      final List<MapEntry<int, List<EpgEntry>>> entries = await Future.wait(
+        batch.map((Channel channel) async {
+          try {
+            final List<EpgEntry> epg = await _apiClient.fetchFullEpg(
+              serverUrl: credentials.serverUrl,
+              username: credentials.username,
+              password: credentials.password,
+              streamId: channel.id,
+            );
+            return MapEntry<int, List<EpgEntry>>(channel.id, epg);
+          } catch (_) {
+            return MapEntry<int, List<EpgEntry>>(
+              channel.id,
+              <EpgEntry>[],
+            );
+          }
+        }),
+      );
+      for (final MapEntry<int, List<EpgEntry>> entry in entries) {
+        if (entry.value.isNotEmpty) result[entry.key] = entry.value;
+      }
+    }
+    return result;
   }
 
   @override

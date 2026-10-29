@@ -50,6 +50,7 @@ class _FavoriteGroupScreenState extends State<FavoriteGroupScreen> {
         hasArchive: channel.hasArchive,
         archiveDurationDays: channel.archiveDurationDays,
         channelTitle: channel.name,
+        isRadio: widget.group.isRadio,
       ),
     );
   }

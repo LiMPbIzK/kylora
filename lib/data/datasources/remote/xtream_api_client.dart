@@ -215,7 +215,9 @@ class XtreamApiClient {
       '&series_id=$seriesId',
     );
     try {
-      final Response<dynamic> response = await _dio.get<dynamic>(uri.toString());
+      final Response<dynamic> response = await _dio.get<dynamic>(
+        uri.toString(),
+      );
       if (response.statusCode != 200) {
         throw XtreamNetworkException('HTTP ${response.statusCode}');
       }
@@ -245,10 +247,7 @@ class XtreamApiClient {
       username: username,
       password: password,
       action: 'get_short_epg',
-      extra: <String, String>{
-        'stream_id': '$streamId',
-        'limit': '$limit',
-      },
+      extra: <String, String>{'stream_id': '$streamId', 'limit': '$limit'},
     );
     return entries;
   }
@@ -288,7 +287,9 @@ class XtreamApiClient {
       '${extra.entries.map((entry) => '&${entry.key}=${Uri.encodeQueryComponent(entry.value)}').join()}',
     );
     try {
-      final Response<dynamic> response = await _dio.get<dynamic>(uri.toString());
+      final Response<dynamic> response = await _dio.get<dynamic>(
+        uri.toString(),
+      );
       if (response.statusCode != 200) {
         throw XtreamNetworkException('HTTP ${response.statusCode}');
       }
@@ -333,9 +334,11 @@ class XtreamApiClient {
         uri.toString(),
       );
       if (kDebugMode) {
-        debugPrint('XAPI[$action] status=${response.statusCode} '
-            'dataType=${response.data.runtimeType} '
-            'dataLen=${response.data is List ? (response.data as List).length : -1}');
+        debugPrint(
+          'XAPI[$action] status=${response.statusCode} '
+          'dataType=${response.data.runtimeType} '
+          'dataLen=${response.data is List ? (response.data as List).length : -1}',
+        );
       }
       if (response.statusCode != 200) {
         throw XtreamNetworkException('HTTP ${response.statusCode}');
@@ -354,9 +357,15 @@ class XtreamApiClient {
         cause: e,
       );
     } on TypeError catch (e) {
-      throw XtreamNetworkException('TypeError($action) ${e.toString()}', cause: e);
+      throw XtreamNetworkException(
+        'TypeError($action) ${e.toString()}',
+        cause: e,
+      );
     } on FormatException catch (e) {
-      throw XtreamNetworkException('FormatException($action) ${e.toString()}', cause: e);
+      throw XtreamNetworkException(
+        'FormatException($action) ${e.toString()}',
+        cause: e,
+      );
     }
   }
 }

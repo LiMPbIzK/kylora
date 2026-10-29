@@ -160,6 +160,24 @@ class AppLocalizationsDe extends AppLocalizations {
   String get favorites => 'Favoriten';
 
   @override
+  String get manageCategories => 'Kategorien verwalten';
+
+  @override
+  String get multiChannelGuide => 'Mehrkanal-EPG';
+
+  @override
+  String get save => 'Speichern';
+
+  @override
+  String get saveError => 'Änderungen konnten nicht gespeichert werden';
+
+  @override
+  String get moveUp => 'Nach oben';
+
+  @override
+  String get moveDown => 'Nach unten';
+
+  @override
   String get settings => 'Einstellungen';
 
   @override

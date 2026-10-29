@@ -31,6 +31,7 @@ import '../../shared_widgets/tv_context_menu.dart';
 import '../../shared_widgets/tv_focusable.dart';
 import '../../shared_widgets/tv_marquee_text.dart';
 import '../player/playback_scope.dart';
+import 'multi_channel_guide_screen.dart';
 
 /// Catálogo de canales en directo con buscador, categorías a la izquierda y
 /// rejilla de tarjetas.
@@ -240,6 +241,34 @@ class _LiveContent extends StatelessWidget {
           },
         ),
         const Divider(height: 1),
+        if (showEpg && state.channels.isNotEmpty)
+          Align(
+            alignment: Alignment.centerRight,
+            child: Padding(
+              padding: const EdgeInsets.only(right: 8),
+              child: IconButton(
+                tooltip: l10n.multiChannelGuide,
+                icon: const Icon(Icons.grid_view),
+                onPressed: () {
+                  String title = l10n.liveTv;
+                  for (final Category category in state.categories) {
+                    if (category.id == state.selectedCategoryId) {
+                      title = category.name;
+                      break;
+                    }
+                  }
+                  context.push(
+                    Routes.multiChannelGuide,
+                    extra: MultiChannelGuideData(
+                      channels: state.channels,
+                      title: title,
+                      radio: radio,
+                    ),
+                  );
+                },
+              ),
+            ),
+          ),
         Expanded(
           child: Row(
             crossAxisAlignment: CrossAxisAlignment.stretch,
@@ -281,6 +310,7 @@ class _LiveContent extends StatelessWidget {
                         channels: state.channels,
                         firstResultFocus: firstResultFocus,
                         showEpg: showEpg,
+                        radio: radio,
                       ),
               ),
             ],
@@ -296,11 +326,13 @@ class _ChannelsGrid extends StatelessWidget {
   const _ChannelsGrid({
     required this.channels,
     required this.showEpg,
+    required this.radio,
     this.firstResultFocus,
   });
 
   final List<Channel> channels;
   final bool showEpg;
+  final bool radio;
   final FocusNode? firstResultFocus;
 
   @override
@@ -332,6 +364,7 @@ class _ChannelsGrid extends StatelessWidget {
               autofocus: false,
               focusNode: index == 0 ? firstResultFocus : null,
               showEpg: showEpg,
+              radio: radio,
             );
           },
         );
@@ -348,6 +381,7 @@ class _ChannelCard extends StatefulWidget {
   const _ChannelCard({
     required this.channel,
     required this.showEpg,
+    this.radio = false,
     this.isFavorite = false,
     this.autofocus = false,
     this.focusNode,
@@ -355,6 +389,7 @@ class _ChannelCard extends StatefulWidget {
 
   final Channel channel;
   final bool showEpg;
+  final bool radio;
   final bool isFavorite;
   final bool autofocus;
   final FocusNode? focusNode;
@@ -489,9 +524,11 @@ class _ChannelCardState extends State<_ChannelCard> {
         urlBuilder: () => repository.buildStreamUrl(widget.channel),
         contentType: 'live',
         contentId: widget.channel.id,
+        logo: widget.channel.logo,
         hasArchive: widget.channel.hasArchive,
         archiveDurationDays: widget.channel.archiveDurationDays,
         channelTitle: widget.channel.name,
+        isRadio: widget.radio,
       ),
     );
   }

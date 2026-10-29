@@ -4,6 +4,7 @@ import '../../core/constants/app_constants.dart';
 import '../../core/utils/epg_json_parser.dart';
 import '../../core/utils/m3u_parser.dart';
 import '../../domain/entities/category.dart';
+import '../../domain/entities/category_preference.dart';
 import '../../domain/entities/channel.dart';
 import '../../domain/entities/content_type.dart' as domain;
 import '../../domain/entities/epg.dart';
@@ -18,7 +19,7 @@ import '../../domain/entities/series.dart';
 import '../../domain/entities/series_info.dart';
 import '../../domain/entities/user_account.dart';
 import '../../domain/repositories/iptv_repository.dart';
-import '../datasources/local/app_database.dart';
+import '../datasources/local/app_database.dart' hide CategoryPreference;
 import '../datasources/local/auth_store.dart';
 import '../datasources/local/live_cache_store.dart';
 import '../datasources/remote/m3u_downloader.dart';
@@ -127,6 +128,22 @@ class M3uRepository implements IptvRepository {
   Future<void> logout() => _authStore.clear();
 
   @override
+  Future<List<CategoryPreference>> getCategoryPreferences() async {
+    final StoredCredentials? stored = await _authStore.read();
+    if (stored == null) return const <CategoryPreference>[];
+    return _cache.getCategoryPreferences(stored.fingerprint);
+  }
+
+  @override
+  Future<void> saveCategoryPreferences(
+    List<CategoryPreference> preferences,
+  ) async {
+    final StoredCredentials? stored = await _authStore.read();
+    if (stored == null) return;
+    await _cache.replaceCategoryPreferences(stored.fingerprint, preferences);
+  }
+
+  @override
   Future<List<Category>> fetchLiveCategories() async {
     final StoredCredentials? stored = await _authStore.read();
     if (stored == null) return const <Category>[];
@@ -203,6 +220,18 @@ class M3uRepository implements IptvRepository {
     final Channel? channel = await _channelByStreamId(streamId);
     if (channel == null) return <EpgEntry>[];
     return _epgForChannel(channel);
+  }
+
+  @override
+  Future<Map<int, List<EpgEntry>>> fetchMultiChannelEpg(
+    List<Channel> channels,
+  ) async {
+    final Map<int, List<EpgEntry>> result = <int, List<EpgEntry>>{};
+    for (final Channel channel in channels) {
+      final List<EpgEntry> entries = _epgForChannel(channel);
+      if (entries.isNotEmpty) result[channel.id] = entries;
+    }
+    return result;
   }
 
   @override

@@ -202,6 +202,12 @@
   "@favorites": {
     "description": "Sezione del pannello per i contenuti preferiti."
   },
+  "manageCategories": "Gestisci categorie",
+  "multiChannelGuide": "Guida multi-canale",
+  "save": "Salva",
+  "saveError": "Impossibile salvare le modifiche",
+  "moveUp": "Sposta su",
+  "moveDown": "Sposta giù",
   "settings": "Impostazioni",
   "@settings": {
     "description": "Sezione del pannello per le impostazioni dell'applicazione."

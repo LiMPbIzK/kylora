@@ -202,6 +202,12 @@
   "@favorites": {
     "description": "Section du panneau pour le contenu favori."
   },
+  "manageCategories": "Gérer les catégories",
+  "multiChannelGuide": "Guide multi-chaînes",
+  "save": "Enregistrer",
+  "saveError": "Impossible d'enregistrer les modifications",
+  "moveUp": "Monter",
+  "moveDown": "Descendre",
   "settings": "Réglages",
   "@settings": {
     "description": "Section du panneau pour les réglages de l'application."

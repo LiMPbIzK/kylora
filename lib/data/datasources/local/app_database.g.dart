@@ -3722,6 +3722,326 @@ class FavoritesCompanion extends UpdateCompanion<Favorite> {
   }
 }
 
+class $CategoryPreferencesTable extends CategoryPreferences
+    with TableInfo<$CategoryPreferencesTable, CategoryPreference> {
+  @override
+  final GeneratedDatabase attachedDatabase;
+  final String? _alias;
+  $CategoryPreferencesTable(this.attachedDatabase, [this._alias]);
+  static const VerificationMeta _accountKeyMeta = const VerificationMeta(
+    'accountKey',
+  );
+  @override
+  late final GeneratedColumn<String> accountKey = GeneratedColumn<String>(
+    'account_key',
+    aliasedName,
+    false,
+    type: DriftSqlType.string,
+    requiredDuringInsert: false,
+    defaultValue: const Constant(''),
+  );
+  static const VerificationMeta _categoryIdMeta = const VerificationMeta(
+    'categoryId',
+  );
+  @override
+  late final GeneratedColumn<int> categoryId = GeneratedColumn<int>(
+    'category_id',
+    aliasedName,
+    false,
+    type: DriftSqlType.int,
+    requiredDuringInsert: true,
+  );
+  static const VerificationMeta _hiddenMeta = const VerificationMeta('hidden');
+  @override
+  late final GeneratedColumn<bool> hidden = GeneratedColumn<bool>(
+    'hidden',
+    aliasedName,
+    false,
+    type: DriftSqlType.bool,
+    requiredDuringInsert: false,
+    defaultConstraints: GeneratedColumn.constraintIsAlways(
+      'CHECK ("hidden" IN (0, 1))',
+    ),
+    defaultValue: const Constant(false),
+  );
+  static const VerificationMeta _sortOrderMeta = const VerificationMeta(
+    'sortOrder',
+  );
+  @override
+  late final GeneratedColumn<int> sortOrder = GeneratedColumn<int>(
+    'sort_order',
+    aliasedName,
+    false,
+    type: DriftSqlType.int,
+    requiredDuringInsert: false,
+    defaultValue: const Constant(0),
+  );
+  @override
+  List<GeneratedColumn> get $columns => [
+    accountKey,
+    categoryId,
+    hidden,
+    sortOrder,
+  ];
+  @override
+  String get aliasedName => _alias ?? actualTableName;
+  @override
+  String get actualTableName => $name;
+  static const String $name = 'category_preferences';
+  @override
+  VerificationContext validateIntegrity(
+    Insertable<CategoryPreference> instance, {
+    bool isInserting = false,
+  }) {
+    final context = VerificationContext();
+    final data = instance.toColumns(true);
+    if (data.containsKey('account_key')) {
+      context.handle(
+        _accountKeyMeta,
+        accountKey.isAcceptableOrUnknown(data['account_key']!, _accountKeyMeta),
+      );
+    }
+    if (data.containsKey('category_id')) {
+      context.handle(
+        _categoryIdMeta,
+        categoryId.isAcceptableOrUnknown(data['category_id']!, _categoryIdMeta),
+      );
+    } else if (isInserting) {
+      context.missing(_categoryIdMeta);
+    }
+    if (data.containsKey('hidden')) {
+      context.handle(
+        _hiddenMeta,
+        hidden.isAcceptableOrUnknown(data['hidden']!, _hiddenMeta),
+      );
+    }
+    if (data.containsKey('sort_order')) {
+      context.handle(
+        _sortOrderMeta,
+        sortOrder.isAcceptableOrUnknown(data['sort_order']!, _sortOrderMeta),
+      );
+    }
+    return context;
+  }
+
+  @override
+  Set<GeneratedColumn> get $primaryKey => {accountKey, categoryId};
+  @override
+  CategoryPreference map(Map<String, dynamic> data, {String? tablePrefix}) {
+    final effectivePrefix = tablePrefix != null ? '$tablePrefix.' : '';
+    return CategoryPreference(
+      accountKey: attachedDatabase.typeMapping.read(
+        DriftSqlType.string,
+        data['${effectivePrefix}account_key'],
+      )!,
+      categoryId: attachedDatabase.typeMapping.read(
+        DriftSqlType.int,
+        data['${effectivePrefix}category_id'],
+      )!,
+      hidden: attachedDatabase.typeMapping.read(
+        DriftSqlType.bool,
+        data['${effectivePrefix}hidden'],
+      )!,
+      sortOrder: attachedDatabase.typeMapping.read(
+        DriftSqlType.int,
+        data['${effectivePrefix}sort_order'],
+      )!,
+    );
+  }
+
+  @override
+  $CategoryPreferencesTable createAlias(String alias) {
+    return $CategoryPreferencesTable(attachedDatabase, alias);
+  }
+}
+
+class CategoryPreference extends DataClass
+    implements Insertable<CategoryPreference> {
+  final String accountKey;
+  final int categoryId;
+  final bool hidden;
+  final int sortOrder;
+  const CategoryPreference({
+    required this.accountKey,
+    required this.categoryId,
+    required this.hidden,
+    required this.sortOrder,
+  });
+  @override
+  Map<String, Expression> toColumns(bool nullToAbsent) {
+    final map = <String, Expression>{};
+    map['account_key'] = Variable<String>(accountKey);
+    map['category_id'] = Variable<int>(categoryId);
+    map['hidden'] = Variable<bool>(hidden);
+    map['sort_order'] = Variable<int>(sortOrder);
+    return map;
+  }
+
+  CategoryPreferencesCompanion toCompanion(bool nullToAbsent) {
+    return CategoryPreferencesCompanion(
+      accountKey: Value(accountKey),
+      categoryId: Value(categoryId),
+      hidden: Value(hidden),
+      sortOrder: Value(sortOrder),
+    );
+  }
+
+  factory CategoryPreference.fromJson(
+    Map<String, dynamic> json, {
+    ValueSerializer? serializer,
+  }) {
+    serializer ??= driftRuntimeOptions.defaultSerializer;
+    return CategoryPreference(
+      accountKey: serializer.fromJson<String>(json['accountKey']),
+      categoryId: serializer.fromJson<int>(json['categoryId']),
+      hidden: serializer.fromJson<bool>(json['hidden']),
+      sortOrder: serializer.fromJson<int>(json['sortOrder']),
+    );
+  }
+  @override
+  Map<String, dynamic> toJson({ValueSerializer? serializer}) {
+    serializer ??= driftRuntimeOptions.defaultSerializer;
+    return <String, dynamic>{
+      'accountKey': serializer.toJson<String>(accountKey),
+      'categoryId': serializer.toJson<int>(categoryId),
+      'hidden': serializer.toJson<bool>(hidden),
+      'sortOrder': serializer.toJson<int>(sortOrder),
+    };
+  }
+
+  CategoryPreference copyWith({
+    String? accountKey,
+    int? categoryId,
+    bool? hidden,
+    int? sortOrder,
+  }) => CategoryPreference(
+    accountKey: accountKey ?? this.accountKey,
+    categoryId: categoryId ?? this.categoryId,
+    hidden: hidden ?? this.hidden,
+    sortOrder: sortOrder ?? this.sortOrder,
+  );
+  CategoryPreference copyWithCompanion(CategoryPreferencesCompanion data) {
+    return CategoryPreference(
+      accountKey: data.accountKey.present
+          ? data.accountKey.value
+          : this.accountKey,
+      categoryId: data.categoryId.present
+          ? data.categoryId.value
+          : this.categoryId,
+      hidden: data.hidden.present ? data.hidden.value : this.hidden,
+      sortOrder: data.sortOrder.present ? data.sortOrder.value : this.sortOrder,
+    );
+  }
+
+  @override
+  String toString() {
+    return (StringBuffer('CategoryPreference(')
+          ..write('accountKey: $accountKey, ')
+          ..write('categoryId: $categoryId, ')
+          ..write('hidden: $hidden, ')
+          ..write('sortOrder: $sortOrder')
+          ..write(')'))
+        .toString();
+  }
+
+  @override
+  int get hashCode => Object.hash(accountKey, categoryId, hidden, sortOrder);
+  @override
+  bool operator ==(Object other) =>
+      identical(this, other) ||
+      (other is CategoryPreference &&
+          other.accountKey == this.accountKey &&
+          other.categoryId == this.categoryId &&
+          other.hidden == this.hidden &&
+          other.sortOrder == this.sortOrder);
+}
+
+class CategoryPreferencesCompanion extends UpdateCompanion<CategoryPreference> {
+  final Value<String> accountKey;
+  final Value<int> categoryId;
+  final Value<bool> hidden;
+  final Value<int> sortOrder;
+  final Value<int> rowid;
+  const CategoryPreferencesCompanion({
+    this.accountKey = const Value.absent(),
+    this.categoryId = const Value.absent(),
+    this.hidden = const Value.absent(),
+    this.sortOrder = const Value.absent(),
+    this.rowid = const Value.absent(),
+  });
+  CategoryPreferencesCompanion.insert({
+    this.accountKey = const Value.absent(),
+    required int categoryId,
+    this.hidden = const Value.absent(),
+    this.sortOrder = const Value.absent(),
+    this.rowid = const Value.absent(),
+  }) : categoryId = Value(categoryId);
+  static Insertable<CategoryPreference> custom({
+    Expression<String>? accountKey,
+    Expression<int>? categoryId,
+    Expression<bool>? hidden,
+    Expression<int>? sortOrder,
+    Expression<int>? rowid,
+  }) {
+    return RawValuesInsertable({
+      if (accountKey != null) 'account_key': accountKey,
+      if (categoryId != null) 'category_id': categoryId,
+      if (hidden != null) 'hidden': hidden,
+      if (sortOrder != null) 'sort_order': sortOrder,
+      if (rowid != null) 'rowid': rowid,
+    });
+  }
+
+  CategoryPreferencesCompanion copyWith({
+    Value<String>? accountKey,
+    Value<int>? categoryId,
+    Value<bool>? hidden,
+    Value<int>? sortOrder,
+    Value<int>? rowid,
+  }) {
+    return CategoryPreferencesCompanion(
+      accountKey: accountKey ?? this.accountKey,
+      categoryId: categoryId ?? this.categoryId,
+      hidden: hidden ?? this.hidden,
+      sortOrder: sortOrder ?? this.sortOrder,
+      rowid: rowid ?? this.rowid,
+    );
+  }
+
+  @override
+  Map<String, Expression> toColumns(bool nullToAbsent) {
+    final map = <String, Expression>{};
+    if (accountKey.present) {
+      map['account_key'] = Variable<String>(accountKey.value);
+    }
+    if (categoryId.present) {
+      map['category_id'] = Variable<int>(categoryId.value);
+    }
+    if (hidden.present) {
+      map['hidden'] = Variable<bool>(hidden.value);
+    }
+    if (sortOrder.present) {
+      map['sort_order'] = Variable<int>(sortOrder.value);
+    }
+    if (rowid.present) {
+      map['rowid'] = Variable<int>(rowid.value);
+    }
+    return map;
+  }
+
+  @override
+  String toString() {
+    return (StringBuffer('CategoryPreferencesCompanion(')
+          ..write('accountKey: $accountKey, ')
+          ..write('categoryId: $categoryId, ')
+          ..write('hidden: $hidden, ')
+          ..write('sortOrder: $sortOrder, ')
+          ..write('rowid: $rowid')
+          ..write(')'))
+        .toString();
+  }
+}
+
 class $FavoriteGroupsTable extends FavoriteGroups
     with TableInfo<$FavoriteGroupsTable, FavoriteGroup> {
   @override
@@ -4921,6 +5241,8 @@ abstract class _$AppDatabase extends GeneratedDatabase {
   );
   late final $SeriesCacheTable seriesCache = $SeriesCacheTable(this);
   late final $FavoritesTable favorites = $FavoritesTable(this);
+  late final $CategoryPreferencesTable categoryPreferences =
+      $CategoryPreferencesTable(this);
   late final $FavoriteGroupsTable favoriteGroups = $FavoriteGroupsTable(this);
   late final $HistoryTable history = $HistoryTable(this);
   late final $AppSettingsTable appSettings = $AppSettingsTable(this);
@@ -4948,6 +5270,7 @@ abstract class _$AppDatabase extends GeneratedDatabase {
     seriesCategories,
     seriesCache,
     favorites,
+    categoryPreferences,
     favoriteGroups,
     history,
     appSettings,
@@ -6833,6 +7156,207 @@ typedef $$FavoritesTableProcessedTableManager =
       Favorite,
       PrefetchHooks Function()
     >;
+typedef $$CategoryPreferencesTableCreateCompanionBuilder =
+    CategoryPreferencesCompanion Function({
+      Value<String> accountKey,
+      required int categoryId,
+      Value<bool> hidden,
+      Value<int> sortOrder,
+      Value<int> rowid,
+    });
+typedef $$CategoryPreferencesTableUpdateCompanionBuilder =
+    CategoryPreferencesCompanion Function({
+      Value<String> accountKey,
+      Value<int> categoryId,
+      Value<bool> hidden,
+      Value<int> sortOrder,
+      Value<int> rowid,
+    });
+
+class $$CategoryPreferencesTableFilterComposer
+    extends Composer<_$AppDatabase, $CategoryPreferencesTable> {
+  $$CategoryPreferencesTableFilterComposer({
+    required super.$db,
+    required super.$table,
+    super.joinBuilder,
+    super.$addJoinBuilderToRootComposer,
+    super.$removeJoinBuilderFromRootComposer,
+  });
+  ColumnFilters<String> get accountKey => $composableBuilder(
+    column: $table.accountKey,
+    builder: (column) => ColumnFilters(column),
+  );
+
+  ColumnFilters<int> get categoryId => $composableBuilder(
+    column: $table.categoryId,
+    builder: (column) => ColumnFilters(column),
+  );
+
+  ColumnFilters<bool> get hidden => $composableBuilder(
+    column: $table.hidden,
+    builder: (column) => ColumnFilters(column),
+  );
+
+  ColumnFilters<int> get sortOrder => $composableBuilder(
+    column: $table.sortOrder,
+    builder: (column) => ColumnFilters(column),
+  );
+}
+
+class $$CategoryPreferencesTableOrderingComposer
+    extends Composer<_$AppDatabase, $CategoryPreferencesTable> {
+  $$CategoryPreferencesTableOrderingComposer({
+    required super.$db,
+    required super.$table,
+    super.joinBuilder,
+    super.$addJoinBuilderToRootComposer,
+    super.$removeJoinBuilderFromRootComposer,
+  });
+  ColumnOrderings<String> get accountKey => $composableBuilder(
+    column: $table.accountKey,
+    builder: (column) => ColumnOrderings(column),
+  );
+
+  ColumnOrderings<int> get categoryId => $composableBuilder(
+    column: $table.categoryId,
+    builder: (column) => ColumnOrderings(column),
+  );
+
+  ColumnOrderings<bool> get hidden => $composableBuilder(
+    column: $table.hidden,
+    builder: (column) => ColumnOrderings(column),
+  );
+
+  ColumnOrderings<int> get sortOrder => $composableBuilder(
+    column: $table.sortOrder,
+    builder: (column) => ColumnOrderings(column),
+  );
+}
+
+class $$CategoryPreferencesTableAnnotationComposer
+    extends Composer<_$AppDatabase, $CategoryPreferencesTable> {
+  $$CategoryPreferencesTableAnnotationComposer({
+    required super.$db,
+    required super.$table,
+    super.joinBuilder,
+    super.$addJoinBuilderToRootComposer,
+    super.$removeJoinBuilderFromRootComposer,
+  });
+  GeneratedColumn<String> get accountKey => $composableBuilder(
+    column: $table.accountKey,
+    builder: (column) => column,
+  );
+
+  GeneratedColumn<int> get categoryId => $composableBuilder(
+    column: $table.categoryId,
+    builder: (column) => column,
+  );
+
+  GeneratedColumn<bool> get hidden =>
+      $composableBuilder(column: $table.hidden, builder: (column) => column);
+
+  GeneratedColumn<int> get sortOrder =>
+      $composableBuilder(column: $table.sortOrder, builder: (column) => column);
+}
+
+class $$CategoryPreferencesTableTableManager
+    extends
+        RootTableManager<
+          _$AppDatabase,
+          $CategoryPreferencesTable,
+          CategoryPreference,
+          $$CategoryPreferencesTableFilterComposer,
+          $$CategoryPreferencesTableOrderingComposer,
+          $$CategoryPreferencesTableAnnotationComposer,
+          $$CategoryPreferencesTableCreateCompanionBuilder,
+          $$CategoryPreferencesTableUpdateCompanionBuilder,
+          (
+            CategoryPreference,
+            BaseReferences<
+              _$AppDatabase,
+              $CategoryPreferencesTable,
+              CategoryPreference
+            >,
+          ),
+          CategoryPreference,
+          PrefetchHooks Function()
+        > {
+  $$CategoryPreferencesTableTableManager(
+    _$AppDatabase db,
+    $CategoryPreferencesTable table,
+  ) : super(
+        TableManagerState(
+          db: db,
+          table: table,
+          createFilteringComposer: () =>
+              $$CategoryPreferencesTableFilterComposer($db: db, $table: table),
+          createOrderingComposer: () =>
+              $$CategoryPreferencesTableOrderingComposer(
+                $db: db,
+                $table: table,
+              ),
+          createComputedFieldComposer: () =>
+              $$CategoryPreferencesTableAnnotationComposer(
+                $db: db,
+                $table: table,
+              ),
+          updateCompanionCallback:
+              ({
+                Value<String> accountKey = const Value.absent(),
+                Value<int> categoryId = const Value.absent(),
+                Value<bool> hidden = const Value.absent(),
+                Value<int> sortOrder = const Value.absent(),
+                Value<int> rowid = const Value.absent(),
+              }) => CategoryPreferencesCompanion(
+                accountKey: accountKey,
+                categoryId: categoryId,
+                hidden: hidden,
+                sortOrder: sortOrder,
+                rowid: rowid,
+              ),
+          createCompanionCallback:
+              ({
+                Value<String> accountKey = const Value.absent(),
+                required int categoryId,
+                Value<bool> hidden = const Value.absent(),
+                Value<int> sortOrder = const Value.absent(),
+                Value<int> rowid = const Value.absent(),
+              }) => CategoryPreferencesCompanion.insert(
+                accountKey: accountKey,
+                categoryId: categoryId,
+                hidden: hidden,
+                sortOrder: sortOrder,
+                rowid: rowid,
+              ),
+          withReferenceMapper: (p0) => p0
+              .map((e) => (e.readTable(table), BaseReferences(db, table, e)))
+              .toList(),
+          prefetchHooksCallback: null,
+        ),
+      );
+}
+
+typedef $$CategoryPreferencesTableProcessedTableManager =
+    ProcessedTableManager<
+      _$AppDatabase,
+      $CategoryPreferencesTable,
+      CategoryPreference,
+      $$CategoryPreferencesTableFilterComposer,
+      $$CategoryPreferencesTableOrderingComposer,
+      $$CategoryPreferencesTableAnnotationComposer,
+      $$CategoryPreferencesTableCreateCompanionBuilder,
+      $$CategoryPreferencesTableUpdateCompanionBuilder,
+      (
+        CategoryPreference,
+        BaseReferences<
+          _$AppDatabase,
+          $CategoryPreferencesTable,
+          CategoryPreference
+        >,
+      ),
+      CategoryPreference,
+      PrefetchHooks Function()
+    >;
 typedef $$FavoriteGroupsTableCreateCompanionBuilder =
     FavoriteGroupsCompanion Function({
       Value<String> accountKey,
@@ -7483,6 +8007,8 @@ class $AppDatabaseManager {
       $$SeriesCacheTableTableManager(_db, _db.seriesCache);
   $$FavoritesTableTableManager get favorites =>
       $$FavoritesTableTableManager(_db, _db.favorites);
+  $$CategoryPreferencesTableTableManager get categoryPreferences =>
+      $$CategoryPreferencesTableTableManager(_db, _db.categoryPreferences);
   $$FavoriteGroupsTableTableManager get favoriteGroups =>
       $$FavoriteGroupsTableTableManager(_db, _db.favoriteGroups);
   $$HistoryTableTableManager get history =>

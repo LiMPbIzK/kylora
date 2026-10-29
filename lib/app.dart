@@ -29,6 +29,8 @@ import 'presentation/screens/dashboard/home_shell_screen.dart';
 import 'presentation/screens/favorites/favorite_group_screen.dart';
 import 'presentation/screens/favorites/favorites_screen.dart';
 import 'presentation/screens/history/history_screen.dart';
+import 'presentation/screens/live/manage_categories_screen.dart';
+import 'presentation/screens/live/multi_channel_guide_screen.dart';
 import 'presentation/screens/live/program_guide_screen.dart';
 import 'presentation/screens/player/playback_overlay.dart';
 import 'presentation/screens/player/playback_scope.dart';
@@ -105,6 +107,19 @@ abstract final class AppRouter {
           builder: (context, state) => const GlobalSearchScreen(),
         ),
         GoRoute(
+          path: Routes.manageCategories,
+          builder: (context, state) =>
+              ManageCategoriesScreen(radio: state.extra == true),
+        ),
+        GoRoute(
+          path: Routes.multiChannelGuide,
+          builder: (context, state) {
+            final MultiChannelGuideData data =
+                state.extra! as MultiChannelGuideData;
+            return MultiChannelGuideScreen(data: data);
+          },
+        ),
+        GoRoute(
           path: Routes.favorites,
           builder: (context, state) => const FavoritesScreen(),
         ),
@@ -145,6 +160,8 @@ abstract final class Routes {
   static const String movieDetail = '/movie';
   static const String seriesDetail = '/series-detail';
   static const String programGuide = '/program-guide';
+  static const String manageCategories = '/manage-categories';
+  static const String multiChannelGuide = '/multi-guide';
   static const String search = '/search';
   static const String favorites = '/favorites';
   static const String favoriteGroup = '/favorite-group';

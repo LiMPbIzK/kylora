@@ -160,6 +160,24 @@ class AppLocalizationsEs extends AppLocalizations {
   String get favorites => 'Favoritos';
 
   @override
+  String get manageCategories => 'Gestionar categorías';
+
+  @override
+  String get multiChannelGuide => 'Guía multi-canal';
+
+  @override
+  String get save => 'Guardar';
+
+  @override
+  String get saveError => 'No se pudieron guardar los cambios';
+
+  @override
+  String get moveUp => 'Subir';
+
+  @override
+  String get moveDown => 'Bajar';
+
+  @override
   String get settings => 'Ajustes';
 
   @override

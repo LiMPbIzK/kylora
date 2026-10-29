@@ -1,6 +1,7 @@
 import 'package:drift/drift.dart';
 
 import '../../../domain/entities/category.dart';
+import '../../../domain/entities/category_preference.dart' as domain;
 import '../../../domain/entities/channel.dart';
 import '../../../domain/entities/favorite_channel_group.dart';
 import 'app_database.dart';
@@ -74,6 +75,57 @@ class LiveCacheStore {
     await _db.transaction(() async {
       await _db.delete(_db.liveCategories).go();
       await _db.delete(_db.liveChannels).go();
+    });
+  }
+
+  Future<List<domain.CategoryPreference>> getCategoryPreferences(
+    String accountKey,
+  ) async {
+    final List<CategoryPreference> rows =
+        await (_db.select(_db.categoryPreferences)
+              ..where(
+                (CategoryPreferences t) => t.accountKey.equals(accountKey),
+              )
+              ..orderBy(<OrderClauseGenerator<$CategoryPreferencesTable>>[
+                (t) => OrderingTerm.asc(t.sortOrder),
+                (t) => OrderingTerm.asc(t.categoryId),
+              ]))
+            .get();
+    return rows
+        .map(
+          (CategoryPreference row) => domain.CategoryPreference(
+            categoryId: row.categoryId,
+            hidden: row.hidden,
+            sortOrder: row.sortOrder,
+          ),
+        )
+        .toList();
+  }
+
+  Future<void> replaceCategoryPreferences(
+    String accountKey,
+    List<domain.CategoryPreference> preferences,
+  ) async {
+    await _db.transaction(() async {
+      await (_db.delete(_db.categoryPreferences)
+            ..where((CategoryPreferences t) => t.accountKey.equals(accountKey)))
+          .go();
+      await _db.batch((Batch batch) {
+        batch.insertAll(
+          _db.categoryPreferences,
+          preferences
+              .map(
+                (domain.CategoryPreference preference) =>
+                    CategoryPreferencesCompanion.insert(
+                      accountKey: Value(accountKey),
+                      categoryId: preference.categoryId,
+                      hidden: Value(preference.hidden),
+                      sortOrder: Value(preference.sortOrder),
+                    ),
+              )
+              .toList(),
+        );
+      });
     });
   }
 

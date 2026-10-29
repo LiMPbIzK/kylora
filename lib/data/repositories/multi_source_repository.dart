@@ -1,4 +1,5 @@
 import '../../domain/entities/category.dart';
+import '../../domain/entities/category_preference.dart';
 import '../../domain/entities/channel.dart';
 import '../../domain/entities/content_type.dart';
 import '../../domain/entities/epg.dart';
@@ -74,6 +75,14 @@ class MultiSourceRepository implements IptvRepository {
       _active().then((r) => r.fetchLiveChannels(categoryId: categoryId));
 
   @override
+  Future<List<CategoryPreference>> getCategoryPreferences() =>
+      _active().then((r) => r.getCategoryPreferences());
+
+  @override
+  Future<void> saveCategoryPreferences(List<CategoryPreference> preferences) =>
+      _active().then((r) => r.saveCategoryPreferences(preferences));
+
+  @override
   Future<String> buildStreamUrl(Channel channel) =>
       _active().then((r) => r.buildStreamUrl(channel));
 
@@ -127,6 +136,11 @@ class MultiSourceRepository implements IptvRepository {
   @override
   Future<List<EpgEntry>> fetchFullEpg(int streamId) =>
       _active().then((r) => r.fetchFullEpg(streamId));
+
+  @override
+  Future<Map<int, List<EpgEntry>>> fetchMultiChannelEpg(
+    List<Channel> channels,
+  ) => _active().then((r) => r.fetchMultiChannelEpg(channels));
 
   @override
   Future<void> addFavoriteGroup(FavoriteChannelGroup group) =>

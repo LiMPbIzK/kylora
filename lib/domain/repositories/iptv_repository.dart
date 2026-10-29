@@ -1,4 +1,5 @@
 import '../entities/category.dart';
+import '../entities/category_preference.dart';
 import '../entities/channel.dart';
 import '../entities/content_type.dart';
 import '../entities/epg.dart';
@@ -32,6 +33,12 @@ abstract interface class IptvRepository {
 
   /// Canales en directo. Si [categoryId] es nulo, devuelve todos los canales.
   Future<List<Channel>> fetchLiveChannels({int? categoryId});
+
+  /// Preferencias de visibilidad/orden de categorías de la cuenta activa.
+  Future<List<CategoryPreference>> getCategoryPreferences();
+
+  /// Guarda la lista completa de preferencias de categorías de la cuenta activa.
+  Future<void> saveCategoryPreferences(List<CategoryPreference> preferences);
 
   /// Construye la URL de reproducción de un canal en directo.
   Future<String> buildStreamUrl(Channel channel);
@@ -71,6 +78,9 @@ abstract interface class IptvRepository {
 
   /// Obtiene la programación EPG completa de un canal en directo.
   Future<List<EpgEntry>> fetchFullEpg(int streamId);
+
+  /// Obtiene la EPG de varios canales a la vez (guía multi-canal).
+  Future<Map<int, List<EpgEntry>>> fetchMultiChannelEpg(List<Channel> channels);
 
   /// Añade un elemento a favoritos.
   Future<void> addToFavorite(FavoriteItem item);

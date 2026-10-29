@@ -12,6 +12,7 @@ class PlaybackRequest {
     this.hasArchive = false,
     this.archiveDurationDays,
     this.channelTitle,
+    this.isRadio = false,
   });
 
   /// Título del contenido que se reproduce.
@@ -44,4 +45,8 @@ class PlaybackRequest {
 
   /// Nombre del canal, separado del título del programa en catch-up.
   final String? channelTitle;
+
+  /// Contenido de radio: el reproductor muestra una portada de audio en vez
+  /// del área de vídeo.
+  final bool isRadio;
 }

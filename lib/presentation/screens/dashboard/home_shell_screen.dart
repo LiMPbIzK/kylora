@@ -109,6 +109,23 @@ class _HomeShellScreenState extends State<HomeShellScreen> {
                   icon: const Icon(Icons.search),
                   onPressed: () => context.push(Routes.search),
                 ),
+              if (inSection &&
+                  (_section == _DashboardSection.live ||
+                      _section == _DashboardSection.radio))
+                IconButton(
+                  tooltip: l10n.manageCategories,
+                  icon: const Icon(Icons.tune),
+                  onPressed: () async {
+                    final bool isRadio = _section == _DashboardSection.radio;
+                    final bool? changed = await context.push<bool>(
+                      Routes.manageCategories,
+                      extra: isRadio,
+                    );
+                    if (changed == true && context.mounted) {
+                      context.read<LiveBloc>().add(LiveStarted(radio: isRadio));
+                    }
+                  },
+                ),
               IconButton(
                 tooltip: l10n.favorites,
                 icon: const Icon(Icons.favorite_border),

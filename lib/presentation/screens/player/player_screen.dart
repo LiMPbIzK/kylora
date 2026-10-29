@@ -1,5 +1,6 @@
 import 'dart:async';
 
+import 'package:cached_network_image/cached_network_image.dart';
 import 'package:flutter/foundation.dart'
     show defaultTargetPlatform, TargetPlatform;
 import 'package:flutter/gestures.dart';
@@ -63,6 +64,8 @@ class _PlayerScreenState extends State<PlayerScreen> {
   String? _contentType;
   bool _hasArchive = false;
   int? _archiveDurationDays;
+  bool _isRadio = false;
+  String? _logo;
   String _channelTitle = '';
   bool _guideOpen = false;
   final FocusNode _guideCloseFocusNode = FocusNode(debugLabel: 'guide-close');
@@ -264,6 +267,8 @@ class _PlayerScreenState extends State<PlayerScreen> {
           _contentType = null;
           _hasArchive = false;
           _archiveDurationDays = null;
+          _isRadio = false;
+          _logo = null;
           _channelTitle = '';
         });
       }
@@ -297,6 +302,8 @@ class _PlayerScreenState extends State<PlayerScreen> {
         _contentType = request.contentType;
         _hasArchive = request.hasArchive;
         _archiveDurationDays = request.archiveDurationDays;
+        _isRadio = request.isRadio;
+        _logo = request.logo;
         _channelTitle = request.channelTitle ?? request.title;
       });
       // Al iniciar la reproducción, muestra el OSD y programa su ocultado
@@ -491,6 +498,8 @@ class _PlayerScreenState extends State<PlayerScreen> {
       _contentType = null;
       _hasArchive = false;
       _archiveDurationDays = null;
+      _isRadio = false;
+      _logo = null;
       _channelTitle = '';
       _lastStartPosition = null;
     });
@@ -550,13 +559,16 @@ class _PlayerScreenState extends State<PlayerScreen> {
             child: Stack(
               fit: StackFit.expand,
               children: <Widget>[
-                Video(
-                  controller: _videoController,
-                  // Desactiva los controles nativos de media_kit (barra de
-                  // progreso y botones superpuestos), que interferían con el
-                  // OSD propio y capturan los gestos del menú de ajustes.
-                  controls: NoVideoControls,
-                ),
+                if (_isRadio)
+                  _buildRadioStage()
+                else
+                  Video(
+                    controller: _videoController,
+                    // Desactiva los controles nativos de media_kit (barra de
+                    // progreso y botones superpuestos), que interferían con el
+                    // OSD propio y capturan los gestos del menú de ajustes.
+                    controls: NoVideoControls,
+                  ),
                 BlocBuilder<PlayerBloc, PlayerState>(
                   bloc: _bloc,
                   builder: (context, state) {
@@ -593,6 +605,74 @@ class _PlayerScreenState extends State<PlayerScreen> {
               ],
             ),
           ),
+        ),
+      ),
+    );
+  }
+
+  Widget _buildRadioStage() {
+    return Container(
+      decoration: BoxDecoration(
+        gradient: LinearGradient(
+          begin: Alignment.topLeft,
+          end: Alignment.bottomRight,
+          colors: <Color>[
+            context.colors.background,
+            context.colors.surface,
+            context.colors.primaryContainer.withValues(alpha: 0.35),
+          ],
+        ),
+      ),
+      child: Center(
+        child: Column(
+          mainAxisSize: MainAxisSize.min,
+          children: <Widget>[
+            Container(
+              width: 180,
+              height: 180,
+              decoration: BoxDecoration(
+                color: Colors.white,
+                borderRadius: BorderRadius.circular(20),
+                boxShadow: <BoxShadow>[
+                  BoxShadow(
+                    color: Colors.black.withValues(alpha: 0.35),
+                    blurRadius: 24,
+                  ),
+                ],
+              ),
+              clipBehavior: Clip.antiAlias,
+              child: _logo == null || _logo!.isEmpty
+                  ? Icon(
+                      Icons.radio,
+                      size: 84,
+                      color: context.colors.primary,
+                    )
+                  : CachedNetworkImage(
+                      imageUrl: _logo!,
+                      fit: BoxFit.contain,
+                      errorWidget: (_, _, _) => Icon(
+                        Icons.radio,
+                        size: 84,
+                        color: context.colors.primary,
+                      ),
+                    ),
+            ),
+            const SizedBox(height: 24),
+            Text(
+              _title,
+              textAlign: TextAlign.center,
+              style: const TextStyle(
+                color: Colors.white,
+                fontSize: 26,
+                fontWeight: FontWeight.bold,
+              ),
+            ),
+            const SizedBox(height: 6),
+            Text(
+              AppLocalizations.of(context)!.radio,
+              style: const TextStyle(color: Colors.white70, fontSize: 14),
+            ),
+          ],
         ),
       ),
     );

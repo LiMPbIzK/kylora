@@ -197,6 +197,12 @@
   "@favorites": {
     "description": "Panel section for favorite content."
   },
+  "manageCategories": "Manage categories",
+  "multiChannelGuide": "Multi-channel guide",
+  "save": "Save",
+  "saveError": "Could not save changes",
+  "moveUp": "Move up",
+  "moveDown": "Move down",
   "settings": "Settings",
   "@settings": {
     "description": "Panel section for application settings."

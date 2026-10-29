@@ -4,6 +4,7 @@ import 'package:flutter_bloc/flutter_bloc.dart';
 import '../../../core/utils/category_grouping.dart';
 import '../../../core/utils/radio.dart';
 import '../../../domain/entities/category.dart';
+import '../../../domain/entities/category_preference.dart';
 import '../../../domain/entities/channel.dart';
 import '../../../domain/repositories/iptv_repository.dart';
 import 'live_event.dart';
@@ -40,7 +41,12 @@ class LiveBloc extends Bloc<LiveEvent, LiveState> {
     try {
       final List<Category> categories = await _repository.fetchLiveCategories();
       final List<Channel> channels = await _repository.fetchLiveChannels();
-      _categories = groupCategoriesByRegionAndCountry(categories);
+      final List<CategoryPreference> preferences = await _repository
+          .getCategoryPreferences();
+      _categories = _applyCategoryPreferences(
+        groupCategoriesByRegionAndCountry(categories),
+        preferences,
+      );
       _allChannels = channels;
       _query = '';
       emit(_buildLoaded(selectedCategoryId: _initialCategoryId));
@@ -59,7 +65,12 @@ class LiveBloc extends Bloc<LiveEvent, LiveState> {
     try {
       final List<Category> categories = await _repository.fetchLiveCategories();
       final List<Channel> channels = await _repository.fetchLiveChannels();
-      _categories = groupCategoriesByRegionAndCountry(categories);
+      final List<CategoryPreference> preferences = await _repository
+          .getCategoryPreferences();
+      _categories = _applyCategoryPreferences(
+        groupCategoriesByRegionAndCountry(categories),
+        preferences,
+      );
       _allChannels = channels;
       _query = '';
       emit(_buildLoaded(selectedCategoryId: _initialCategoryId));
@@ -90,6 +101,35 @@ class LiveBloc extends Bloc<LiveEvent, LiveState> {
     _query = event.query;
     final LiveLoaded current = state as LiveLoaded;
     emit(_buildLoaded(selectedCategoryId: current.selectedCategoryId));
+  }
+
+  List<Category> _applyCategoryPreferences(
+    List<Category> categories,
+    List<CategoryPreference> preferences,
+  ) {
+    if (preferences.isEmpty) return categories;
+    final Map<int, CategoryPreference> byId = <int, CategoryPreference>{
+      for (final CategoryPreference preference in preferences)
+        preference.categoryId: preference,
+    };
+    final List<MapEntry<int, Category>> indexed = categories
+        .asMap()
+        .entries
+        .where(
+          (MapEntry<int, Category> entry) =>
+              byId[entry.value.id]?.hidden != true,
+        )
+        .toList();
+    indexed.sort((MapEntry<int, Category> a, MapEntry<int, Category> b) {
+      final CategoryPreference? pa = byId[a.value.id];
+      final CategoryPreference? pb = byId[b.value.id];
+      if (pa == null && pb == null) return a.key.compareTo(b.key);
+      if (pa == null) return 1;
+      if (pb == null) return -1;
+      final int byOrder = pa.sortOrder.compareTo(pb.sortOrder);
+      return byOrder != 0 ? byOrder : a.key.compareTo(b.key);
+    });
+    return indexed.map((MapEntry<int, Category> entry) => entry.value).toList();
   }
 
   /// Construye el estado cargado combinando sección (TV/radio), categoría y
