@@ -45,18 +45,53 @@ if (-not (Test-Path $ApkPath)) {
 }
 
 Write-Host "==> Conectando con $Serial..." -ForegroundColor Cyan
-& $Adb connect $Serial | Out-Host
+& $Adb disconnect $Serial 2>$null | Out-Null
+$connectOutput = & $Adb connect $Serial 2>&1
+$connectOutput | Out-Host
+
+# `adb connect` puede responder "connected" y aun así dejar el dispositivo
+# unauthorized/offline. Comprobamos el estado real antes de instalar.
+$deviceLine = (& $Adb devices |
+    Select-String -Pattern "^$([regex]::Escape($Serial))\s+" |
+    Select-Object -First 1).Line
+if (-not $deviceLine) {
+    throw @"
+No se pudo registrar el dispositivo $Serial en adb.
+
+Comprueba:
+  - La TV está encendida y en la misma red que el PC.
+  - 'Depuración inalámbrica'/'ADB por red' activada en Opciones de desarrollador.
+  - El puerto no es el 5555: pásalo con -AdbPort <puerto>.
+"@
+}
+
+$state = ($deviceLine -split '\s+')[1]
+if ($state -ne 'device') {
+    $hint = switch ($state) {
+        'unauthorized' { "Acepta el diálogo de depuración que aparece en la TV y vuelve a ejecutar el script." }
+        'offline' { "El dispositivo está desconectado o no responde. Reinicia la depuración por red en la TV." }
+        default { "Estado ADB: $state." }
+    }
+    throw "El dispositivo $Serial no está listo: $hint"
+}
 
 Write-Host "==> Instalando $ApkPath ..." -ForegroundColor Cyan
-& $Adb -s $Serial install -r $ApkPath
+$installOutput = & $Adb -s $Serial install -r $ApkPath 2>&1
+$installOutput | Out-Host
+$installExit = $LASTEXITCODE
 
-if ($LASTEXITCODE -ne 0) {
+if ($installExit -ne 0 -or ($installOutput -match 'Failure|failed')) {
     throw @"
-La instalación falló. Comprueba:
+La instalación falló (exit code $installExit). Salida de adb:
+
+$installOutput
+
+Comprueba:
   - La TV está encendida y en la misma red que el PC.
   - 'Depuración inalámbrica'/'ADB por red' activada en Opciones de desarrollador.
   - Si el dispositivo aparece 'unauthorized', acepta el diálogo en la TV.
   - El puerto no es el 5555: pásalo con -AdbPort <puerto>.
+  - Si el APK es grande y falla por espacio, usa -Release (APK más pequeño).
 "@
 }
 
