@@ -1,104 +1,89 @@
-# Kylora 📺
+# Kylora
 
 [![Flutter](https://img.shields.io/badge/Flutter-3.x-02569B?logo=flutter&logoColor=white)](https://flutter.dev)
-[![Platform](https://img.shields.io/badge/Platform-Android%20%7C%20Android%20TV%20%7C%20Windows-blue)](https://github.com)
+[![Platforms](https://img.shields.io/badge/Platforms-Android%20%7C%20Android%20TV%20%7C%20Windows-blue)](https://github.com)
 [![Linux](https://img.shields.io/badge/Linux-Coming%20soon-lightgrey?logo=linux&logoColor=white)](https://github.com)
 [![macOS](https://img.shields.io/badge/macOS-Coming%20soon-lightgrey?logo=apple&logoColor=white)](https://github.com)
 [![Engine](https://img.shields.io/badge/Video%20Engine-media__kit%20(libmpv)-E040FB)](https://github.com/media-kit/media-kit)
 [![CI](https://img.shields.io/badge/CI-GitHub%20Actions-brightgreen)](https://github.com)
 [![License](https://img.shields.io/badge/License-MIT-green.svg)](LICENSE)
 
-**Kylora** is a clean, local-first, and high-performance IPTV client designed for seamless playback across mobile devices, Android TV/Fire TV sticks, and Windows desktop. It focuses on low memory overhead, instant channel zapping, and a native leanback experience — no intermediary servers, no telemetry, no analytics.
+> 🌐 [Español](README.md) · **English** · [Français](README.fr.md) · [Deutsch](README.de.md) · [Italiano](README.it.md) · [Português](README.pt.md)
 
-> 🌐 **Spanish:** [README.md](README.md)
+**Kylora** is a local-first IPTV client for Android mobile, Android TV/Google TV, Fire TV and Windows. It is designed for fast zapping, comfortable remote-control navigation and smooth HD, FHD and 4K playback, with no custom backend, telemetry or cloud services.
 
----
+## Features
 
-## ✨ Key Features
+- **Xtream Codes and M3U/XMLTV sources** behind the same repository contract.
+- **Android TV as the primary target:** full D-Pad focus, Leanback, context menus, title marquee and a remote-friendly program guide.
+- **4K/UHD playback:** `media_kit`/libmpv with `mediacodec_embed` and `hwdec=mediacodec` on Android; audio/subtitle tracks, track selection and a custom OSD.
+- **Multi-account:** encrypted accounts, active-account switching, manual setup and phone setup through a QR code.
+- **Phone login:** the login screen shows a QR code to sign in with a saved account or add/edit credentials from the same Wi-Fi network.
+- **Account management without a session:** even when every account is expired, you can edit, add, remove, clean up and retry from the pre-login account manager.
+- **Optional PIN** protecting account management and remote access.
+- **Visible and ordered categories per account**, plus favorite groups per category.
+- **Separate TV, Movies, Series and Radio sections**, with global search and continue watching.
+- **EPG:** now/next, daily grid, multi-channel guide (up to 30 channels per view) and in-app reminders.
+- **Catch-up/timeshift** on compatible Xtream channels.
+- **Per-account VOD/series cache**. Large catalogs are displayed as soon as the API responds while the cache is completed in the background.
+- **100% local:** credentials in `flutter_secure_storage` and catalog data in SQLite/Drift. No custom server and no telemetry.
+- **Six languages:** Spanish, English, French, German, Italian and Portuguese, switchable live from Settings.
+- **Four themes:** Nocturne, Expressive, Pacotis and Canvas.
 
-* **Multi-Source Support:** Direct compatibility with Xtream Codes API and static M3U/M3U8 playlists with XMLTV EPG.
-* **100% Local & Private:** No custom backend, telemetry, or external databases. Your credentials and playlists stay strictly on your device.
-* **Native Cross-Platform UI:** Tailored interface with responsive touch controls for mobile/tablet and full D-Pad focus management for TV remotes and keyboard navigation, with a Leanback banner for Android TV/Fire TV. Grid catalog with vertical section selection, context menu (play / favorites / guide) and an embedded program guide inside the player.
-* **Hardware-Accelerated Engine:** Powered by `media_kit` (libmpv) for native MPEG-TS, HLS, and MKV stream demuxing with multi-track audio and embedded subtitle selection. The player OSD includes a seekable progress bar, centered audio/subtitle selectors, volume control and native fullscreen.
-* **Smart Local Indexing:** Heavy playlist parsing executed in background isolates and indexed with Drift (SQLite) for instant search and categorization.
-* **Multi-Language (i18n):** Native support for English, Spanish, French, German, Italian, and Portuguese.
-* **Themes:** 4 design themes from the `AppThemes` registry — **Nocturne** (default dark), **Expressive** (Material 3), **Pacotis** (teal/coral) and **Canvas** (light editorial), each with its own `AppColors` palette, applied live from Settings.
-* **Donations/contact:** a "Support" section in Settings with a "Donate via PayPal" button (`https://paypal.me/franito`) and a "Contact by email" option (`mailto:contact@fmartinezgarcia.com?subject=Kylora`), both via `url_launcher`.
+## Architecture
 
----
+Clean Architecture in three layers:
 
-## 🏗️ Architecture
-
-Clean Architecture with a strict separation of concerns across three layers:
-
-```
-┌─────────────────────────────────────────────┐
-│              presentation                   │
-│   screens · blocs · shared widgets          │
-├─────────────────────────────────────────────┤
-│                  domain                     │
-│   entities · repository contracts           │
-├─────────────────────────────────────────────┤
-│                   data                      │
-│   datasources (remote/local) · repositories │
-│   models (DTOs)                             │
-└─────────────────────────────────────────────┘
+```text
+presentation  →  screens, blocs and shared widgets
+domain        →  entities and repository contracts
+data          →  remote/local datasources, DTOs and repositories
 ```
 
-* **State management:** `flutter_bloc` for predictable, traceable business logic.
-* **Domain purity:** business rules live in the inner layer with zero framework dependencies.
-* **Source-agnostic repository:** both Xtream and M3U implementations satisfy the same `IptvRepository` contract.
+- State management with `flutter_bloc`.
+- Persistence with `drift`/SQLite and secrets with `flutter_secure_storage`.
+- Source-agnostic repository: Xtream and M3U implement `IptvRepository`.
+- Heavy playlist and XMLTV parsing runs in isolates.
 
-## 📁 Project Structure
+## Structure
 
-```
+```text
 lib/
-├── main.dart                      # Global initialization (MediaKit, DB, BlocObserver)
-├── app.dart                       # MaterialApp.router, i18n and themes
-├── l10n/                          # ARB translation dictionaries
-├── core/                          # Cross-cutting utilities
-│   ├── constants/                 # Xtream endpoints, timeouts, user-agents
-│   ├── network/                   # Centralized Dio client
-│   ├── theme/                     # Colors, TV focus styles
-│   └── utils/                     # M3U isolate parser, EPG date formatter
-├── data/                          # External layer
-│   ├── datasources/
-│   │   ├── local/                 # Drift schema (Channels, Favorites, History), secure storage
-│   │   └── remote/                # Xtream API client, M3U/XMLTV downloader
-│   ├── models/                    # DTOs (auth, category, stream, EPG)
-│   └── repositories/              # Xtream and M3U implementations
-├── domain/                        # Pure business logic
-│   ├── entities/                  # UserAccount, Category, StreamItem, EpgEntry
-│   └── repositories/              # IptvRepository contract
-└── presentation/                  # UI layer
-    ├── blocs/                     # auth · live · vod · settings · player
-    ├── shared_widgets/            # focusable items, error views, loaders
-    └── screens/                   # login, dashboard, live, vod, settings, player
+├── app.dart                 # MaterialApp.router, i18n and themes
+├── main.dart                # App initialization
+├── core/                    # Utilities, theme, playback and reminders
+├── data/                    # Datasources, DTOs and repositories
+├── domain/                  # Entities and contracts
+├── l10n/                    # ARB translations
+└── presentation/            # Screens, blocs and widgets
 ```
 
----
+## Getting started
 
-## 🚀 Getting Started
+### Requirements
 
-### Prerequisites
-
-* [Flutter 3.x](https://docs.flutter.dev/get-started/install) (stable channel) with Dart 3.x
-* **Windows:** Visual Studio 2022 with the *Desktop development with C++* workload (CMake toolchain)
-* **Android / Android TV:** Android SDK (minSdk 23, compileSdk 37)
-
-> **Linux & macOS** will be added after v1.0.0 (milestone M10): the codebase is cross-platform, they only require specific builds and packaging.
+- Flutter 3.x stable with Dart 3.x.
+- **Windows:** Visual Studio 2022 with *Desktop development with C++*.
+- **Android/TV:** Android SDK; `minSdk 23`, `compileSdk 37`.
+- Linux/macOS support is planned after v1.0.0.
 
 ### Build
 
 ```bash
-# Windows desktop
+# Windows
 flutter build windows
 
-# Android APK (mobile)
+# Android mobile
 flutter build apk --release
 
-# Android TV / Fire TV APK (leanback)
+# Android TV / Fire TV
 flutter build apk --release --target-platform android-arm64
+```
+
+On Windows, the TV install script is also available:
+
+```powershell
+.\scripts\build-install-tv-release.bat 192.168.0.42
 ```
 
 ### Run
@@ -108,74 +93,59 @@ flutter run -d windows
 flutter run -d <android-device-id>
 ```
 
----
+## Configuration
 
-## ⚙️ Configuration
+1. **Xtream Codes:** server URL, username and password.
+2. **M3U/M3U8:** URL or local file and, optionally, XMLTV.
 
-Kylora supports two subscription sources:
+Accounts are encrypted and isolated by account fingerprint (favorites, history, categories and cache). Phone import uses a temporary local HTTP server and a session token; it only works on the same Wi-Fi network. The QR code never contains credentials.
 
-1. **Xtream Codes API** — enter your provider's server URL, username, and password.
-2. **M3U/M3U8 playlist** — load a local file or remote URL, optionally paired with an XMLTV EPG source.
+For expired accounts or unavailable providers:
 
-Credentials are stored encrypted via `flutter_secure_storage`; playlists are indexed locally in SQLite. Nothing ever leaves your device except the direct requests to your provider.
+1. Open **Manage accounts** from the login screen.
+2. Edit credentials or add a new account.
+3. Save without validation and retry when the provider responds.
 
-> ⚠️ **Cleartext traffic:** HTTP (non-SSL) streams are supported for providers without HTTPS. This is scoped via a network security configuration.
+## Internationalization
 
----
+The app and documentation are available in:
 
-## 🌍 Internationalization
-
-Built on `flutter_localizations` + `intl` with generated ARB files and automatic system-language detection.
-
-| Locale | Status |
+| Language | README |
 | :--- | :--- |
-| English | ✅ |
-| Spanish | ✅ |
-| French | ✅ |
-| German | ✅ |
-| Italian | ✅ |
-| Portuguese | ✅ |
+| Español | [README.md](README.md) |
+| English | [README.en.md](README.en.md) |
+| Français | [README.fr.md](README.fr.md) |
+| Deutsch | [README.de.md](README.de.md) |
+| Italiano | [README.it.md](README.it.md) |
+| Português | [README.pt.md](README.pt.md) |
 
-The language selector (system or manual) and the theme selector (dark/light) are configured from the **Settings** screen.
+The app language can be fixed in Settings or left automatic based on the system.
 
----
+## Roadmap
 
-## 🗺️ Roadmap
+- [x] **M0–M8:** foundation, Xtream, catalog, player, VOD/series, EPG, favorites, M3U and Android TV.
+- [x] **M9:** settings, themes, multilingual UI, multi-account, web import, catch-up, global search and a functional v1.0.0 release.
+- [x] **Post-M9:** per-account categories, multi-channel EPG, dedicated radio, QR remote login, account management without a session, optional PIN and background VOD/series caching.
+- [ ] **Real release signing** and definitive removal of development credentials from public history.
+- [ ] **System EPG notifications** while the app is closed.
+- [ ] **Full multi-channel guide:** more than 30 channels, pagination and category selection.
+- [ ] **M10:** Linux (.deb/.AppImage) and macOS (.dmg) builds, notarization and per-OS CI.
 
-- [x] **M0 — Foundation:** project scaffold, dependencies, folder structure, i18n (en/es), theme, router
-- [x] **M1 — Xtream subscription:** login, secure storage, session persistence, account status
-- [x] **M2 — Live catalog:** Drift schema + indexing, categories, channel list with logos
-- [x] **M3 — Player:** media_kit integration, OSD controls, audio/subtitle tracks, retry handling
-- [x] **M4 — VOD & Series:** grids, detail views, series episodes
-- [x] **M5 — EPG:** now/next in channel list, full schedule view, XMLTV + Xtream short EPG
-- [x] **M6 — Favorites, history & search:** persistent favorites, playback history, instant search
-- [x] **M7 — M3U/XMLTV source:** source selector, background-isolate parsing, unified contract
-- [x] **M8 — Android TV / Fire TV:** D-Pad focus management, leanback banner, remote navigation
-- [x] **M9 — Settings & release:** Settings screen (account data, manual catalog refresh and cache clearing, language and theme selectors, account switching; PIN lock planned), cache management, fr/de/it/pt locales, **v1.0.0** · *(post-M9 batch: 4 design themes — Nocturne, Expressive, Pacotis, Canvas —)*
-- [ ] **M10 — Linux/macOS portability (post-v1.0.0):** desktop builds for Linux (.deb/.AppImage) and macOS (.dmg), notarization and per-OS CI — no logic changes (v1.1)
+## Development
 
----
+```bash
+flutter analyze
+flutter test
+flutter gen-l10n
+dart run build_runner build --delete-conflicting-outputs
+```
 
-## 🛠️ Development
+Commits follow [Conventional Commits](https://www.conventionalcommits.org). CI runs analysis and tests on every push.
 
-* **Commits:** [Conventional Commits](https://www.conventionalcommits.org) (`feat:`, `fix:`, `docs:`, `chore:`).
-* **Lint & analyze:** `flutter analyze`
-* **Tests:** `flutter test`
-* **Code generation** (Drift/l10n): `dart run build_runner build --delete-conflicting-outputs`
-* **CI:** GitHub Actions runs `flutter analyze` and `flutter test` on every push.
+## Legal notice
 
----
+Kylora is only a media client. It does not provide, host or distribute content, playlists or subscriptions. You are responsible for using content you have the right to access and for complying with the law and your provider's terms. Kylora does not support DRM-protected content.
 
-## ⚠️ Legal Disclaimer
+## License
 
-Kylora is a media player **client** only. It does **not** provide, host, or distribute any content, streams, playlists, or subscriptions.
-
-* You are responsible for any IPTV subscription or playlist you use, and for complying with your provider's terms of service and applicable copyright laws in your jurisdiction.
-* Kylora does **not** support DRM-protected content.
-* Streaming unauthorized content may be illegal in your country. Use Kylora only with content you own or have the right to access.
-
----
-
-## 📄 License
-
-Distributed under the [MIT License](LICENSE). See `LICENSE` for more information.
+Distributed under the [MIT License](LICENSE).

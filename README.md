@@ -1,104 +1,89 @@
-# Kylora 📺
+# Kylora
 
 [![Flutter](https://img.shields.io/badge/Flutter-3.x-02569B?logo=flutter&logoColor=white)](https://flutter.dev)
-[![Plataforma](https://img.shields.io/badge/Plataforma-Android%20%7C%20Android%20TV%20%7C%20Windows-blue)](https://github.com)
+[![Plataformas](https://img.shields.io/badge/Plataformas-Android%20%7C%20Android%20TV%20%7C%20Windows-blue)](https://github.com)
 [![Linux](https://img.shields.io/badge/Linux-Pr%C3%B3ximamente-lightgrey?logo=linux&logoColor=white)](https://github.com)
 [![macOS](https://img.shields.io/badge/macOS-Pr%C3%B3ximamente-lightgrey?logo=apple&logoColor=white)](https://github.com)
 [![Motor](https://img.shields.io/badge/Motor%20de%20v%C3%ADdeo-media__kit%20(libmpv)-E040FB)](https://github.com/media-kit/media-kit)
 [![CI](https://img.shields.io/badge/CI-GitHub%20Actions-brightgreen)](https://github.com)
 [![Licencia](https://img.shields.io/badge/Licencia-MIT-green.svg)](LICENSE)
 
-**Kylora** es un cliente IPTV limpio, local-first y de alto rendimiento diseñado para una reproducción fluida en dispositivos móviles, sticks Android TV/Fire TV y escritorio Windows. Se centra en un bajo consumo de memoria, zapping instantáneo de canales y una experiencia nativa tipo leanback — sin servidores intermedios, sin telemetría, sin análisis de uso.
+> 🌐 **Español** · [English](README.en.md) · [Français](README.fr.md) · [Deutsch](README.de.md) · [Italiano](README.it.md) · [Português](README.pt.md)
 
-> 🌐 **English:** [README.en.md](README.en.md)
+**Kylora** es un cliente IPTV local-first para Android móvil, Android TV/Google TV, Fire TV y Windows. Está diseñado para un zapping rápido, una navegación cómoda con mando y reproducción fluida de HD, FHD y 4K, sin backend propio, telemetría ni servicios en la nube.
 
----
+## Características
 
-## ✨ Características principales
+- **Fuentes Xtream Codes y M3U/XMLTV**, con el mismo contrato de repositorio.
+- **Android TV como objetivo principal:** foco D-Pad completo, Leanback, menús contextuales, marquesina de títulos y guía navegable con mando.
+- **Reproducción 4K/UHD:** `media_kit`/libmpv con `mediacodec_embed` y `hwdec=mediacodec` en Android; audio/subtítulos, cambio de pista y OSD propio.
+- **Multicuenta:** cuentas cifradas, selector de cuenta activa, alta manual y alta desde el móvil mediante QR.
+- **Acceso remoto desde el teléfono:** el login muestra un QR para entrar con una cuenta guardada o añadir/editar credenciales desde la misma Wi-Fi.
+- **Gestión de cuentas sin sesión:** aunque todas las cuentas estén caducadas, se pueden editar, añadir, borrar, limpiar y reintentar desde el gestor pre-login.
+- **PIN opcional** para proteger la gestión de cuentas y el acceso remoto.
+- **Categorías visibles y ordenadas por cuenta**, con favoritos de grupo por categoría.
+- **TV, Películas, Series y Radio separadas**, con búsqueda global y continuar visualización.
+- **EPG:** ahora/siguiente, parrilla diaria, guía multi-canal (hasta 30 canales por vista) y recordatorios dentro de la app.
+- **Catch-up/timeshift** en canales Xtream compatibles.
+- **Caché local VOD/series** por cuenta. Los catálogos grandes se muestran en cuanto responde la API y la caché se completa en segundo plano.
+- **100% local:** credenciales en `flutter_secure_storage` y catálogo en SQLite/Drift. No hay servidor propio ni telemetría.
+- **Seis idiomas:** español, inglés, francés, alemán, italiano y portugués, con cambio en caliente desde Ajustes.
+- **Cuatro temas:** Nocturne, Expressive, Pacotis y Canvas.
 
-* **Soporte multi-fuente:** Compatibilidad directa con la API Xtream Codes y listas estáticas M3U/M3U8 con EPG XMLTV.
-* **100% local y privado:** Sin backend propio, telemetría ni bases de datos externas. Tus credenciales y listas permanecen estrictamente en tu dispositivo.
-* **UI nativa multiplataforma:** Interfaz adaptada con controles táctiles responsivos para móvil/tablet y gestión completa del foco D-Pad (anillos de foco, `autofocus`) para mandos de TV y navegación con teclado, con banner Leanback para Android TV/Fire TV. Catálogo en rejilla con selección de secciones vertical, menú contextual (reproducir / favoritos / guía) y guía de programación embebida en el reproductor.
-* **Motor acelerado por hardware:** Impulsado por `media_kit` (libmpv) para demuxing nativo de flujos MPEG-TS, HLS y MKV, con múltiples pistas de audio y selección de subtítulos embebidos. El OSD del reproductor incluye barra de progreso con búsqueda (seek), selectores centrados de audio/subtítulos, control de volumen y pantalla completa nativa.
-* **Indexación local inteligente:** El análisis pesado de listas se ejecuta en isolates en segundo plano y se indexa con Drift (SQLite) para búsqueda y categorización instantáneas.
-* **Multidioma (i18n):** Soporte nativo de inglés, español, francés, alemán, italiano y portugués.
-* **Temas:** 4 temas de diseño desde el registro `AppThemes` — **Nocturne** (oscuro por defecto), **Expressive** (Material 3), **Pacotis** (teal/coral) y **Canvas** (claro editorial), con paleta `AppColors` por tema y aplicados en caliente desde Ajustes.
-* **Donaciones/contacto:** sección "Soporte" en Ajustes con botón "Donar con PayPal" (`https://paypal.me/franito`) y "Contactar por email" (`mailto:contact@fmartinezgarcia.com?subject=Kylora`), ambos vía `url_launcher`.
+## Arquitectura
 
----
+Clean Architecture en tres capas:
 
-## 🏗️ Arquitectura
-
-Clean Architecture con una separación estricta de responsabilidades en tres capas:
-
-```
-┌─────────────────────────────────────────────┐
-│              presentation                   │
-│   screens · blocs · shared widgets          │
-├─────────────────────────────────────────────┤
-│                  domain                     │
-│   entities · repository contracts           │
-├─────────────────────────────────────────────┤
-│                   data                      │
-│   datasources (remote/local) · repositories │
-│   models (DTOs)                             │
-└─────────────────────────────────────────────┘
+```text
+presentation  →  screens, blocs y widgets compartidos
+domain        →  entidades y contratos de repositorio
+data          →  datasources remotas/locales, DTOs y repositorios
 ```
 
-* **Gestión de estado:** `flutter_bloc` para una lógica de negocio predecible y trazable.
-* **Pureza del dominio:** las reglas de negocio viven en la capa interna sin dependencias del framework.
-* **Repositorio agnóstico de fuente:** tanto la implementación Xtream como la M3U cumplen el mismo contrato `IptvRepository`.
+- Estado con `flutter_bloc`.
+- Persistencia con `drift`/SQLite y secretos con `flutter_secure_storage`.
+- Repositorio agnóstico de fuente: Xtream y M3U implementan `IptvRepository`.
+- Parseo pesado de listas y XMLTV en isolates.
 
-## 📁 Estructura del proyecto
+## Estructura
 
-```
+```text
 lib/
-├── main.dart                      # Inicialización global (MediaKit, DB, BlocObserver)
-├── app.dart                       # MaterialApp.router, i18n y temas
-├── l10n/                          # Diccionarios de traducción ARB
-├── core/                          # Utilidades transversales
-│   ├── constants/                 # Endpoints Xtream, timeouts, user-agents
-│   ├── network/                   # Cliente Dio centralizado
-│   ├── theme/                     # Colores, estilos de foco para TV
-│   └── utils/                     # Parser M3U en isolate, formateador de fechas EPG
-├── data/                          # Capa externa
-│   ├── datasources/
-│   │   ├── local/                 # Esquema Drift (Canales, Favoritos, Historial), almacén seguro
-│   │   └── remote/                # Cliente API Xtream, descargador M3U/XMLTV
-│   ├── models/                    # DTOs (auth, categoría, stream, EPG)
-│   └── repositories/              # Implementaciones Xtream y M3U
-├── domain/                        # Lógica de negocio pura
-│   ├── entities/                  # UserAccount, Category, StreamItem, EpgEntry
-│   └── repositories/              # Contrato IptvRepository
-└── presentation/                  # Capa de interfaz
-    ├── blocs/                     # auth · live · vod · settings · player
-    ├── shared_widgets/            # items enfocables, vistas de error, loaders
-    └── screens/                   # login, dashboard, live, vod, settings, player
+├── app.dart                 # MaterialApp.router, i18n y temas
+├── main.dart                # Inicialización de la app
+├── core/                    # Utilidades, tema, reproducción y recordatorios
+├── data/                    # Datasources, DTOs y repositorios
+├── domain/                  # Entidades y contratos
+├── l10n/                    # Traducciones ARB
+└── presentation/            # Pantallas, blocs y widgets
 ```
 
----
+## Primeros pasos
 
-## 🚀 Primeros pasos
+### Requisitos
 
-### Requisitos previos
-
-* [Flutter 3.x](https://docs.flutter.dev/get-started/install) (canal estable) con Dart 3.x
-* **Windows:** Visual Studio 2022 con la carga de trabajo *Desktop development with C++* (toolchain CMake)
-* **Android / Android TV:** Android SDK (minSdk 23, compileSdk 37)
-
-> **Linux y macOS** se añadirán tras la v1.0.0 (hito M10): el código base es multiplataforma, solo requieren builds y packaging específicos.
+- Flutter 3.x estable con Dart 3.x.
+- **Windows:** Visual Studio 2022 con *Desktop development with C++*.
+- **Android/TV:** Android SDK; `minSdk 23`, `compileSdk 37`.
+- Linux/macOS están planificados para después de la v1.0.0.
 
 ### Compilación
 
 ```bash
-# Escritorio Windows
+# Windows
 flutter build windows
 
-# APK Android (móvil)
+# Android móvil
 flutter build apk --release
 
-# APK Android TV / Fire TV (leanback)
+# Android TV / Fire TV
 flutter build apk --release --target-platform android-arm64
+```
+
+En Windows también está el script de instalación para TV:
+
+```powershell
+.\scripts\build-install-tv-release.bat 192.168.0.42
 ```
 
 ### Ejecución
@@ -108,74 +93,59 @@ flutter run -d windows
 flutter run -d <id-del-dispositivo-android>
 ```
 
----
+## Configuración
 
-## ⚙️ Configuración
+1. **Xtream Codes:** URL del servidor, usuario y contraseña.
+2. **M3U/M3U8:** URL o archivo local y, opcionalmente, XMLTV.
 
-Kylora admite dos fuentes de suscripción:
+Las cuentas se almacenan cifradas y se aíslan por huella de cuenta (favoritos, historial, categorías y caché). La importación desde el móvil usa un servidor HTTP local temporal y un token de sesión; solo funciona en la misma red Wi-Fi. El QR no contiene credenciales.
 
-1. **API Xtream Codes** — introduce la URL del servidor de tu proveedor, nombre de usuario y contraseña.
-2. **Lista M3U/M3U8** — carga un archivo local o una URL remota, opcionalmente junto a una fuente de EPG XMLTV.
+Para cuentas caducadas o proveedores no disponibles:
 
-Las credenciales se almacenan cifradas mediante `flutter_secure_storage`; las listas se indexan localmente en SQLite. Nada sale de tu dispositivo salvo las peticiones directas a tu proveedor.
+1. Abrir **Gestionar cuentas** desde el login.
+2. Editar las credenciales o añadir una cuenta nueva.
+3. Guardar sin validar y reintentar el acceso cuando el proveedor responda.
 
-> ⚠️ **Tráfico en claro:** Se admiten flujos HTTP (sin SSL) para proveedores sin HTTPS. Esto se delimita mediante una configuración de seguridad de red.
+## Internacionalización
 
----
+La interfaz y la documentación están disponibles en:
 
-## 🌍 Internacionalización
-
-Construida sobre `flutter_localizations` + `intl` con archivos ARB generados y detección automática del idioma del sistema.
-
-| Locale | Estado |
+| Idioma | README |
 | :--- | :--- |
-| Español | ✅ |
-| Inglés | ✅ |
-| Francés | ✅ |
-| Alemán | ✅ |
-| Italiano | ✅ |
-| Portugués | ✅ |
+| Español | [README.md](README.md) |
+| English | [README.en.md](README.en.md) |
+| Français | [README.fr.md](README.fr.md) |
+| Deutsch | [README.de.md](README.de.md) |
+| Italiano | [README.it.md](README.it.md) |
+| Português | [README.pt.md](README.pt.md) |
 
-El selector de idioma (sistema o manual), el selector de temas (Nocturne, Expressive, Pacotis, Canvas), el refresco/borrado del catálogo y el botón de donaciones (PayPal) se configuran desde la pantalla de **Ajustes**.
+El idioma de la app se puede fijar en Ajustes o dejar en automático según el sistema.
 
----
+## Hoja de ruta
 
-## 🗺️ Hoja de ruta
+- [x] **M0–M8:** fundación, Xtream, catálogo, reproductor, VOD/series, EPG, favoritos, M3U y Android TV.
+- [x] **M9:** ajustes, temas, multiidioma, multicuenta, importación web, catch-up, búsqueda global y release v1.0.0 funcional.
+- [x] **Post-M9:** categorías por cuenta, EPG multi-canal, radio dedicada, acceso remoto por QR, gestión de cuentas sin sesión, PIN opcional y caché VOD/series en segundo plano.
+- [ ] **Firma de release real** y eliminación definitiva de credenciales de desarrollo del historial público.
+- [ ] **Notificaciones EPG del sistema** con la app cerrada.
+- [ ] **Guía multi-canal completa:** más de 30 canales, paginación y selección de categoría.
+- [ ] **M10:** builds de Linux (.deb/.AppImage) y macOS (.dmg), notarización y CI por sistema.
 
-- [x] **M0 — Fundación:** andamiaje del proyecto, dependencias, estructura de carpetas, i18n (es/en), tema, router
-- [x] **M1 — Suscripción Xtream:** login, almacenamiento seguro, persistencia de sesión, estado de la cuenta
-- [x] **M2 — Catálogo en directo:** esquema Drift + indexado, categorías, lista de canales con logos
-- [x] **M3 — Reproductor:** integración de media_kit, OSD con barra de progreso (seek), selectores de pistas de audio/subtítulos, volumen y pantalla completa nativa; pistas y reintentos
-- [x] **M4 — VOD y Series:** rejillas, vistas de detalle, episodios de series
-- [x] **M5 — EPG:** ahora/siguiente en la lista de canales, vista de programación completa, XMLTV + short EPG de Xtream
-- [x] **M6 — Favoritos, historial y búsqueda:** favoritos persistentes, historial de reproducción, búsqueda instantánea
-- [x] **M7 — Fuente M3U/XMLTV:** selector de fuente (Xtream/M3U), parseo de M3U y XMLTV en isolates, repositorio M3U con contrato unificado, persistencia multi-fuente
-- [x] **M8 — Android TV / Fire TV:** foco D-Pad con anillos y escala (TvFocusable), banner leanback, navegación con mando (Enter/OK y Back en el reproductor)
-- [x] **M9 — Ajustes y release:** pantalla de Ajustes (datos de la cuenta, actualización manual y borrado de caché del catálogo, selector de idioma, cambio de cuenta; bloqueo por PIN planificado), gestión de caché, idiomas fr/de/it/pt, **v1.0.0** · *(tanda post-M9: 4 temas de diseño — Nocturne, Expressive, Pacotis, Canvas —)*
-- [ ] **M10 — Portabilidad Linux/macOS (post-v1.0.0):** builds de escritorio para Linux (.deb/.AppImage) y macOS (.dmg), notarización y CI por SO — sin cambios de lógica (v1.1)
+## Desarrollo
 
----
+```bash
+flutter analyze
+flutter test
+flutter gen-l10n
+dart run build_runner build --delete-conflicting-outputs
+```
 
-## 🛠️ Desarrollo
+Commits con [Conventional Commits](https://www.conventionalcommits.org). La CI ejecuta análisis y tests en cada push.
 
-* **Commits:** [Conventional Commits](https://www.conventionalcommits.org) (`feat:`, `fix:`, `docs:`, `chore:`).
-* **Lint y análisis:** `flutter analyze`
-* **Tests:** `flutter test`
-* **Generación de código** (Drift/l10n): `dart run build_runner build --delete-conflicting-outputs`
-* **CI:** GitHub Actions ejecuta `flutter analyze` y `flutter test` en cada push.
+## Aviso legal
 
----
+Kylora es únicamente un cliente multimedia. No proporciona, aloja ni distribuye contenido, listas ni suscripciones. El usuario es responsable de usar contenido al que tenga derecho y de cumplir las leyes y condiciones de su proveedor. Kylora no admite contenido protegido por DRM.
 
-## ⚠️ Aviso legal
+## Licencia
 
-Kylora es únicamente un **cliente** reproductor multimedia. **No** proporciona, aloja ni distribuye contenido, flujos, listas ni suscripciones.
-
-* Eres responsable de cualquier suscripción IPTV o lista que utilices, así como de cumplir las condiciones de servicio de tu proveedor y las leyes de derechos de autor aplicables en tu jurisdicción.
-* Kylora **no** admite contenido protegido por DRM.
-* La retransmisión de contenido no autorizado puede ser ilegal en tu país. Usa Kylora únicamente con contenido que poseas o cuyo acceso tengas derecho.
-
----
-
-## 📄 Licencia
-
-Distribuido bajo la [Licencia MIT](LICENSE). Consulta `LICENSE` para más información.
+Distribuido bajo la [Licencia MIT](LICENSE).
