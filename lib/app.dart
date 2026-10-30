@@ -7,6 +7,7 @@ import 'package:go_router/go_router.dart';
 
 import 'core/media/playback_controller.dart';
 import 'core/theme/app_theme.dart';
+import 'data/datasources/local/auth_store.dart';
 import 'domain/entities/channel.dart';
 import 'domain/entities/favorite_channel_group.dart';
 import 'domain/entities/movie.dart';
@@ -24,6 +25,8 @@ import 'presentation/blocs/settings/settings_bloc.dart';
 import 'presentation/blocs/settings/settings_state.dart';
 import 'presentation/blocs/search/search_visibility_cubit.dart';
 import 'presentation/blocs/vod/vod_bloc.dart';
+import 'presentation/screens/accounts/account_edit_screen.dart';
+import 'presentation/screens/accounts/account_management_screen.dart';
 import 'presentation/screens/auth/login_screen.dart';
 import 'presentation/screens/dashboard/home_shell_screen.dart';
 import 'presentation/screens/favorites/favorite_group_screen.dart';
@@ -41,6 +44,7 @@ import 'presentation/screens/settings/settings_screen.dart';
 import 'presentation/screens/splash/splash_screen.dart';
 import 'presentation/screens/vod/movie_detail_screen.dart';
 import 'presentation/shared_widgets/epg_reminder_host.dart';
+import 'presentation/shared_widgets/pin_guard.dart';
 
 /// Configuración de navegación de la aplicación.
 abstract final class AppRouter {
@@ -56,14 +60,23 @@ abstract final class AppRouter {
       refreshListenable: refresh,
       redirect: (context, state) {
         final AuthState auth = authBloc.state;
-        final bool addingAccount = state.matchedLocation == Routes.accountAdd;
+        const Set<String> preAuthRoutes = <String>{
+          Routes.accountAdd,
+          Routes.accountEdit,
+          Routes.accountWebImport,
+          Routes.loginPhone,
+          Routes.accounts,
+        };
+        final bool preAuth = preAuthRoutes.contains(state.matchedLocation);
         return switch (auth) {
-          AuthChecking() => addingAccount ? null : Routes.splash,
+          AuthChecking() => preAuth ? null : Routes.splash,
           AuthUnauthenticated() ||
-          AuthFailure() => addingAccount ? null : Routes.login,
+          AuthFailure() => preAuth ? null : Routes.login,
           AuthAuthenticated() =>
-            addingAccount
-                ? null
+            preAuth
+                ? state.matchedLocation == Routes.loginPhone
+                      ? Routes.dashboard
+                      : null
                 : state.matchedLocation == Routes.splash ||
                       state.matchedLocation == Routes.login
                 ? Routes.dashboard
@@ -141,11 +154,28 @@ abstract final class AppRouter {
         ),
         GoRoute(
           path: Routes.accountAdd,
-          builder: (context, state) => const LoginScreen(addAccount: true),
+          builder: (context, state) =>
+              const PinGuard(child: LoginScreen(addAccount: true)),
+        ),
+        GoRoute(
+          path: Routes.accounts,
+          builder: (context, state) => const AccountManagementScreen(),
+        ),
+        GoRoute(
+          path: Routes.accountEdit,
+          builder: (context, state) => PinGuard(
+            child: AccountEditScreen(account: state.extra as StoredAccount?),
+          ),
+        ),
+        GoRoute(
+          path: Routes.loginPhone,
+          builder: (context, state) =>
+              const PinGuard(child: AccountWebImportScreen(remoteLogin: true)),
         ),
         GoRoute(
           path: Routes.accountWebImport,
-          builder: (context, state) => const AccountWebImportScreen(),
+          builder: (context, state) =>
+              const PinGuard(child: AccountWebImportScreen()),
         ),
       ],
     );
@@ -168,6 +198,9 @@ abstract final class Routes {
   static const String history = '/history';
   static const String settings = '/settings';
   static const String accountAdd = '/account-add';
+  static const String accounts = '/accounts';
+  static const String accountEdit = '/account-edit';
+  static const String loginPhone = '/login-phone';
   static const String accountWebImport = '/account-import';
 }
 

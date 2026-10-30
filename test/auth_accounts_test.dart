@@ -130,6 +130,56 @@ class _MemAccountStore implements AccountStore {
       activeId = accounts.isEmpty ? null : accounts.first.id;
     }
   }
+
+  @override
+  Future<void> replace(
+    String oldId,
+    StoredCredentials credentials, {
+    String? label,
+    bool activate = false,
+  }) async {
+    final int index = accounts.indexWhere(
+      (StoredAccount account) => account.id == oldId,
+    );
+    final StoredAccount? previous = index >= 0 ? accounts[index] : null;
+    if (index >= 0) accounts.removeAt(index);
+    final StoredAccount replacement = StoredAccount(
+      credentials: credentials,
+      label: label ?? previous?.label ?? credentials.username,
+    );
+    accounts.add(replacement);
+    if (activate || activeId == oldId) activeId = replacement.id;
+  }
+
+  @override
+  Future<void> updateMetadata(
+    String id, {
+    String? lastStatus,
+    DateTime? expiresAt,
+    DateTime? lastCheckedAt,
+  }) async {
+    final int index = accounts.indexWhere(
+      (StoredAccount account) => account.id == id,
+    );
+    if (index < 0) return;
+    accounts[index] = accounts[index].copyWith(
+      lastStatus: lastStatus,
+      expiresAt: expiresAt,
+      lastCheckedAt: lastCheckedAt,
+    );
+  }
+}
+
+class _RejectRepository extends _SwitchRepository {
+  _RejectRepository(super.store);
+
+  @override
+  Future<UserAccount> login(
+    IptvAuthConfig config, {
+    bool activate = true,
+  }) async {
+    throw Exception('expired');
+  }
 }
 
 class _SwitchRepository implements IptvRepository {
@@ -307,6 +357,8 @@ void main() {
       expect(page.statusCode, HttpStatus.ok);
       final String html = await utf8.decoder.bind(page).join();
       expect(html, contains('Cuentas guardadas'));
+      expect(html, contains('Entrar'));
+      expect(html, contains('Editar'));
 
       final String body = Uri(
         queryParameters: <String, String>{
@@ -413,6 +465,222 @@ void main() {
     expect(store.activeId, first.id);
     expect(store.accounts, hasLength(2));
     await bloc.close();
+  });
+
+  test(
+    'AuthStore reemplaza credenciales y conserva etiqueta y estado',
+    () async {
+      final _MemorySecureStorage storage = _MemorySecureStorage();
+      final AuthStore store = AuthStore(storage: storage);
+      const StoredCredentials original = StoredCredentials(
+        serverUrl: 'http://uno:8080',
+        username: 'uno',
+        password: 'pass',
+        sourceType: IptvSourceType.xtream,
+      );
+      await store.write(original, label: 'Cuenta uno');
+      await store.updateMetadata(
+        original.fingerprint,
+        lastStatus: 'Expired',
+        expiresAt: DateTime(2026, 1, 1),
+        lastCheckedAt: DateTime(2026, 10, 30),
+      );
+
+      const StoredCredentials replacement = StoredCredentials(
+        serverUrl: 'http://dos:8080',
+        username: 'dos',
+        password: 'nueva',
+        sourceType: IptvSourceType.xtream,
+      );
+      await store.replace(original.fingerprint, replacement);
+
+      final List<StoredAccount> accounts = await store.readAll();
+      expect(accounts, hasLength(1));
+      expect(accounts.single.label, 'Cuenta uno');
+      expect(accounts.single.credentials.username, 'dos');
+      expect(accounts.single.lastStatus, 'Expired');
+      expect(await store.readActiveId(), replacement.fingerprint);
+    },
+  );
+
+  test(
+    'el servidor guarda una cuenta aunque el proveedor rechace el login',
+    () async {
+      final _MemAccountStore store = _MemAccountStore();
+      final StoredAccount first = _account('uno', 'Cuenta uno');
+      store.accounts.add(first);
+      store.activeId = first.id;
+      final LocalAccountServer server = LocalAccountServer(
+        repository: _RejectRepository(store),
+        accountStore: store,
+        onAccountsChanged: () {},
+      );
+      final HttpClient client = HttpClient();
+      try {
+        final Uri base = Uri.parse(await server.start());
+        final HttpClientRequest add = await client.postUrl(
+          base.replace(path: '/add'),
+        );
+        add.headers.contentType = ContentType(
+          'application',
+          'x-www-form-urlencoded',
+          charset: 'utf-8',
+        );
+        add.write(
+          Uri(
+            queryParameters: <String, String>{
+              'label': 'Cuenta caducada',
+              'source': 'xtream',
+              'serverUrl': 'http://caducada:8080',
+              'username': 'caducada',
+              'password': 'pass',
+              'activate': 'on',
+            },
+          ).query,
+        );
+        final HttpClientResponse response = await add.close();
+        final String html = await utf8.decoder.bind(response).join();
+        expect(html, contains('La cuenta está guardada'));
+        expect(store.accounts, hasLength(2));
+        expect(store.accounts.last.label, 'Cuenta caducada');
+        expect(store.activeId, first.id);
+      } finally {
+        await server.stop();
+        client.close(force: true);
+      }
+    },
+  );
+
+  test(
+    'el servidor permite editar credenciales sin perder la etiqueta',
+    () async {
+      final _MemAccountStore store = _MemAccountStore();
+      final StoredAccount account = _account('uno', 'Cuenta uno');
+      store.accounts.add(account);
+      store.activeId = account.id;
+      final LocalAccountServer server = LocalAccountServer(
+        repository: _SwitchRepository(store),
+        accountStore: store,
+        onAccountsChanged: () {},
+      );
+      final HttpClient client = HttpClient();
+      try {
+        final Uri base = Uri.parse(await server.start());
+        final HttpClientRequest update = await client.postUrl(
+          base.replace(path: '/update'),
+        );
+        update.headers.contentType = ContentType(
+          'application',
+          'x-www-form-urlencoded',
+          charset: 'utf-8',
+        );
+        update.write(
+          Uri(
+            queryParameters: <String, String>{
+              'id': account.id,
+              'label': 'Cuenta editada',
+              'source': 'xtream',
+              'serverUrl': 'http://nuevo:8080',
+              'username': 'nuevo',
+              'password': '',
+            },
+          ).query,
+        );
+        final HttpClientResponse response = await update.close();
+        final String html = await utf8.decoder.bind(response).join();
+        expect(html, contains('Cuenta actualizada'));
+        final StoredAccount edited = store.accounts.single;
+        expect(edited.label, 'Cuenta editada');
+        expect(edited.credentials.serverUrl, 'http://nuevo:8080');
+        expect(edited.credentials.username, 'nuevo');
+        expect(edited.credentials.password, account.credentials.password);
+      } finally {
+        await server.stop();
+        client.close(force: true);
+      }
+    },
+  );
+
+  test('el servidor permite iniciar sesión con una cuenta guardada', () async {
+    final _MemAccountStore store = _MemAccountStore();
+    final StoredAccount account = _account('uno', 'Cuenta uno');
+    store.accounts.add(account);
+    store.activeId = null;
+    UserAccount? authenticated;
+    final LocalAccountServer server = LocalAccountServer(
+      repository: _SwitchRepository(store),
+      accountStore: store,
+      onAccountsChanged: () {},
+      onAuthenticated: (UserAccount value) => authenticated = value,
+    );
+    final HttpClient client = HttpClient();
+    try {
+      final Uri base = Uri.parse(await server.start());
+      final HttpClientRequest login = await client.postUrl(
+        base.replace(path: '/login'),
+      );
+      login.headers.contentType = ContentType(
+        'application',
+        'x-www-form-urlencoded',
+        charset: 'utf-8',
+      );
+      login.write(
+        Uri(queryParameters: <String, String>{'id': account.id}).query,
+      );
+      final HttpClientResponse response = await login.close();
+      final String html = await utf8.decoder.bind(response).join();
+      expect(response.statusCode, HttpStatus.ok);
+      expect(html, contains('Sesión iniciada'));
+      expect(authenticated?.username, 'uno');
+      expect(store.activeId, account.id);
+    } finally {
+      await server.stop();
+      client.close(force: true);
+    }
+  });
+
+  test('AuthBloc acepta login externo activo y rechaza uno caducado', () async {
+    final _MemAccountStore store = _MemAccountStore();
+    final StoredAccount account = _account('uno', 'Cuenta uno');
+    store.accounts.add(account);
+    store.activeId = account.id;
+    final AuthBloc bloc = AuthBloc(
+      _SwitchRepository(store),
+      accountStore: store,
+    );
+    addTearDown(bloc.close);
+
+    final Future<AuthState> authenticated = bloc.stream.firstWhere(
+      (AuthState state) => state is AuthAuthenticated,
+    );
+    bloc.add(
+      const AuthExternalLoginSucceeded(
+        UserAccount(
+          serverUrl: 'http://server:8080',
+          username: 'uno',
+          password: 'pass',
+          status: 'Active',
+        ),
+      ),
+    );
+    expect(await authenticated, isA<AuthAuthenticated>());
+
+    final Future<AuthState> expired = bloc.stream.firstWhere(
+      (AuthState state) =>
+          state is AuthFailure && state.message == 'accountExpired',
+    );
+    bloc.add(
+      AuthExternalLoginSucceeded(
+        UserAccount(
+          serverUrl: 'http://server:8080',
+          username: 'uno',
+          password: 'pass',
+          status: 'Expired',
+          expiresAt: DateTime(2020),
+        ),
+      ),
+    );
+    expect(await expired, isA<AuthFailure>());
   });
 
   test('AuthBloc cambia de cuenta sin borrar las demás', () async {

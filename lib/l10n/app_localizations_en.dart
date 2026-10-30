@@ -178,6 +178,92 @@ class AppLocalizationsEn extends AppLocalizations {
   String get moveDown => 'Move down';
 
   @override
+  String get manageAccounts => 'Manage accounts';
+
+  @override
+  String get accountManagerDescription =>
+      'Manage your accounts without an active session.';
+
+  @override
+  String get noSavedAccounts => 'No saved accounts.';
+
+  @override
+  String get accountNotValidated => 'Not validated';
+
+  @override
+  String get accountEdit => 'Edit account';
+
+  @override
+  String get accountDelete => 'Delete account';
+
+  @override
+  String get deleteAccountConfirm => 'Delete this account?';
+
+  @override
+  String get loginErrorAccountExpired => 'The account is expired or inactive.';
+
+  @override
+  String get accountLabel => 'Label';
+
+  @override
+  String get passwordKeepHint => 'Leave blank to keep the current one';
+
+  @override
+  String get accountSavePendingHint =>
+      'The account is saved without validation. You can try signing in from the list.';
+
+  @override
+  String get loginWithPhone => 'Sign in with phone';
+
+  @override
+  String get remoteLoginTitle => 'Sign in with phone';
+
+  @override
+  String get remoteLoginInstructions =>
+      'Scan the QR with a phone on the same Wi-Fi. There you can use a saved account or add/edit its details.';
+
+  @override
+  String get pinProtectAccounts => 'Protect account management';
+
+  @override
+  String get pinDescription =>
+      'A PIN will be required to manage accounts without a session.';
+
+  @override
+  String get pinSetTitle => 'Set PIN';
+
+  @override
+  String get pinSet => 'PIN enabled';
+
+  @override
+  String get pinRemoved => 'PIN disabled';
+
+  @override
+  String get pinEnter => 'Enter PIN';
+
+  @override
+  String get pinWrong => 'Wrong PIN';
+
+  @override
+  String get pinTooShort => 'PIN must be 4 to 8 digits';
+
+  @override
+  String get confirmPin => 'Confirm PIN';
+
+  @override
+  String get unlock => 'Unlock';
+
+  @override
+  String get cleanExpiredAccounts => 'Clean expired';
+
+  @override
+  String get cleanExpiredConfirm =>
+      'Delete expired accounts that are not active?';
+
+  @override
+  String get expiredAccountsRemoved => 'Expired accounts deleted';
+
+  @override
   String get settings => 'Settings';
 
   @override

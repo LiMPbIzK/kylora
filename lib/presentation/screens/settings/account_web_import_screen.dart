@@ -5,6 +5,7 @@ import 'package:qr_flutter/qr_flutter.dart';
 import '../../../core/theme/app_theme.dart';
 import '../../../data/datasources/local/auth_store.dart';
 import '../../../data/datasources/local/local_account_server.dart';
+import '../../../domain/entities/user_account.dart';
 import '../../../domain/repositories/iptv_repository.dart';
 import '../../../l10n/app_localizations.dart';
 import '../../blocs/auth/auth_bloc.dart';
@@ -14,7 +15,11 @@ import '../../blocs/auth/auth_event.dart';
 ///
 /// El servidor solo está activo mientras esta pantalla está montada.
 class AccountWebImportScreen extends StatefulWidget {
-  const AccountWebImportScreen({super.key});
+  const AccountWebImportScreen({super.key, this.remoteLogin = false});
+
+  /// Si es true, esta pantalla es el acceso remoto desde el login: al
+  /// autenticar una cuenta desde el móvil se entra directamente al dashboard.
+  final bool remoteLogin;
 
   @override
   State<AccountWebImportScreen> createState() => _AccountWebImportScreenState();
@@ -65,6 +70,10 @@ class _AccountWebImportScreenState extends State<AccountWebImportScreen> {
           authBloc.add(const AuthAccountsReloadRequested());
         }
       },
+      onAuthenticated: (UserAccount account) {
+        if (!mounted) return;
+        authBloc.add(AuthExternalLoginSucceeded(account));
+      },
     );
 
     try {
@@ -101,7 +110,11 @@ class _AccountWebImportScreenState extends State<AccountWebImportScreen> {
     final AppColors colors = context.colors;
 
     return Scaffold(
-      appBar: AppBar(title: Text(l10n.addAccountFromPhone)),
+      appBar: AppBar(
+        title: Text(
+          widget.remoteLogin ? l10n.remoteLoginTitle : l10n.addAccountFromPhone,
+        ),
+      ),
       body: SafeArea(
         child: Center(
           child: SingleChildScrollView(
@@ -137,7 +150,9 @@ class _AccountWebImportScreenState extends State<AccountWebImportScreen> {
                   : Column(
                       children: <Widget>[
                         Text(
-                          l10n.webImportInstructions,
+                          widget.remoteLogin
+                              ? l10n.remoteLoginInstructions
+                              : l10n.webImportInstructions,
                           textAlign: TextAlign.center,
                           style: Theme.of(context).textTheme.bodyLarge,
                         ),

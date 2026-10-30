@@ -1,8 +1,10 @@
 import 'package:flutter_bloc/flutter_bloc.dart';
 
 import '../../../data/datasources/local/auth_store.dart';
+import '../../../data/datasources/local/pin_service.dart';
 import '../../../data/datasources/remote/m3u_downloader.dart';
 import '../../../data/datasources/remote/xtream_api_client.dart';
+import '../../../domain/entities/iptv_source_type.dart';
 import '../../../domain/entities/saved_account.dart';
 import '../../../domain/entities/user_account.dart';
 import '../../../domain/repositories/iptv_repository.dart';
@@ -18,6 +20,7 @@ class AuthBloc extends Bloc<AuthEvent, AuthState> {
     on<AuthLogoutRequested>(_onLogoutRequested);
     on<AuthAccountSwitchRequested>(_onAccountSwitchRequested);
     on<AuthAccountsReloadRequested>(_onAccountsReloadRequested);
+    on<AuthExternalLoginSucceeded>(_onExternalLoginSucceeded);
   }
 
   final IptvRepository _repository;
@@ -33,6 +36,11 @@ class AuthBloc extends Bloc<AuthEvent, AuthState> {
       if (account == null) {
         emit(const AuthUnauthenticated());
       } else {
+        await _rememberStatus(account);
+        if (!_isUsable(account)) {
+          emit(const AuthFailure(message: 'accountExpired'));
+          return;
+        }
         emit(await _authenticatedState(account));
       }
     } catch (_) {
@@ -51,6 +59,12 @@ class AuthBloc extends Bloc<AuthEvent, AuthState> {
         event.config,
         activate: event.activate,
       );
+      await _rememberStatus(account);
+      if (!_isUsable(account) &&
+          (event.activate || previous is! AuthAuthenticated)) {
+        emit(const AuthFailure(message: 'accountExpired'));
+        return;
+      }
       final AuthAuthenticated loaded = await _authenticatedState(account);
       if (!event.activate && previous is AuthAuthenticated) {
         // Alta de una cuenta sin activar: se conserva la cuenta que ya estaba
@@ -109,6 +123,14 @@ class AuthBloc extends Bloc<AuthEvent, AuthState> {
       if (account == null) {
         throw StateError('No se pudo restaurar la cuenta');
       }
+      await _rememberStatus(account);
+      if (!_isUsable(account)) {
+        if (previousId != null) {
+          await store.setActive(previousId);
+        }
+        emit(const AuthFailure(message: 'accountExpired'));
+        return;
+      }
       emit(await _authenticatedState(account));
     } catch (_) {
       if (previousId != null) {
@@ -118,6 +140,18 @@ class AuthBloc extends Bloc<AuthEvent, AuthState> {
         previous is AuthAuthenticated ? previous : const AuthUnauthenticated(),
       );
     }
+  }
+
+  Future<void> _onExternalLoginSucceeded(
+    AuthExternalLoginSucceeded event,
+    Emitter<AuthState> emit,
+  ) async {
+    await _rememberStatus(event.account);
+    if (!_isUsable(event.account)) {
+      emit(const AuthFailure(message: 'accountExpired'));
+      return;
+    }
+    emit(await _authenticatedState(event.account));
   }
 
   Future<void> _onAccountsReloadRequested(
@@ -156,6 +190,7 @@ class AuthBloc extends Bloc<AuthEvent, AuthState> {
     Emitter<AuthState> emit,
   ) async {
     await _repository.logout();
+    PinService.clearSession();
     emit(const AuthUnauthenticated());
   }
 
@@ -195,5 +230,39 @@ class AuthBloc extends Bloc<AuthEvent, AuthState> {
       if (account.id == id) return account;
     }
     return null;
+  }
+
+  bool _isUsable(UserAccount account) => account.isActive && !account.isExpired;
+
+  Future<void> _rememberStatus(UserAccount account) async {
+    final AccountStore? store = accountStore;
+    if (store == null) return;
+    try {
+      final List<StoredAccount> accounts = await store.readAll();
+      StoredAccount? match;
+      for (final StoredAccount candidate in accounts) {
+        final StoredCredentials credentials = candidate.credentials;
+        if (credentials.sourceType != account.sourceType) continue;
+        final bool sameSource =
+            credentials.sourceUrl == account.serverUrl ||
+            credentials.serverUrl == account.serverUrl;
+        final bool sameUser =
+            credentials.sourceType == IptvSourceType.m3u ||
+            credentials.username == account.username;
+        if (sameSource && sameUser) {
+          match = candidate;
+          break;
+        }
+      }
+      if (match == null) return;
+      await store.updateMetadata(
+        match.id,
+        lastStatus: account.status,
+        expiresAt: account.expiresAt,
+        lastCheckedAt: DateTime.now(),
+      );
+    } catch (_) {
+      // La sesión no debe fallar porque no se puedan guardar metadatos.
+    }
   }
 }

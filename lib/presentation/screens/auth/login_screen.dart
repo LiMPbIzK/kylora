@@ -168,6 +168,12 @@ class _LoginScreenState extends State<LoginScreen> {
                         onSubmitted: _submit,
                         urlValidator: _urlValidator,
                         requiredValidator: _requiredValidator,
+                        onLoginWithPhone: widget.addAccount
+                            ? null
+                            : () => context.push(Routes.loginPhone),
+                        onManageAccounts: widget.addAccount
+                            ? null
+                            : () => context.push(Routes.accounts),
                       ),
                     ),
                   ),
@@ -267,6 +273,8 @@ class _LoginForm extends StatefulWidget {
     required this.onSubmitted,
     required this.urlValidator,
     required this.requiredValidator,
+    this.onLoginWithPhone,
+    this.onManageAccounts,
   });
 
   final GlobalKey<FormState> formKey;
@@ -281,6 +289,8 @@ class _LoginForm extends StatefulWidget {
   final VoidCallback onSubmitted;
   final FormFieldValidator<String> urlValidator;
   final FormFieldValidator<String> requiredValidator;
+  final VoidCallback? onLoginWithPhone;
+  final VoidCallback? onManageAccounts;
 
   @override
   State<_LoginForm> createState() => _LoginFormState();
@@ -453,6 +463,26 @@ class _LoginFormState extends State<_LoginForm> {
                   );
                 },
               ),
+              if (widget.onLoginWithPhone != null ||
+                  widget.onManageAccounts != null) ...<Widget>[
+                const SizedBox(height: 20),
+                const Divider(),
+                const SizedBox(height: 12),
+                if (widget.onLoginWithPhone != null)
+                  OutlinedButton.icon(
+                    onPressed: widget.onLoginWithPhone,
+                    icon: const Icon(Icons.qr_code_2),
+                    label: Text(l10n.loginWithPhone),
+                  ),
+                if (widget.onManageAccounts != null) ...<Widget>[
+                  const SizedBox(height: 8),
+                  TextButton.icon(
+                    onPressed: widget.onManageAccounts,
+                    icon: const Icon(Icons.manage_accounts_outlined),
+                    label: Text(l10n.manageAccounts),
+                  ),
+                ],
+              ],
             ],
           ),
         ),
@@ -465,6 +495,7 @@ class _LoginFormState extends State<_LoginForm> {
       'invalidCredentials' => l10n.loginErrorInvalidCredentials,
       'networkError' => l10n.loginErrorNetwork,
       'm3uParseError' => l10n.loginErrorM3uParse,
+      'accountExpired' => l10n.loginErrorAccountExpired,
       _ => l10n.loginErrorUnknown,
     };
   }

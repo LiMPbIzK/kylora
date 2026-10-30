@@ -178,6 +178,91 @@ class AppLocalizationsIt extends AppLocalizations {
   String get moveDown => 'Sposta giù';
 
   @override
+  String get manageAccounts => 'Gestisci account';
+
+  @override
+  String get accountManagerDescription =>
+      'Gestisci i tuoi account senza una sessione attiva.';
+
+  @override
+  String get noSavedAccounts => 'Nessun account salvato.';
+
+  @override
+  String get accountNotValidated => 'Non validato';
+
+  @override
+  String get accountEdit => 'Modifica account';
+
+  @override
+  String get accountDelete => 'Elimina account';
+
+  @override
+  String get deleteAccountConfirm => 'Eliminare questo account?';
+
+  @override
+  String get loginErrorAccountExpired => 'L\'account è scaduto o inattivo.';
+
+  @override
+  String get accountLabel => 'Etichetta';
+
+  @override
+  String get passwordKeepHint => 'Lascia vuoto per mantenere quella attuale';
+
+  @override
+  String get accountSavePendingHint =>
+      'L\'account viene salvato senza validazione. Potrai provare l\'accesso dalla lista.';
+
+  @override
+  String get loginWithPhone => 'Accedi con il telefono';
+
+  @override
+  String get remoteLoginTitle => 'Accedi con il telefono';
+
+  @override
+  String get remoteLoginInstructions =>
+      'Scansiona il QR con un telefono sulla stessa Wi-Fi. Da lì puoi usare un account salvato o modificarne i dati.';
+
+  @override
+  String get pinProtectAccounts => 'Proteggi gestione account';
+
+  @override
+  String get pinDescription =>
+      'Verrà richiesto un PIN per gestire gli account senza sessione.';
+
+  @override
+  String get pinSetTitle => 'Imposta PIN';
+
+  @override
+  String get pinSet => 'PIN attivato';
+
+  @override
+  String get pinRemoved => 'PIN disattivato';
+
+  @override
+  String get pinEnter => 'Inserisci il PIN';
+
+  @override
+  String get pinWrong => 'PIN errato';
+
+  @override
+  String get pinTooShort => 'Il PIN deve avere da 4 a 8 cifre';
+
+  @override
+  String get confirmPin => 'Conferma PIN';
+
+  @override
+  String get unlock => 'Sblocca';
+
+  @override
+  String get cleanExpiredAccounts => 'Pulisci scaduti';
+
+  @override
+  String get cleanExpiredConfirm => 'Eliminare gli account scaduti non attivi?';
+
+  @override
+  String get expiredAccountsRemoved => 'Account scaduti eliminati';
+
+  @override
   String get settings => 'Impostazioni';
 
   @override

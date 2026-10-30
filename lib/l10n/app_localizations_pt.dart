@@ -178,6 +178,92 @@ class AppLocalizationsPt extends AppLocalizations {
   String get moveDown => 'Mover para baixo';
 
   @override
+  String get manageAccounts => 'Gerir contas';
+
+  @override
+  String get accountManagerDescription =>
+      'Gerir as suas contas sem uma sessão ativa.';
+
+  @override
+  String get noSavedAccounts => 'Não há contas guardadas.';
+
+  @override
+  String get accountNotValidated => 'Não validada';
+
+  @override
+  String get accountEdit => 'Editar conta';
+
+  @override
+  String get accountDelete => 'Eliminar conta';
+
+  @override
+  String get deleteAccountConfirm => 'Eliminar esta conta?';
+
+  @override
+  String get loginErrorAccountExpired => 'A conta está caducada ou inativa.';
+
+  @override
+  String get accountLabel => 'Etiqueta';
+
+  @override
+  String get passwordKeepHint => 'Deixe em branco para manter a atual';
+
+  @override
+  String get accountSavePendingHint =>
+      'A conta é guardada sem validação. Poderá tentar entrar a partir da lista.';
+
+  @override
+  String get loginWithPhone => 'Entrar com o telemóvel';
+
+  @override
+  String get remoteLoginTitle => 'Entrar com o telemóvel';
+
+  @override
+  String get remoteLoginInstructions =>
+      'Digitalize o QR com um telemóvel na mesma Wi-Fi. Aí pode usar uma conta guardada ou adicionar/editar os dados.';
+
+  @override
+  String get pinProtectAccounts => 'Proteger gestão de contas';
+
+  @override
+  String get pinDescription =>
+      'Será pedido um PIN para gerir contas sem sessão.';
+
+  @override
+  String get pinSetTitle => 'Configurar PIN';
+
+  @override
+  String get pinSet => 'PIN ativado';
+
+  @override
+  String get pinRemoved => 'PIN desativado';
+
+  @override
+  String get pinEnter => 'Introduza o PIN';
+
+  @override
+  String get pinWrong => 'PIN incorreto';
+
+  @override
+  String get pinTooShort => 'O PIN deve ter entre 4 e 8 dígitos';
+
+  @override
+  String get confirmPin => 'Confirmar PIN';
+
+  @override
+  String get unlock => 'Desbloquear';
+
+  @override
+  String get cleanExpiredAccounts => 'Limpar caducadas';
+
+  @override
+  String get cleanExpiredConfirm =>
+      'Eliminar as contas caducadas que não estão ativas?';
+
+  @override
+  String get expiredAccountsRemoved => 'Contas caducadas eliminadas';
+
+  @override
   String get settings => 'Ajustes';
 
   @override

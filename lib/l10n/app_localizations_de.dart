@@ -178,6 +178,92 @@ class AppLocalizationsDe extends AppLocalizations {
   String get moveDown => 'Nach unten';
 
   @override
+  String get manageAccounts => 'Konten verwalten';
+
+  @override
+  String get accountManagerDescription =>
+      'Verwalte deine Konten ohne aktive Sitzung.';
+
+  @override
+  String get noSavedAccounts => 'Keine gespeicherten Konten.';
+
+  @override
+  String get accountNotValidated => 'Nicht validiert';
+
+  @override
+  String get accountEdit => 'Konto bearbeiten';
+
+  @override
+  String get accountDelete => 'Konto löschen';
+
+  @override
+  String get deleteAccountConfirm => 'Dieses Konto löschen?';
+
+  @override
+  String get loginErrorAccountExpired =>
+      'Das Konto ist abgelaufen oder inaktiv.';
+
+  @override
+  String get accountLabel => 'Bezeichnung';
+
+  @override
+  String get passwordKeepHint => 'Leer lassen, um das aktuelle zu behalten';
+
+  @override
+  String get accountSavePendingHint =>
+      'Das Konto wird ohne Validierung gespeichert. Du kannst die Anmeldung später aus der Liste versuchen.';
+
+  @override
+  String get loginWithPhone => 'Mit dem Telefon anmelden';
+
+  @override
+  String get remoteLoginTitle => 'Mit dem Telefon anmelden';
+
+  @override
+  String get remoteLoginInstructions =>
+      'Scanne den QR-Code mit einem Telefon im selben WLAN. Dort kannst du ein gespeichertes Konto verwenden oder Daten bearbeiten.';
+
+  @override
+  String get pinProtectAccounts => 'Kontoverwaltung schützen';
+
+  @override
+  String get pinDescription =>
+      'Für die Kontoverwaltung ohne Sitzung wird eine PIN verlangt.';
+
+  @override
+  String get pinSetTitle => 'PIN festlegen';
+
+  @override
+  String get pinSet => 'PIN aktiviert';
+
+  @override
+  String get pinRemoved => 'PIN deaktiviert';
+
+  @override
+  String get pinEnter => 'PIN eingeben';
+
+  @override
+  String get pinWrong => 'Falsche PIN';
+
+  @override
+  String get pinTooShort => 'Die PIN muss 4 bis 8 Ziffern haben';
+
+  @override
+  String get confirmPin => 'PIN bestätigen';
+
+  @override
+  String get unlock => 'Entsperren';
+
+  @override
+  String get cleanExpiredAccounts => 'Abgelaufene löschen';
+
+  @override
+  String get cleanExpiredConfirm => 'Abgelaufene, nicht aktive Konten löschen?';
+
+  @override
+  String get expiredAccountsRemoved => 'Abgelaufene Konten gelöscht';
+
+  @override
   String get settings => 'Einstellungen';
 
   @override

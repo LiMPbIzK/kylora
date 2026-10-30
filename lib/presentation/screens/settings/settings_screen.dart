@@ -6,6 +6,7 @@ import 'package:url_launcher/url_launcher.dart';
 
 import '../../../app.dart';
 import '../../../core/theme/app_theme.dart';
+import '../../../data/datasources/local/pin_service.dart';
 import '../../../domain/entities/iptv_source_type.dart';
 import '../../../domain/entities/saved_account.dart';
 import '../../../domain/entities/user_account.dart';
@@ -26,7 +27,9 @@ import '../../blocs/vod/vod_event.dart';
 
 /// Pantalla de ajustes de la aplicación.
 class SettingsScreen extends StatefulWidget {
-  const SettingsScreen({super.key});
+  const SettingsScreen({super.key, this.pinService});
+
+  final PinService? pinService;
 
   @override
   State<SettingsScreen> createState() => _SettingsScreenState();
@@ -122,6 +125,11 @@ class _SettingsScreenState extends State<SettingsScreen> {
               leading: const Icon(Icons.qr_code_2),
               title: Text(l10n.addAccountFromPhone),
               onTap: () => context.push(Routes.accountWebImport),
+            ),
+            ListTile(
+              leading: const Icon(Icons.manage_accounts_outlined),
+              title: Text(l10n.manageAccounts),
+              onTap: () => context.push(Routes.accounts),
             ),
             ListTile(
               leading: const Icon(Icons.switch_account),
@@ -609,13 +617,7 @@ class _SettingsScreenState extends State<SettingsScreen> {
   // ---------------------------------------------------------------------------
 
   Widget _securitySection(AppLocalizations l10n) {
-    return ListTile(
-      enabled: false,
-      leading: const Icon(Icons.lock_outline),
-      title: Text(l10n.pinCode),
-      subtitle: Text(l10n.comingSoon),
-      trailing: const Switch(value: false, onChanged: null),
-    );
+    return _PinSecuritySection(pinService: widget.pinService);
   }
 
   // ---------------------------------------------------------------------------
@@ -695,6 +697,172 @@ class _SectionHeader extends StatelessWidget {
           fontWeight: FontWeight.bold,
         ),
       ),
+    );
+  }
+}
+
+class _PinSecuritySection extends StatefulWidget {
+  const _PinSecuritySection({this.pinService});
+
+  final PinService? pinService;
+
+  @override
+  State<_PinSecuritySection> createState() => _PinSecuritySectionState();
+}
+
+class _PinSecuritySectionState extends State<_PinSecuritySection> {
+  late final PinService _service = widget.pinService ?? PinService();
+  bool _enabled = false;
+  bool _loading = true;
+
+  @override
+  void initState() {
+    super.initState();
+    _load();
+  }
+
+  Future<void> _load() async {
+    final bool enabled = await _service.isEnabled();
+    if (!mounted) return;
+    setState(() {
+      _enabled = enabled;
+      _loading = false;
+    });
+  }
+
+  Future<void> _toggle(bool value) async {
+    final AppLocalizations l10n = AppLocalizations.of(context)!;
+    if (value) {
+      final String? pin = await showDialog<String>(
+        context: context,
+        builder: (_) =>
+            _PinDialog(title: l10n.pinSetTitle, requireConfirm: true),
+      );
+      if (pin == null) return;
+      final bool saved = await _service.setPin(pin);
+      if (!mounted) return;
+      if (saved) {
+        setState(() => _enabled = true);
+        _show(l10n.pinSet);
+      } else {
+        _show(l10n.pinTooShort);
+      }
+      return;
+    }
+
+    final String? pin = await showDialog<String>(
+      context: context,
+      builder: (_) => _PinDialog(title: l10n.pinEnter),
+    );
+    if (pin == null) return;
+    if (!await _service.verify(pin)) {
+      if (mounted) _show(l10n.pinWrong);
+      return;
+    }
+    await _service.disable();
+    if (!mounted) return;
+    setState(() => _enabled = false);
+    _show(l10n.pinRemoved);
+  }
+
+  void _show(String message) {
+    ScaffoldMessenger.of(context)
+        .showSnackBar(SnackBar(content: Text(message)));
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    final AppLocalizations l10n = AppLocalizations.of(context)!;
+    return ListTile(
+      leading: const Icon(Icons.lock_outline),
+      title: Text(l10n.pinProtectAccounts),
+      subtitle: Text(l10n.pinDescription),
+      trailing: _loading
+          ? const SizedBox.square(
+              dimension: 24,
+              child: CircularProgressIndicator(strokeWidth: 2),
+            )
+          : Switch(value: _enabled, onChanged: _toggle),
+    );
+  }
+}
+
+class _PinDialog extends StatefulWidget {
+  const _PinDialog({required this.title, this.requireConfirm = false});
+
+  final String title;
+  final bool requireConfirm;
+
+  @override
+  State<_PinDialog> createState() => _PinDialogState();
+}
+
+class _PinDialogState extends State<_PinDialog> {
+  final TextEditingController _pin = TextEditingController();
+  final TextEditingController _confirm = TextEditingController();
+  String? _error;
+
+  @override
+  void dispose() {
+    _pin.dispose();
+    _confirm.dispose();
+    super.dispose();
+  }
+
+  void _submit() {
+    final String pin = _pin.text.trim();
+    if (!PinService.isValidPin(pin)) {
+      setState(() => _error = AppLocalizations.of(context)!.pinTooShort);
+      return;
+    }
+    if (widget.requireConfirm && _confirm.text.trim() != pin) {
+      setState(() => _error = AppLocalizations.of(context)!.pinWrong);
+      return;
+    }
+    Navigator.of(context).pop(pin);
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    final AppLocalizations l10n = AppLocalizations.of(context)!;
+    return AlertDialog(
+      title: Text(widget.title),
+      content: Column(
+        mainAxisSize: MainAxisSize.min,
+        children: <Widget>[
+          TextField(
+            controller: _pin,
+            autofocus: true,
+            obscureText: true,
+            keyboardType: TextInputType.number,
+            maxLength: 8,
+            decoration: InputDecoration(
+              labelText: l10n.pinCode,
+              counterText: '',
+              errorText: _error,
+            ),
+          ),
+          if (widget.requireConfirm)
+            TextField(
+              controller: _confirm,
+              obscureText: true,
+              keyboardType: TextInputType.number,
+              maxLength: 8,
+              decoration: InputDecoration(
+                labelText: l10n.confirmPin,
+                counterText: '',
+              ),
+              onSubmitted: (_) => _submit(),
+            ),
+        ],
+      ),
+      actions: <Widget>[
+        TextButton(
+          onPressed: () => Navigator.of(context).pop(),
+          child: Text(l10n.cancel),
+        ),
+        FilledButton(onPressed: _submit, child: Text(l10n.save)),
+      ],
     );
   }
 }

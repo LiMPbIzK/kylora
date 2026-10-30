@@ -4,6 +4,7 @@ import 'dart:math';
 
 import '../../../domain/entities/iptv_auth_config.dart';
 import '../../../domain/entities/iptv_source_type.dart';
+import '../../../domain/entities/user_account.dart';
 import '../../../domain/repositories/iptv_repository.dart';
 import 'auth_store.dart';
 
@@ -17,11 +18,16 @@ class LocalAccountServer {
     required this.repository,
     required this.accountStore,
     required this.onAccountsChanged,
+    this.onAuthenticated,
   });
 
   final IptvRepository repository;
   final AccountStore accountStore;
   final void Function() onAccountsChanged;
+
+  /// Se invoca cuando una cuenta se autentica correctamente desde la web.
+  /// Es el puente para que `AuthBloc` actualice la sesión del TV.
+  final void Function(UserAccount account)? onAuthenticated;
 
   HttpServer? _server;
   String? _token;
@@ -108,11 +114,22 @@ class LocalAccountServer {
       }
 
       if (request.method == 'GET' && request.uri.path == '/') {
-        await _write(request, html: await _renderPage());
+        await _write(
+          request,
+          html: await _renderPage(editId: request.uri.queryParameters['edit']),
+        );
         return;
       }
       if (request.method == 'POST' && request.uri.path == '/add') {
         await _handleAdd(request);
+        return;
+      }
+      if (request.method == 'POST' && request.uri.path == '/update') {
+        await _handleUpdate(request);
+        return;
+      }
+      if (request.method == 'POST' && request.uri.path == '/login') {
+        await _handleLogin(request);
         return;
       }
       if (request.method == 'POST' && request.uri.path == '/rename') {
@@ -152,42 +169,17 @@ class LocalAccountServer {
     final String label = (form['label'] ?? '').trim();
     final bool activate = form['activate'] == 'on';
 
-    final IptvAuthConfig config;
-    if (isM3u) {
-      final String m3uUrl = (form['m3uUrl'] ?? '').trim();
-      final String xmltvUrl = (form['xmltvUrl'] ?? '').trim();
-      if (!_validUrl(m3uUrl)) {
-        await _write(
-          request,
-          html: await _renderPage(
-            error: 'La URL de la lista M3U no es válida.',
-          ),
-        );
-        return;
-      }
-      config = M3uAuthConfig(
-        m3uUrl: m3uUrl,
-        xmltvUrl: xmltvUrl.isEmpty ? null : xmltvUrl,
-        displayName: label.isEmpty ? null : label,
+    final IptvAuthConfig? config = _configFromForm(form, isM3u: isM3u);
+    if (config == null) {
+      await _write(
+        request,
+        html: await _renderPage(
+          error: isM3u
+              ? 'La URL de la lista M3U no es válida.'
+              : 'Completa el host, el usuario y la contraseña.',
+        ),
       );
-    } else {
-      final String serverUrl = (form['serverUrl'] ?? '').trim();
-      final String username = (form['username'] ?? '').trim();
-      final String password = form['password'] ?? '';
-      if (!_validUrl(serverUrl) || username.isEmpty || password.isEmpty) {
-        await _write(
-          request,
-          html: await _renderPage(
-            error: 'Completa el host, el usuario y la contraseña.',
-          ),
-        );
-        return;
-      }
-      config = XtreamAuthConfig(
-        serverUrl: serverUrl,
-        username: username,
-        password: password,
-      );
+      return;
     }
 
     final String id = _fingerprintFor(config);
@@ -196,31 +188,247 @@ class LocalAccountServer {
       await _write(
         request,
         html: await _renderPage(
-          error: 'Ya existe una cuenta con ese host y usuario. Cambia solo la etiqueta desde la lista.',
+          error: 'Ya existe una cuenta con ese host y usuario. Edítala desde la lista para cambiar la contraseña.',
         ),
       );
       return;
     }
 
-    try {
-      await repository.login(config, activate: activate);
-      if (label.isNotEmpty) {
-        await accountStore.rename(id, label);
+    // Guardar primero permite conservar cuentas caducadas o no verificables.
+    await accountStore.write(
+      _credentialsFromConfig(config),
+      label: label.isEmpty ? null : label,
+      activate: false,
+    );
+    onAccountsChanged();
+
+    if (activate) {
+      await _authenticate(request, config, savedMessage: 'Cuenta guardada. ');
+      return;
+    }
+
+    await _write(
+      request,
+      html: await _renderPage(
+        message: 'Cuenta guardada. La cuenta actual sigue activa.',
+      ),
+    );
+  }
+
+  Future<void> _handleUpdate(HttpRequest request) async {
+    final Map<String, String> form = await _readForm(request);
+    final String id = (form['id'] ?? '').trim();
+    final List<StoredAccount> accounts = await accountStore.readAll();
+    StoredAccount? previous;
+    for (final StoredAccount account in accounts) {
+      if (account.id == id) {
+        previous = account;
+        break;
       }
+    }
+    if (previous == null) {
+      await _write(
+        request,
+        html: await _renderPage(error: 'La cuenta ya no existe.'),
+      );
+      return;
+    }
+
+    final bool isM3u = form['source'] == 'm3u';
+    final String password = (form['password'] ?? '').trim();
+    final IptvAuthConfig? config = _configFromForm(
+      form,
+      isM3u: isM3u,
+      fallbackPassword: password.isEmpty ? previous.credentials.password : null,
+    );
+    if (config == null) {
+      await _write(
+        request,
+        html: await _renderPage(error: 'Revisa los datos de conexión.'),
+      );
+      return;
+    }
+
+    final String label = (form['label'] ?? '').trim();
+    await accountStore.replace(
+      id,
+      _credentialsFromConfig(config),
+      label: label.isEmpty ? null : label,
+    );
+    onAccountsChanged();
+
+    if (form['activate'] == 'on') {
+      await _authenticate(
+        request,
+        config,
+        savedMessage: 'Cuenta actualizada. ',
+      );
+      return;
+    }
+
+    await _write(
+      request,
+      html: await _renderPage(message: 'Cuenta actualizada.'),
+    );
+  }
+
+  Future<void> _handleLogin(HttpRequest request) async {
+    final Map<String, String> form = await _readForm(request);
+    final String id = (form['id'] ?? '').trim();
+    final List<StoredAccount> accounts = await accountStore.readAll();
+    StoredAccount? account;
+    for (final StoredAccount candidate in accounts) {
+      if (candidate.id == id) {
+        account = candidate;
+        break;
+      }
+    }
+    if (account == null) {
+      await _write(
+        request,
+        html: await _renderPage(error: 'La cuenta ya no existe.'),
+      );
+      return;
+    }
+    await _authenticate(
+      request,
+      _configFromStored(account.credentials, account.label),
+    );
+  }
+
+  Future<void> _authenticate(
+    HttpRequest request,
+    IptvAuthConfig config, {
+    String savedMessage = '',
+  }) async {
+    try {
+      final UserAccount account = await repository.login(
+        config,
+        activate: true,
+      );
+      await _rememberStatus(account);
       onAccountsChanged();
+      if (account.isActive && !account.isExpired) {
+        onAuthenticated?.call(account);
+        await _write(
+          request,
+          html: await _renderPage(
+            message: '${savedMessage}Sesión iniciada correctamente.',
+          ),
+        );
+        return;
+      }
       await _write(
         request,
         html: await _renderPage(
-          message: activate
-              ? 'Cuenta guardada y activada.'
-              : 'Cuenta guardada. La cuenta actual sigue activa.',
+          error:
+              '${savedMessage}La cuenta está guardada, pero no está activa o ha caducado.',
         ),
       );
     } on Exception catch (error) {
       await _write(
         request,
-        html: await _renderPage(error: _errorMessage(error)),
+        html: await _renderPage(
+          error:
+              '${savedMessage}La cuenta está guardada, pero no se pudo iniciar sesión: ${_errorMessage(error)}',
+        ),
       );
+    }
+  }
+
+  IptvAuthConfig? _configFromForm(
+    Map<String, String> form, {
+    required bool isM3u,
+    String? fallbackPassword,
+  }) {
+    if (isM3u) {
+      final String m3uUrl = (form['m3uUrl'] ?? '').trim();
+      final String xmltvUrl = (form['xmltvUrl'] ?? '').trim();
+      if (!_validUrl(m3uUrl)) return null;
+      return M3uAuthConfig(
+        m3uUrl: m3uUrl,
+        xmltvUrl: xmltvUrl.isEmpty ? null : xmltvUrl,
+        displayName: (form['label'] ?? '').trim().isEmpty
+            ? null
+            : (form['label'] ?? '').trim(),
+      );
+    }
+    final String serverUrl = (form['serverUrl'] ?? '').trim();
+    final String username = (form['username'] ?? '').trim();
+    final String password = fallbackPassword ?? (form['password'] ?? '');
+    if (!_validUrl(serverUrl) || username.isEmpty || password.isEmpty) {
+      return null;
+    }
+    return XtreamAuthConfig(
+      serverUrl: serverUrl,
+      username: username,
+      password: password,
+    );
+  }
+
+  IptvAuthConfig _configFromStored(
+    StoredCredentials credentials,
+    String label,
+  ) {
+    if (credentials.sourceType == IptvSourceType.m3u) {
+      return M3uAuthConfig(
+        m3uUrl: credentials.m3uUrl ?? credentials.serverUrl,
+        xmltvUrl: credentials.xmltvUrl,
+        displayName: label,
+      );
+    }
+    return XtreamAuthConfig(
+      serverUrl: credentials.serverUrl,
+      username: credentials.username,
+      password: credentials.password,
+    );
+  }
+
+  StoredCredentials _credentialsFromConfig(IptvAuthConfig config) {
+    if (config is M3uAuthConfig) {
+      return StoredCredentials(
+        serverUrl: config.m3uUrl,
+        username: '',
+        password: '',
+        sourceType: IptvSourceType.m3u,
+        m3uUrl: config.m3uUrl,
+        xmltvUrl: config.xmltvUrl,
+      );
+    }
+    final XtreamAuthConfig xtream = config as XtreamAuthConfig;
+    return StoredCredentials(
+      serverUrl: xtream.serverUrl,
+      username: xtream.username,
+      password: xtream.password,
+      sourceType: IptvSourceType.xtream,
+    );
+  }
+
+  Future<void> _rememberStatus(UserAccount account) async {
+    try {
+      final List<StoredAccount> accounts = await accountStore.readAll();
+      for (final StoredAccount candidate in accounts) {
+        final StoredCredentials credentials = candidate.credentials;
+        final bool sameSource =
+            credentials.sourceUrl == account.serverUrl ||
+            credentials.serverUrl == account.serverUrl;
+        final bool sameUser =
+            credentials.sourceType == IptvSourceType.m3u ||
+            credentials.username == account.username;
+        if (credentials.sourceType == account.sourceType &&
+            sameSource &&
+            sameUser) {
+          await accountStore.updateMetadata(
+            candidate.id,
+            lastStatus: account.status,
+            expiresAt: account.expiresAt,
+            lastCheckedAt: DateTime.now(),
+          );
+          return;
+        }
+      }
+    } catch (_) {
+      // No bloquear el alta por no poder guardar metadatos.
     }
   }
 
@@ -272,16 +480,33 @@ class LocalAccountServer {
     );
   }
 
-  Future<String> _renderPage({String? message, String? error}) async {
+  Future<String> _renderPage({
+    String? message,
+    String? error,
+    String? editId,
+  }) async {
     final List<StoredAccount> accounts = await accountStore.readAll();
     final String? activeId = await accountStore.readActiveId();
+    StoredAccount? editing;
+    if (editId != null) {
+      for (final StoredAccount account in accounts) {
+        if (account.id == editId) {
+          editing = account;
+          break;
+        }
+      }
+    }
     final StringBuffer rows = StringBuffer();
     for (final StoredAccount account in accounts) {
       final bool active = account.id == activeId;
+      final String status = account.lastStatus == null
+          ? 'Sin validar'
+          : account.lastStatus!;
       rows
         ..write('<tr>')
         ..write(
-          '<td>${_escape(account.label)}${active ? ' <span class="badge">activa</span>' : ''}</td>',
+          '<td>${_escape(account.label)}${active ? ' <span class="badge">activa</span>' : ''}'
+          '<div class="hint">${_escape(status)}</div></td>',
         )
         ..write(
           '<td>${account.credentials.sourceType == IptvSourceType.xtream ? 'Xtream' : 'M3U'}</td>',
@@ -293,7 +518,12 @@ class LocalAccountServer {
           '<td class="mono">${_escape(account.credentials.username.isEmpty ? '—' : account.credentials.username)}</td>',
         )
         ..write(
-          '<td><form method="post" action="/rename?token=$_token" class="inline">'
+          '<td><form method="post" action="/login?token=$_token" class="inline">'
+          '<input type="hidden" name="id" value="${_escape(account.id)}">'
+          '<button type="submit">Entrar</button>'
+          '</form>'
+          '<a class="button secondary" href="/?token=$_token&edit=${Uri.encodeQueryComponent(account.id)}">Editar</a>'
+          '<form method="post" action="/rename?token=$_token" class="inline">'
           '<input type="hidden" name="id" value="${_escape(account.id)}">'
           '<input name="label" value="${_escape(account.label)}" maxlength="60" required>'
           '<button type="submit">Guardar etiqueta</button>'
@@ -318,6 +548,25 @@ class LocalAccountServer {
         ? '<div class="notice error">${_escape(error)}</div>'
         : '';
 
+    final bool isEditing = editing != null;
+    final StoredCredentials? current = editing?.credentials;
+    final bool editingM3u = current?.sourceType == IptvSourceType.m3u;
+    final String formTitle = isEditing ? 'Editar cuenta' : 'Añadir cuenta';
+    final String formAction = isEditing ? '/update' : '/add';
+    final String labelValue = isEditing ? _escape(editing.label) : '';
+    final String serverValue = isEditing && !editingM3u
+        ? _escape(current!.serverUrl)
+        : '';
+    final String usernameValue = isEditing && !editingM3u
+        ? _escape(current!.username)
+        : '';
+    final String m3uValue = isEditing && editingM3u
+        ? _escape(current!.m3uUrl ?? current.serverUrl)
+        : '';
+    final String xmltvValue = isEditing && editingM3u
+        ? _escape(current!.xmltvUrl ?? '')
+        : '';
+
     return '''<!doctype html>
 <html lang="es">
 <head>
@@ -335,8 +584,10 @@ p { margin: 6px 0 16px; color: #526079; }
 .card { background: white; border-radius: 14px; padding: 18px; box-shadow: 0 4px 18px #17203312; margin-bottom: 18px; }
 label { display: block; margin: 10px 0 4px; font-weight: 600; }
 input, select { width: 100%; padding: 10px 11px; border: 1px solid #cbd3e1; border-radius: 8px; font: inherit; }
-button { margin-top: 8px; padding: 9px 13px; border: 0; border-radius: 8px; background: #5546d6; color: white; font: inherit; font-weight: 600; cursor: pointer; }
-button:hover { background: #4639bd; }
+button, .button { display: inline-block; margin: 8px 4px 0 0; padding: 9px 13px; border: 0; border-radius: 8px; background: #5546d6; color: white; font: inherit; font-weight: 600; cursor: pointer; text-decoration: none; }
+button:hover, .button:hover { background: #4639bd; }
+.button.secondary { background: #e7e4ff; color: #3f34a8; }
+.button.secondary:hover { background: #d8d3ff; }
 button.danger { background: #d83b4e; }
 button.danger:hover { background: #b92d3e; }
 button:disabled { background: #aeb6c5; cursor: not-allowed; }
@@ -366,36 +617,38 @@ th { color: #526079; font-size: 12px; text-transform: uppercase; letter-spacing:
 <body>
 <main>
 <h1>Kylora · Cuentas</h1>
-<p>Solo funciona en la red local. Los datos de conexión no se pueden modificar; solo la etiqueta o borrar la cuenta.</p>
+<p>Solo funciona en la red local. Puedes guardar una cuenta aunque esté caducada o el proveedor no responda; la contraseña nunca se muestra en esta página.</p>
 $notice
 <div class="card">
-<h2>Añadir cuenta</h2>
-<form method="post" action="/add?token=$_token">
+<h2>$formTitle</h2>
+<form method="post" action="$formAction?token=$_token">
+${isEditing ? '<input type="hidden" name="id" value="${_escape(editing.id)}">' : ''}
 <label for="label">Etiqueta</label>
-<input id="label" name="label" maxlength="60" placeholder="Ej. Cuenta principal">
+<input id="label" name="label" value="$labelValue" maxlength="60" placeholder="Ej. Cuenta principal">
 <label for="source">Tipo de fuente</label>
 <select id="source" name="source" onchange="toggleSource()">
-<option value="xtream">Xtream</option>
-<option value="m3u">M3U / XMLTV</option>
+<option value="xtream" ${!editingM3u ? 'selected' : ''}>Xtream</option>
+<option value="m3u" ${editingM3u ? 'selected' : ''}>M3U / XMLTV</option>
 </select>
-<div id="xtreamFields">
+<div id="xtreamFields" style="display:${editingM3u ? 'none' : 'block'}">
 <label for="serverUrl">Host / URL</label>
-<input id="serverUrl" name="serverUrl" placeholder="http://servidor:8080" inputmode="url">
+<input id="serverUrl" name="serverUrl" value="$serverValue" placeholder="http://servidor:8080" inputmode="url">
 <label for="username">Usuario</label>
-<input id="username" name="username" autocomplete="username">
+<input id="username" name="username" value="$usernameValue" autocomplete="username">
 <label for="password">Contraseña</label>
-<input id="password" name="password" type="password" autocomplete="current-password">
+<input id="password" name="password" type="password" autocomplete="current-password" placeholder="${isEditing ? 'Dejar vacío para conservar la actual' : ''}">
 </div>
-<div id="m3uFields" style="display:none">
+<div id="m3uFields" style="display:${editingM3u ? 'block' : 'none'}">
 <label for="m3uUrl">URL de la lista M3U</label>
-<input id="m3uUrl" name="m3uUrl" inputmode="url">
+<input id="m3uUrl" name="m3uUrl" value="$m3uValue" inputmode="url">
 <label for="xmltvUrl">URL XMLTV (opcional)</label>
-<input id="xmltvUrl" name="xmltvUrl" inputmode="url">
+<input id="xmltvUrl" name="xmltvUrl" value="$xmltvValue" inputmode="url">
 </div>
-<label class="check"><input type="checkbox" name="activate" style="width:auto"> Activar al guardar</label>
+<label class="check"><input type="checkbox" name="activate" style="width:auto"> Guardar y entrar</label>
 <button type="submit">Guardar cuenta</button>
+${isEditing ? '<a class="button secondary" href="/?token=$_token">Cancelar</a>' : ''}
 </form>
-<p class="hint">Por defecto la cuenta se guarda sin activar; podrás elegirla en Ajustes → Cambiar cuenta.</p>
+<p class="hint">Sin marcar “Guardar y entrar”, la cuenta se guarda sin validar y podrás intentar entrar más tarde.</p>
 </div>
 <div class="card">
 <h2>Cuentas guardadas</h2>

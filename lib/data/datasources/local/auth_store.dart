@@ -26,6 +26,25 @@ abstract interface class AccountStore {
   Future<void> rename(String id, String label);
 
   Future<void> remove(String id);
+
+  /// Sustituye las credenciales de una cuenta conservando su etiqueta.
+  ///
+  /// Si cambia el `fingerprint` (host/usuario o URL), la entrada antigua se
+  /// elimina y la nueva ocupa su lugar; si era la activa, sigue activa.
+  Future<void> replace(
+    String oldId,
+    StoredCredentials credentials, {
+    String? label,
+    bool activate = false,
+  });
+
+  /// Actualiza los metadatos de validación de una cuenta guardada.
+  Future<void> updateMetadata(
+    String id, {
+    String? lastStatus,
+    DateTime? expiresAt,
+    DateTime? lastCheckedAt,
+  });
 }
 
 /// Sesión guardada de forma segura para cualquier fuente IPTV.
@@ -96,12 +115,37 @@ class StoredCredentials {
 
 /// Cuenta guardada: credenciales + etiqueta visible en Ajustes.
 class StoredAccount {
-  const StoredAccount({required this.credentials, required this.label});
+  const StoredAccount({
+    required this.credentials,
+    required this.label,
+    this.lastStatus,
+    this.expiresAt,
+    this.lastCheckedAt,
+  });
 
   final StoredCredentials credentials;
   final String label;
+  final String? lastStatus;
+  final DateTime? expiresAt;
+  final DateTime? lastCheckedAt;
 
   String get id => credentials.fingerprint;
+
+  StoredAccount copyWith({
+    StoredCredentials? credentials,
+    String? label,
+    String? lastStatus,
+    DateTime? expiresAt,
+    DateTime? lastCheckedAt,
+  }) {
+    return StoredAccount(
+      credentials: credentials ?? this.credentials,
+      label: label ?? this.label,
+      lastStatus: lastStatus ?? this.lastStatus,
+      expiresAt: expiresAt ?? this.expiresAt,
+      lastCheckedAt: lastCheckedAt ?? this.lastCheckedAt,
+    );
+  }
 
   SavedAccount toSavedAccount() => SavedAccount(
     id: id,
@@ -109,11 +153,17 @@ class StoredAccount {
     sourceType: credentials.sourceType,
     serverUrl: credentials.sourceUrl,
     username: credentials.username,
+    lastStatus: lastStatus,
+    expiresAt: expiresAt,
+    lastCheckedAt: lastCheckedAt,
   );
 
   Map<String, Object?> toJson() => <String, Object?>{
     'label': label,
     'credentials': credentials.toJson(),
+    'lastStatus': lastStatus,
+    'expiresAt': expiresAt?.toIso8601String(),
+    'lastCheckedAt': lastCheckedAt?.toIso8601String(),
   };
 
   factory StoredAccount.fromJson(Map<String, Object?> json) {
@@ -128,8 +178,16 @@ class StoredAccount {
     return StoredAccount(
       credentials: credentials,
       label: label.isEmpty ? _defaultAccountLabel(credentials) : label,
+      lastStatus: json['lastStatus'] as String?,
+      expiresAt: _parseDate(json['expiresAt']),
+      lastCheckedAt: _parseDate(json['lastCheckedAt']),
     );
   }
+}
+
+DateTime? _parseDate(Object? value) {
+  if (value is! String || value.isEmpty) return null;
+  return DateTime.tryParse(value);
 }
 
 String _defaultAccountLabel(StoredCredentials credentials) {
@@ -233,9 +291,13 @@ class AuthStore implements AccountStore {
         ? accounts[index].label
         : _defaultAccountLabel(credentials);
 
+    final StoredAccount? previous = index >= 0 ? accounts[index] : null;
     final StoredAccount account = StoredAccount(
       credentials: credentials,
       label: normalizedLabel,
+      lastStatus: previous?.lastStatus,
+      expiresAt: previous?.expiresAt,
+      lastCheckedAt: previous?.lastCheckedAt,
     );
     if (index >= 0) {
       accounts[index] = account;
@@ -276,9 +338,71 @@ class AuthStore implements AccountStore {
       (StoredAccount account) => account.id == id,
     );
     if (index < 0) return;
-    accounts[index] = StoredAccount(
-      credentials: accounts[index].credentials,
-      label: trimmed,
+    accounts[index] = accounts[index].copyWith(label: trimmed);
+    final String? activeId = await _storage.read(key: _kActiveAccount);
+    await _persist(accounts, activeId: activeId);
+  }
+
+  @override
+  Future<void> replace(
+    String oldId,
+    StoredCredentials credentials, {
+    String? label,
+    bool activate = false,
+  }) async {
+    final List<StoredAccount> accounts = (await readAll()).toList();
+    final int oldIndex = accounts.indexWhere(
+      (StoredAccount account) => account.id == oldId,
+    );
+    final StoredAccount? previous = oldIndex >= 0 ? accounts[oldIndex] : null;
+    final String normalizedLabel = (label?.trim().isNotEmpty ?? false)
+        ? label!.trim()
+        : previous?.label ?? _defaultAccountLabel(credentials);
+    final StoredAccount replacement = StoredAccount(
+      credentials: credentials,
+      label: normalizedLabel,
+      lastStatus: previous?.lastStatus,
+      expiresAt: previous?.expiresAt,
+      lastCheckedAt: previous?.lastCheckedAt,
+    );
+
+    accounts.removeWhere((StoredAccount account) => account.id == oldId);
+    final int existingIndex = accounts.indexWhere(
+      (StoredAccount account) => account.id == replacement.id,
+    );
+    if (existingIndex >= 0) {
+      accounts[existingIndex] = replacement;
+    } else if (oldIndex >= 0 && oldIndex <= accounts.length) {
+      accounts.insert(oldIndex, replacement);
+    } else {
+      accounts.add(replacement);
+    }
+
+    final String? currentActive = await _storage.read(key: _kActiveAccount);
+    final String? nextActive = activate
+        ? replacement.id
+        : currentActive == oldId
+        ? replacement.id
+        : currentActive;
+    await _persist(accounts, activeId: nextActive);
+  }
+
+  @override
+  Future<void> updateMetadata(
+    String id, {
+    String? lastStatus,
+    DateTime? expiresAt,
+    DateTime? lastCheckedAt,
+  }) async {
+    final List<StoredAccount> accounts = (await readAll()).toList();
+    final int index = accounts.indexWhere(
+      (StoredAccount account) => account.id == id,
+    );
+    if (index < 0) return;
+    accounts[index] = accounts[index].copyWith(
+      lastStatus: lastStatus,
+      expiresAt: expiresAt,
+      lastCheckedAt: lastCheckedAt,
     );
     final String? activeId = await _storage.read(key: _kActiveAccount);
     await _persist(accounts, activeId: activeId);

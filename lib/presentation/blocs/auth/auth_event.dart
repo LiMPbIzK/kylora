@@ -1,6 +1,7 @@
 import 'package:equatable/equatable.dart';
 
 import '../../../domain/entities/iptv_auth_config.dart';
+import '../../../domain/entities/user_account.dart';
 
 /// Eventos del flujo de autenticación.
 sealed class AuthEvent extends Equatable {
@@ -41,6 +42,17 @@ final class AuthAccountSwitchRequested extends AuthEvent {
 
   @override
   List<Object?> get props => <Object?>[accountId];
+}
+
+/// Sesión iniciada desde un canal externo (por ejemplo, el acceso remoto por
+/// QR). El repositorio ya ha persistido y activado las credenciales.
+final class AuthExternalLoginSucceeded extends AuthEvent {
+  const AuthExternalLoginSucceeded(this.account);
+
+  final UserAccount account;
+
+  @override
+  List<Object?> get props => <Object?>[account];
 }
 
 /// Vuelve a leer la lista de cuentas guardadas sin cambiar la activa.

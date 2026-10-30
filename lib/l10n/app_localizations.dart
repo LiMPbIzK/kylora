@@ -418,6 +418,168 @@ abstract class AppLocalizations {
   /// **'Move down'**
   String get moveDown;
 
+  /// No description provided for @manageAccounts.
+  ///
+  /// In en, this message translates to:
+  /// **'Manage accounts'**
+  String get manageAccounts;
+
+  /// No description provided for @accountManagerDescription.
+  ///
+  /// In en, this message translates to:
+  /// **'Manage your accounts without an active session.'**
+  String get accountManagerDescription;
+
+  /// No description provided for @noSavedAccounts.
+  ///
+  /// In en, this message translates to:
+  /// **'No saved accounts.'**
+  String get noSavedAccounts;
+
+  /// No description provided for @accountNotValidated.
+  ///
+  /// In en, this message translates to:
+  /// **'Not validated'**
+  String get accountNotValidated;
+
+  /// No description provided for @accountEdit.
+  ///
+  /// In en, this message translates to:
+  /// **'Edit account'**
+  String get accountEdit;
+
+  /// No description provided for @accountDelete.
+  ///
+  /// In en, this message translates to:
+  /// **'Delete account'**
+  String get accountDelete;
+
+  /// No description provided for @deleteAccountConfirm.
+  ///
+  /// In en, this message translates to:
+  /// **'Delete this account?'**
+  String get deleteAccountConfirm;
+
+  /// No description provided for @loginErrorAccountExpired.
+  ///
+  /// In en, this message translates to:
+  /// **'The account is expired or inactive.'**
+  String get loginErrorAccountExpired;
+
+  /// No description provided for @accountLabel.
+  ///
+  /// In en, this message translates to:
+  /// **'Label'**
+  String get accountLabel;
+
+  /// No description provided for @passwordKeepHint.
+  ///
+  /// In en, this message translates to:
+  /// **'Leave blank to keep the current one'**
+  String get passwordKeepHint;
+
+  /// No description provided for @accountSavePendingHint.
+  ///
+  /// In en, this message translates to:
+  /// **'The account is saved without validation. You can try signing in from the list.'**
+  String get accountSavePendingHint;
+
+  /// No description provided for @loginWithPhone.
+  ///
+  /// In en, this message translates to:
+  /// **'Sign in with phone'**
+  String get loginWithPhone;
+
+  /// No description provided for @remoteLoginTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Sign in with phone'**
+  String get remoteLoginTitle;
+
+  /// No description provided for @remoteLoginInstructions.
+  ///
+  /// In en, this message translates to:
+  /// **'Scan the QR with a phone on the same Wi-Fi. There you can use a saved account or add/edit its details.'**
+  String get remoteLoginInstructions;
+
+  /// No description provided for @pinProtectAccounts.
+  ///
+  /// In en, this message translates to:
+  /// **'Protect account management'**
+  String get pinProtectAccounts;
+
+  /// No description provided for @pinDescription.
+  ///
+  /// In en, this message translates to:
+  /// **'A PIN will be required to manage accounts without a session.'**
+  String get pinDescription;
+
+  /// No description provided for @pinSetTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Set PIN'**
+  String get pinSetTitle;
+
+  /// No description provided for @pinSet.
+  ///
+  /// In en, this message translates to:
+  /// **'PIN enabled'**
+  String get pinSet;
+
+  /// No description provided for @pinRemoved.
+  ///
+  /// In en, this message translates to:
+  /// **'PIN disabled'**
+  String get pinRemoved;
+
+  /// No description provided for @pinEnter.
+  ///
+  /// In en, this message translates to:
+  /// **'Enter PIN'**
+  String get pinEnter;
+
+  /// No description provided for @pinWrong.
+  ///
+  /// In en, this message translates to:
+  /// **'Wrong PIN'**
+  String get pinWrong;
+
+  /// No description provided for @pinTooShort.
+  ///
+  /// In en, this message translates to:
+  /// **'PIN must be 4 to 8 digits'**
+  String get pinTooShort;
+
+  /// No description provided for @confirmPin.
+  ///
+  /// In en, this message translates to:
+  /// **'Confirm PIN'**
+  String get confirmPin;
+
+  /// No description provided for @unlock.
+  ///
+  /// In en, this message translates to:
+  /// **'Unlock'**
+  String get unlock;
+
+  /// No description provided for @cleanExpiredAccounts.
+  ///
+  /// In en, this message translates to:
+  /// **'Clean expired'**
+  String get cleanExpiredAccounts;
+
+  /// No description provided for @cleanExpiredConfirm.
+  ///
+  /// In en, this message translates to:
+  /// **'Delete expired accounts that are not active?'**
+  String get cleanExpiredConfirm;
+
+  /// No description provided for @expiredAccountsRemoved.
+  ///
+  /// In en, this message translates to:
+  /// **'Expired accounts deleted'**
+  String get expiredAccountsRemoved;
+
   /// Panel section for application settings.
   ///
   /// In en, this message translates to:

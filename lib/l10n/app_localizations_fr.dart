@@ -178,6 +178,92 @@ class AppLocalizationsFr extends AppLocalizations {
   String get moveDown => 'Descendre';
 
   @override
+  String get manageAccounts => 'Gérer les comptes';
+
+  @override
+  String get accountManagerDescription =>
+      'Gérez vos comptes sans session active.';
+
+  @override
+  String get noSavedAccounts => 'Aucun compte enregistré.';
+
+  @override
+  String get accountNotValidated => 'Non validé';
+
+  @override
+  String get accountEdit => 'Modifier le compte';
+
+  @override
+  String get accountDelete => 'Supprimer le compte';
+
+  @override
+  String get deleteAccountConfirm => 'Supprimer ce compte ?';
+
+  @override
+  String get loginErrorAccountExpired => 'Le compte est expiré ou inactif.';
+
+  @override
+  String get accountLabel => 'Libellé';
+
+  @override
+  String get passwordKeepHint => 'Laissez vide pour conserver l\'actuel';
+
+  @override
+  String get accountSavePendingHint =>
+      'Le compte est enregistré sans validation. Vous pourrez essayer la connexion depuis la liste.';
+
+  @override
+  String get loginWithPhone => 'Se connecter avec le téléphone';
+
+  @override
+  String get remoteLoginTitle => 'Se connecter avec le téléphone';
+
+  @override
+  String get remoteLoginInstructions =>
+      'Scannez le QR avec un téléphone sur le même Wi-Fi. Vous pourrez y utiliser un compte enregistré ou modifier ses données.';
+
+  @override
+  String get pinProtectAccounts => 'Protéger la gestion des comptes';
+
+  @override
+  String get pinDescription =>
+      'Un PIN sera demandé pour gérer les comptes sans session.';
+
+  @override
+  String get pinSetTitle => 'Configurer le PIN';
+
+  @override
+  String get pinSet => 'PIN activé';
+
+  @override
+  String get pinRemoved => 'PIN désactivé';
+
+  @override
+  String get pinEnter => 'Saisissez le PIN';
+
+  @override
+  String get pinWrong => 'PIN incorrect';
+
+  @override
+  String get pinTooShort => 'Le PIN doit contenir 4 à 8 chiffres';
+
+  @override
+  String get confirmPin => 'Confirmer le PIN';
+
+  @override
+  String get unlock => 'Déverrouiller';
+
+  @override
+  String get cleanExpiredAccounts => 'Nettoyer les expirés';
+
+  @override
+  String get cleanExpiredConfirm =>
+      'Supprimer les comptes expirés non actifs ?';
+
+  @override
+  String get expiredAccountsRemoved => 'Comptes expirés supprimés';
+
+  @override
   String get settings => 'Réglages';
 
   @override
