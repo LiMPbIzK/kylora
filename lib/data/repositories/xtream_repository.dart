@@ -1,4 +1,7 @@
+import 'dart:async';
+
 import 'package:drift/drift.dart';
+import 'package:flutter/foundation.dart' show kDebugMode, debugPrint;
 
 import '../../core/utils/catchup.dart';
 import '../../domain/entities/category.dart';
@@ -45,6 +48,21 @@ class XtreamRepository implements IptvRepository {
   final AppDatabase _db;
   final LiveCacheStore _cache;
   final VodCacheStore _vodCache;
+
+  /// Snapshot en memoria para no repetir la descarga de VOD mientras el
+  /// catálogo se está pintando y la caché se escribe en segundo plano.
+  _VodContent? _vodContent;
+  String? _vodContentAccount;
+  Future<_VodContent>? _vodLoading;
+  String? _vodLoadingAccount;
+  Future<void>? _vodCacheWrite;
+  String? _vodCacheWriteAccount;
+  _SeriesContent? _seriesContent;
+  String? _seriesContentAccount;
+  Future<_SeriesContent>? _seriesLoading;
+  String? _seriesLoadingAccount;
+  Future<void>? _seriesCacheWrite;
+  String? _seriesCacheWriteAccount;
 
   @override
   Future<UserAccount> login(
@@ -186,9 +204,12 @@ class XtreamRepository implements IptvRepository {
     final List<Category> cached = await _vodCache.getVodCategories(
       credentials.fingerprint,
     );
+    if (kDebugMode) {
+      debugPrint('VOD cache categories=${cached.length}');
+    }
     if (cached.isNotEmpty) return cached;
-    await _refreshVodContent(credentials);
-    return _vodCache.getVodCategories(credentials.fingerprint);
+    final _VodContent content = await _loadVodContent(credentials);
+    return content.categories;
   }
 
   @override
@@ -198,15 +219,53 @@ class XtreamRepository implements IptvRepository {
       credentials.fingerprint,
       categoryId: categoryId,
     );
+    if (kDebugMode) {
+      debugPrint(
+        'VOD cache movies=${cached.length} category=${categoryId ?? 'all'}',
+      );
+    }
     if (cached.isNotEmpty) return cached;
-    await _refreshVodContent(credentials);
-    return _vodCache.getVodMovies(
-      credentials.fingerprint,
-      categoryId: categoryId,
-    );
+
+    final _VodContent content = await _loadVodContent(credentials);
+    if (categoryId == null) return content.movies;
+    return content.movies
+        .where((Movie movie) => movie.categoryId == categoryId)
+        .toList();
   }
 
-  Future<void> _refreshVodContent(StoredCredentials credentials) async {
+  Future<_VodContent> _loadVodContent(StoredCredentials credentials) {
+    final String account = credentials.fingerprint;
+    if (_vodContentAccount == account && _vodContent != null) {
+      return Future<_VodContent>.value(_vodContent);
+    }
+    if (_vodLoadingAccount == account && _vodLoading != null) {
+      return _vodLoading!;
+    }
+
+    final Future<_VodContent> future = _fetchVodContent(credentials);
+    _vodLoading = future;
+    _vodLoadingAccount = account;
+    future
+        .then((_VodContent content) {
+          _vodContent = content;
+          _vodContentAccount = account;
+          _scheduleVodCache(credentials, content);
+        })
+        .whenComplete(() {
+          if (identical(_vodLoading, future)) {
+            _vodLoading = null;
+            _vodLoadingAccount = null;
+          }
+        })
+        .catchError((Object error, StackTrace stack) {
+          if (kDebugMode) {
+            debugPrint('VOD fetch error: $error\n$stack');
+          }
+        });
+    return future;
+  }
+
+  Future<_VodContent> _fetchVodContent(StoredCredentials credentials) async {
     final List<Category> categories = (await _apiClient.fetchVodCategories(
       serverUrl: credentials.serverUrl,
       username: credentials.username,
@@ -217,10 +276,40 @@ class XtreamRepository implements IptvRepository {
       username: credentials.username,
       password: credentials.password,
     )).map((XtreamVodStreamDto stream) => stream.toEntity()).toList();
-    await _vodCache.replaceVodContent(
-      accountKey: credentials.fingerprint,
-      categories: categories,
-      movies: movies,
+    if (kDebugMode) {
+      debugPrint(
+        'VOD refresh: categories=${categories.length} '
+        'movies=${movies.length} '
+        'firstCategory=${categories.isEmpty ? '-' : categories.first.id} '
+        'firstMovieCategory=${movies.isEmpty ? '-' : movies.first.categoryId}',
+      );
+    }
+    return _VodContent(categories: categories, movies: movies);
+  }
+
+  void _scheduleVodCache(StoredCredentials credentials, _VodContent content) {
+    final String account = credentials.fingerprint;
+    if (_vodCacheWriteAccount == account && _vodCacheWrite != null) return;
+
+    final Future<void> write =
+        (_vodCache.replaceVodContent(
+          accountKey: account,
+          categories: content.categories,
+          movies: content.movies,
+        )).catchError((Object error, StackTrace stack) {
+          if (kDebugMode) {
+            debugPrint('VOD cache write error: $error\n$stack');
+          }
+        });
+    _vodCacheWrite = write;
+    _vodCacheWriteAccount = account;
+    unawaited(
+      write.whenComplete(() {
+        if (identical(_vodCacheWrite, write)) {
+          _vodCacheWrite = null;
+          _vodCacheWriteAccount = null;
+        }
+      }),
     );
   }
 
@@ -243,8 +332,8 @@ class XtreamRepository implements IptvRepository {
       credentials.fingerprint,
     );
     if (cached.isNotEmpty) return cached;
-    await _refreshSeriesContent(credentials);
-    return _vodCache.getSeriesCategories(credentials.fingerprint);
+    final _SeriesContent content = await _loadSeriesContent(credentials);
+    return content.categories;
   }
 
   @override
@@ -255,11 +344,48 @@ class XtreamRepository implements IptvRepository {
       categoryId: categoryId,
     );
     if (cached.isNotEmpty) return cached;
-    await _refreshSeriesContent(credentials);
-    return _vodCache.getSeries(credentials.fingerprint, categoryId: categoryId);
+    final _SeriesContent content = await _loadSeriesContent(credentials);
+    if (categoryId == null) return content.series;
+    return content.series
+        .where((Series item) => item.categoryId == categoryId)
+        .toList();
   }
 
-  Future<void> _refreshSeriesContent(StoredCredentials credentials) async {
+  Future<_SeriesContent> _loadSeriesContent(StoredCredentials credentials) {
+    final String account = credentials.fingerprint;
+    if (_seriesContentAccount == account && _seriesContent != null) {
+      return Future<_SeriesContent>.value(_seriesContent);
+    }
+    if (_seriesLoadingAccount == account && _seriesLoading != null) {
+      return _seriesLoading!;
+    }
+
+    final Future<_SeriesContent> future = _fetchSeriesContent(credentials);
+    _seriesLoading = future;
+    _seriesLoadingAccount = account;
+    future
+        .then((_SeriesContent content) {
+          _seriesContent = content;
+          _seriesContentAccount = account;
+          _scheduleSeriesCache(credentials, content);
+        })
+        .whenComplete(() {
+          if (identical(_seriesLoading, future)) {
+            _seriesLoading = null;
+            _seriesLoadingAccount = null;
+          }
+        })
+        .catchError((Object error, StackTrace stack) {
+          if (kDebugMode) {
+            debugPrint('Series fetch error: $error\n$stack');
+          }
+        });
+    return future;
+  }
+
+  Future<_SeriesContent> _fetchSeriesContent(
+    StoredCredentials credentials,
+  ) async {
     final List<Category> categories = (await _apiClient.fetchSeriesCategories(
       serverUrl: credentials.serverUrl,
       username: credentials.username,
@@ -270,10 +396,36 @@ class XtreamRepository implements IptvRepository {
       username: credentials.username,
       password: credentials.password,
     )).map((XtreamSeriesDto item) => item.toEntity()).toList();
-    await _vodCache.replaceSeriesContent(
-      accountKey: credentials.fingerprint,
-      categories: categories,
-      series: series,
+    return _SeriesContent(categories: categories, series: series);
+  }
+
+  void _scheduleSeriesCache(
+    StoredCredentials credentials,
+    _SeriesContent content,
+  ) {
+    final String account = credentials.fingerprint;
+    if (_seriesCacheWriteAccount == account && _seriesCacheWrite != null) {
+      return;
+    }
+    final Future<void> write =
+        (_vodCache.replaceSeriesContent(
+          accountKey: account,
+          categories: content.categories,
+          series: content.series,
+        )).catchError((Object error, StackTrace stack) {
+          if (kDebugMode) {
+            debugPrint('Series cache write error: $error\n$stack');
+          }
+        });
+    _seriesCacheWrite = write;
+    _seriesCacheWriteAccount = account;
+    unawaited(
+      write.whenComplete(() {
+        if (identical(_seriesCacheWrite, write)) {
+          _seriesCacheWrite = null;
+          _seriesCacheWriteAccount = null;
+        }
+      }),
     );
   }
 
@@ -300,10 +452,7 @@ class XtreamRepository implements IptvRepository {
             );
             return MapEntry<int, List<EpgEntry>>(channel.id, epg);
           } catch (_) {
-            return MapEntry<int, List<EpgEntry>>(
-              channel.id,
-              <EpgEntry>[],
-            );
+            return MapEntry<int, List<EpgEntry>>(channel.id, <EpgEntry>[]);
           }
         }),
       );
@@ -533,12 +682,34 @@ class XtreamRepository implements IptvRepository {
   Future<void> refreshCatalog() async {
     final StoredCredentials credentials = await _requireCredentials();
     await _refreshLiveContent();
-    await _refreshVodContent(credentials);
-    await _refreshSeriesContent(credentials);
+    _vodContent = null;
+    _vodContentAccount = null;
+    _seriesContent = null;
+    _seriesContentAccount = null;
+    final _VodContent vod = await _fetchVodContent(credentials);
+    _vodContent = vod;
+    _vodContentAccount = credentials.fingerprint;
+    await _vodCache.replaceVodContent(
+      accountKey: credentials.fingerprint,
+      categories: vod.categories,
+      movies: vod.movies,
+    );
+    final _SeriesContent series = await _fetchSeriesContent(credentials);
+    _seriesContent = series;
+    _seriesContentAccount = credentials.fingerprint;
+    await _vodCache.replaceSeriesContent(
+      accountKey: credentials.fingerprint,
+      categories: series.categories,
+      series: series.series,
+    );
   }
 
   @override
   Future<void> clearCatalogCache() async {
+    _vodContent = null;
+    _vodContentAccount = null;
+    _seriesContent = null;
+    _seriesContentAccount = null;
     await _cache.clear();
     await _vodCache.clear();
   }
@@ -603,4 +774,18 @@ class XtreamRepository implements IptvRepository {
     }
     return credentials;
   }
+}
+
+class _VodContent {
+  const _VodContent({required this.categories, required this.movies});
+
+  final List<Category> categories;
+  final List<Movie> movies;
+}
+
+class _SeriesContent {
+  const _SeriesContent({required this.categories, required this.series});
+
+  final List<Category> categories;
+  final List<Series> series;
 }
