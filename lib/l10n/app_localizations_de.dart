@@ -217,6 +217,10 @@ class AppLocalizationsDe extends AppLocalizations {
   String get loginWithPhone => 'Mit dem Telefon anmelden';
 
   @override
+  String get loginWithPhoneHint =>
+      'Scanne den QR-Code mit einem Telefon im selben WLAN. Du kannst deine Konten auch ohne Sitzung verwalten.';
+
+  @override
   String get remoteLoginTitle => 'Mit dem Telefon anmelden';
 
   @override

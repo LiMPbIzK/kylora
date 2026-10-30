@@ -216,6 +216,10 @@ class AppLocalizationsPt extends AppLocalizations {
   String get loginWithPhone => 'Entrar com o telemóvel';
 
   @override
+  String get loginWithPhoneHint =>
+      'Digitalize o QR com um telemóvel na mesma Wi-Fi. Também pode gerir as contas sem sessão.';
+
+  @override
   String get remoteLoginTitle => 'Entrar com o telemóvel';
 
   @override

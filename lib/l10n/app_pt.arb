@@ -220,6 +220,7 @@
   "passwordKeepHint": "Deixe em branco para manter a atual",
   "accountSavePendingHint": "A conta é guardada sem validação. Poderá tentar entrar a partir da lista.",
   "loginWithPhone": "Entrar com o telemóvel",
+  "loginWithPhoneHint": "Digitalize o QR com um telemóvel na mesma Wi-Fi. Também pode gerir as contas sem sessão.",
   "remoteLoginTitle": "Entrar com o telemóvel",
   "remoteLoginInstructions": "Digitalize o QR com um telemóvel na mesma Wi-Fi. Aí pode usar uma conta guardada ou adicionar/editar os dados.",
   "pinProtectAccounts": "Proteger gestão de contas",

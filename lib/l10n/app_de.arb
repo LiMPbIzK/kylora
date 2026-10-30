@@ -220,6 +220,7 @@
   "passwordKeepHint": "Leer lassen, um das aktuelle zu behalten",
   "accountSavePendingHint": "Das Konto wird ohne Validierung gespeichert. Du kannst die Anmeldung später aus der Liste versuchen.",
   "loginWithPhone": "Mit dem Telefon anmelden",
+  "loginWithPhoneHint": "Scanne den QR-Code mit einem Telefon im selben WLAN. Du kannst deine Konten auch ohne Sitzung verwalten.",
   "remoteLoginTitle": "Mit dem Telefon anmelden",
   "remoteLoginInstructions": "Scanne den QR-Code mit einem Telefon im selben WLAN. Dort kannst du ein gespeichertes Konto verwenden oder Daten bearbeiten.",
   "pinProtectAccounts": "Kontoverwaltung schützen",

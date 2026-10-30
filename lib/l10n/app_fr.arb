@@ -220,6 +220,7 @@
   "passwordKeepHint": "Laissez vide pour conserver l'actuel",
   "accountSavePendingHint": "Le compte est enregistré sans validation. Vous pourrez essayer la connexion depuis la liste.",
   "loginWithPhone": "Se connecter avec le téléphone",
+  "loginWithPhoneHint": "Scannez le QR avec un téléphone sur le même Wi-Fi. Vous pouvez aussi gérer vos comptes sans session.",
   "remoteLoginTitle": "Se connecter avec le téléphone",
   "remoteLoginInstructions": "Scannez le QR avec un téléphone sur le même Wi-Fi. Vous pourrez y utiliser un compte enregistré ou modifier ses données.",
   "pinProtectAccounts": "Protéger la gestion des comptes",

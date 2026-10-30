@@ -215,6 +215,7 @@
   "passwordKeepHint": "Leave blank to keep the current one",
   "accountSavePendingHint": "The account is saved without validation. You can try signing in from the list.",
   "loginWithPhone": "Sign in with phone",
+  "loginWithPhoneHint": "Scan the QR with a phone on the same Wi-Fi. You can also manage your accounts without a session.",
   "remoteLoginTitle": "Sign in with phone",
   "remoteLoginInstructions": "Scan the QR with a phone on the same Wi-Fi. There you can use a saved account or add/edit its details.",
   "pinProtectAccounts": "Protect account management",

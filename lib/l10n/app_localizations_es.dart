@@ -214,10 +214,14 @@ class AppLocalizationsEs extends AppLocalizations {
       'La cuenta se guarda sin validar. Podrás probar el acceso desde la lista.';
 
   @override
-  String get loginWithPhone => 'Entrar con el móvil';
+  String get loginWithPhone => 'Iniciar sesión con el móvil';
 
   @override
-  String get remoteLoginTitle => 'Entrar con el móvil';
+  String get loginWithPhoneHint =>
+      'Escanea el QR con un móvil en la misma Wi-Fi. También puedes gestionar tus cuentas sin sesión.';
+
+  @override
+  String get remoteLoginTitle => 'Iniciar sesión con el móvil';
 
   @override
   String get remoteLoginInstructions =>

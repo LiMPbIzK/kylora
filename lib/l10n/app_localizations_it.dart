@@ -216,6 +216,10 @@ class AppLocalizationsIt extends AppLocalizations {
   String get loginWithPhone => 'Accedi con il telefono';
 
   @override
+  String get loginWithPhoneHint =>
+      'Scansiona il QR con un telefono sulla stessa Wi-Fi. Puoi anche gestire gli account senza sessione.';
+
+  @override
   String get remoteLoginTitle => 'Accedi con il telefono';
 
   @override

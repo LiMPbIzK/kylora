@@ -344,6 +344,7 @@ void main() {
   testWidgets('Campos vacíos muestran validación', (WidgetTester tester) async {
     await pumpApp(tester);
 
+    await tester.ensureVisible(find.byType(FilledButton));
     await tester.tap(find.byType(FilledButton));
     await tester.pumpAndSettle();
 
@@ -356,6 +357,7 @@ void main() {
     await pumpApp(tester);
 
     await tester.enterText(find.byType(TextFormField).at(0), 'not-a-url');
+    await tester.ensureVisible(find.byType(FilledButton));
     await tester.tap(find.byType(FilledButton));
     await tester.pumpAndSettle();
 

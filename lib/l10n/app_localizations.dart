@@ -490,6 +490,12 @@ abstract class AppLocalizations {
   /// **'Sign in with phone'**
   String get loginWithPhone;
 
+  /// No description provided for @loginWithPhoneHint.
+  ///
+  /// In en, this message translates to:
+  /// **'Scan the QR with a phone on the same Wi-Fi. You can also manage your accounts without a session.'**
+  String get loginWithPhoneHint;
+
   /// No description provided for @remoteLoginTitle.
   ///
   /// In en, this message translates to:

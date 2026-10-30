@@ -133,7 +133,10 @@ class _LoginScreenState extends State<LoginScreen> {
                   left: 24,
                   right: 24,
                   top: 32,
-                  bottom: bottomInset + 16,
+                  // En Android TV el teclado flotante no siempre reporta
+                  // viewInsets; dejamos espacio extra para que el campo
+                  // enfocado pueda subir por encima de él.
+                  bottom: bottomInset + 240,
                 ),
                 child: ConstrainedBox(
                   constraints: BoxConstraints(
@@ -222,15 +225,25 @@ class _AutoScrollFieldState extends State<_AutoScrollField> {
   void _onFocusChanged() {
     if (!_focusNode.hasFocus) return;
     WidgetsBinding.instance.addPostFrameCallback((_) {
-      final BuildContext? ctx = _fieldKey.currentContext;
-      if (ctx == null) return;
-      Scrollable.ensureVisible(
-        ctx,
-        duration: const Duration(milliseconds: 250),
-        curve: Curves.easeOut,
-        alignment: 0.3,
-      );
+      _ensureVisible();
+      // El teclado de Android TV puede terminar de abrirse después del foco.
+      // Repetimos el ajuste para que el campo no quede debajo.
+      Future<void>.delayed(const Duration(milliseconds: 350), () {
+        if (!mounted || !_focusNode.hasFocus) return;
+        _ensureVisible();
+      });
     });
+  }
+
+  void _ensureVisible() {
+    final BuildContext? ctx = _fieldKey.currentContext;
+    if (ctx == null) return;
+    Scrollable.ensureVisible(
+      ctx,
+      duration: const Duration(milliseconds: 220),
+      curve: Curves.easeOut,
+      alignment: 0.1,
+    );
   }
 
   @override
@@ -335,7 +348,31 @@ class _LoginFormState extends State<_LoginForm> {
                   color: context.colors.onSurface.withValues(alpha: 0.7),
                 ),
               ),
-              const SizedBox(height: 32),
+              if (widget.onLoginWithPhone != null) ...<Widget>[
+                const SizedBox(height: 20),
+                OutlinedButton.icon(
+                  onPressed: widget.onLoginWithPhone,
+                  icon: const Icon(Icons.qr_code_2),
+                  label: Text(l10n.loginWithPhone),
+                ),
+                const SizedBox(height: 8),
+                Text(
+                  l10n.loginWithPhoneHint,
+                  textAlign: TextAlign.center,
+                  style: Theme.of(context).textTheme.bodySmall?.copyWith(
+                    color: context.colors.onSurface.withValues(alpha: 0.7),
+                  ),
+                ),
+                if (widget.onManageAccounts != null) ...<Widget>[
+                  const SizedBox(height: 4),
+                  TextButton.icon(
+                    onPressed: widget.onManageAccounts,
+                    icon: const Icon(Icons.manage_accounts_outlined),
+                    label: Text(l10n.manageAccounts),
+                  ),
+                ],
+              ],
+              const SizedBox(height: 24),
               SegmentedButton<IptvSourceType>(
                 segments: <ButtonSegment<IptvSourceType>>[
                   ButtonSegment<IptvSourceType>(
@@ -463,26 +500,6 @@ class _LoginFormState extends State<_LoginForm> {
                   );
                 },
               ),
-              if (widget.onLoginWithPhone != null ||
-                  widget.onManageAccounts != null) ...<Widget>[
-                const SizedBox(height: 20),
-                const Divider(),
-                const SizedBox(height: 12),
-                if (widget.onLoginWithPhone != null)
-                  OutlinedButton.icon(
-                    onPressed: widget.onLoginWithPhone,
-                    icon: const Icon(Icons.qr_code_2),
-                    label: Text(l10n.loginWithPhone),
-                  ),
-                if (widget.onManageAccounts != null) ...<Widget>[
-                  const SizedBox(height: 8),
-                  TextButton.icon(
-                    onPressed: widget.onManageAccounts,
-                    icon: const Icon(Icons.manage_accounts_outlined),
-                    label: Text(l10n.manageAccounts),
-                  ),
-                ],
-              ],
             ],
           ),
         ),
