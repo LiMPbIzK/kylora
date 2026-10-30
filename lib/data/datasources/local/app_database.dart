@@ -214,40 +214,68 @@ class AppDatabase extends _$AppDatabase {
         if (from < 4) {
           // V4: las tablas de datos del usuario pasan a estar particionadas por
           // cuenta (accountKey). Las columnas nuevas se rellenan con ''.
-          await m.addColumn(liveCategories, liveCategories.accountKey);
-          await m.addColumn(liveChannels, liveChannels.accountKey);
-          await m.addColumn(favorites, favorites.accountKey);
-          await m.addColumn(history, history.accountKey);
+          await _safeMigration(
+            () => m.addColumn(liveCategories, liveCategories.accountKey),
+          );
+          await _safeMigration(
+            () => m.addColumn(liveChannels, liveChannels.accountKey),
+          );
+          await _safeMigration(
+            () => m.addColumn(favorites, favorites.accountKey),
+          );
+          await _safeMigration(() => m.addColumn(history, history.accountKey));
         }
         if (from < 5) {
           // V5: guarda la URL del stream en el historial para poder reanudar
           // ("Continuar visualización") sin depender del catálogo.
-          await m.addColumn(history, history.streamUrl);
+          await _safeMigration(() => m.addColumn(history, history.streamUrl));
         }
         if (from < 6) {
           // V6: datos de catch-up/timeshift del canal.
-          await m.addColumn(liveChannels, liveChannels.hasArchive);
-          await m.addColumn(liveChannels, liveChannels.archiveDurationDays);
+          await _safeMigration(
+            () => m.addColumn(liveChannels, liveChannels.hasArchive),
+          );
+          await _safeMigration(
+            () => m.addColumn(liveChannels, liveChannels.archiveDurationDays),
+          );
           // La caché anterior no tiene los nuevos campos; se re-descarga al
           // abrir el catálogo la próxima vez.
           await delete(liveChannels).go();
         }
         if (from < 7) {
           // V7: caché de catálogos VOD y series.
-          await m.createTable(vodCategories);
-          await m.createTable(vodMovies);
-          await m.createTable(seriesCategories);
-          await m.createTable(seriesCache);
+          await _safeMigration(() => m.createTable(vodCategories));
+          await _safeMigration(() => m.createTable(vodMovies));
+          await _safeMigration(() => m.createTable(seriesCategories));
+          await _safeMigration(() => m.createTable(seriesCache));
         }
         if (from < 8) {
           // V8: grupos/categorías favoritas.
-          await m.createTable(favoriteGroups);
+          await _safeMigration(() => m.createTable(favoriteGroups));
         }
         if (from < 9) {
           // V9: visibilidad y orden de categorías por cuenta.
-          await m.createTable(categoryPreferences);
+          await _safeMigration(() => m.createTable(categoryPreferences));
         }
       },
     );
+  }
+
+  /// Las migraciones antiguas pueden haberse interrumpido a mitad (por
+  /// ejemplo, una columna creada pero con `user_version` aún en la versión
+  /// anterior). En ese caso `addColumn`/`createTable` falla por duplicado y
+  /// bloquea toda la base de datos. Se toleran esos dos casos y se continúa;
+  /// el resto de errores siguen propagándose.
+  Future<void> _safeMigration(Future<void> Function() action) async {
+    try {
+      await action();
+    } catch (error) {
+      final String message = error.toString().toLowerCase();
+      if (message.contains('duplicate column name') ||
+          message.contains('already exists')) {
+        return;
+      }
+      rethrow;
+    }
   }
 }

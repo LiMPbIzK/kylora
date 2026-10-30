@@ -7,6 +7,8 @@ import '../../../app.dart';
 import '../../../core/theme/app_theme.dart';
 import '../../../data/datasources/local/auth_store.dart';
 import '../../../data/datasources/local/pin_service.dart';
+import '../../../data/datasources/remote/m3u_downloader.dart';
+import '../../../data/datasources/remote/xtream_api_client.dart';
 import '../../../domain/entities/iptv_auth_config.dart';
 import '../../../domain/entities/iptv_source_type.dart';
 import '../../../domain/entities/user_account.dart';
@@ -123,12 +125,18 @@ class _AccountManagementScreenState extends State<AccountManagementScreen> {
         config,
         activate: true,
       );
-      await store.updateMetadata(
-        stored.id,
-        lastStatus: account.status,
-        expiresAt: account.expiresAt,
-        lastCheckedAt: DateTime.now(),
-      );
+      // La autenticación ya es válida; un fallo al guardar metadatos no debe
+      // impedir entrar en la cuenta.
+      try {
+        await store.updateMetadata(
+          stored.id,
+          lastStatus: account.status,
+          expiresAt: account.expiresAt,
+          lastCheckedAt: DateTime.now(),
+        );
+      } catch (error, stack) {
+        debugPrint('AccountManager metadata error: $error\n$stack');
+      }
       if (!mounted) return;
       if (!account.isActive || account.isExpired) {
         setState(() => _busyId = null);
@@ -138,11 +146,24 @@ class _AccountManagementScreenState extends State<AccountManagementScreen> {
       }
       context.read<AuthBloc>().add(AuthExternalLoginSucceeded(account));
       context.go(Routes.dashboard);
-    } catch (_) {
-      if (!mounted) return;
-      setState(() => _busyId = null);
-      _showMessage(AppLocalizations.of(context)!.loginErrorUnknown);
+    } on XtreamAuthException {
+      _loginFailed(AppLocalizations.of(context)!.loginErrorInvalidCredentials);
+    } on XtreamNetworkException {
+      _loginFailed(AppLocalizations.of(context)!.loginErrorNetwork);
+    } on M3uNetworkException {
+      _loginFailed(AppLocalizations.of(context)!.loginErrorNetwork);
+    } on M3uParseException {
+      _loginFailed(AppLocalizations.of(context)!.loginErrorM3uParse);
+    } catch (error, stack) {
+      debugPrint('AccountManager login error: $error\n$stack');
+      _loginFailed(AppLocalizations.of(context)!.loginErrorUnknown);
     }
+  }
+
+  void _loginFailed(String message) {
+    if (!mounted) return;
+    setState(() => _busyId = null);
+    _showMessage(message);
   }
 
   IptvAuthConfig _configFor(StoredAccount account) {
@@ -407,47 +428,83 @@ class _AccountManagementScreenState extends State<AccountManagementScreen> {
 
     return Card(
       margin: const EdgeInsets.only(bottom: 8),
-      child: ListTile(
-        onTap: () => _login(account),
-        leading: Icon(
-          account.credentials.sourceType == IptvSourceType.xtream
-              ? Icons.dns_outlined
-              : Icons.playlist_play,
-        ),
-        title: Text(
-          account.label,
-          maxLines: 1,
-          overflow: TextOverflow.ellipsis,
-        ),
-        subtitle: Text(
-          '${account.credentials.sourceUrl}\n'
-          '${account.credentials.username.isEmpty ? '—' : account.credentials.username}'
-          ' · $status$checked',
-          maxLines: 2,
-          overflow: TextOverflow.ellipsis,
-        ),
-        trailing: _busyId == account.id
-            ? const SizedBox.square(
-                dimension: 24,
-                child: CircularProgressIndicator(strokeWidth: 2),
-              )
-            : Row(
-                mainAxisSize: MainAxisSize.min,
-                children: <Widget>[
-                  if (active)
-                    Icon(Icons.check_circle, color: context.colors.primary),
-                  IconButton(
-                    tooltip: l10n.accountEdit,
-                    icon: const Icon(Icons.edit_outlined),
-                    onPressed: () => _editAccount(account),
+      child: Padding(
+        padding: const EdgeInsets.fromLTRB(16, 12, 16, 10),
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.stretch,
+          children: <Widget>[
+            Row(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: <Widget>[
+                Icon(
+                  account.credentials.sourceType == IptvSourceType.xtream
+                      ? Icons.dns_outlined
+                      : Icons.playlist_play,
+                ),
+                const SizedBox(width: 12),
+                Expanded(
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: <Widget>[
+                      Text(
+                        account.label,
+                        maxLines: 1,
+                        overflow: TextOverflow.ellipsis,
+                        style: Theme.of(context).textTheme.titleMedium,
+                      ),
+                      const SizedBox(height: 2),
+                      Text(
+                        '${account.credentials.sourceUrl} · '
+                        '${account.credentials.username.isEmpty ? '—' : account.credentials.username}',
+                        maxLines: 1,
+                        overflow: TextOverflow.ellipsis,
+                      ),
+                      Text(
+                        '$status$checked',
+                        style: TextStyle(
+                          color: expired
+                              ? context.colors.error
+                              : context.colors.onSurfaceVariant,
+                        ),
+                      ),
+                    ],
                   ),
-                  IconButton(
-                    tooltip: l10n.accountDelete,
-                    icon: const Icon(Icons.delete_outline),
-                    onPressed: () => _deleteAccount(account),
-                  ),
-                ],
-              ),
+                ),
+                if (active)
+                  Icon(Icons.check_circle, color: context.colors.primary),
+              ],
+            ),
+            const SizedBox(height: 8),
+            Wrap(
+              spacing: 8,
+              runSpacing: 4,
+              children: <Widget>[
+                FilledButton.tonalIcon(
+                  onPressed: _busyId == account.id
+                      ? null
+                      : () => _login(account),
+                  icon: _busyId == account.id
+                      ? const SizedBox.square(
+                          dimension: 18,
+                          child: CircularProgressIndicator(strokeWidth: 2),
+                        )
+                      : const Icon(Icons.login),
+                  label: Text(l10n.loginButton),
+                ),
+                OutlinedButton.icon(
+                  onPressed: () => _editAccount(account),
+                  icon: const Icon(Icons.edit_outlined),
+                  label: Text(l10n.accountEdit),
+                ),
+                TextButton.icon(
+                  onPressed: () => _deleteAccount(account),
+                  icon: const Icon(Icons.delete_outline),
+                  label: Text(l10n.accountDelete),
+                ),
+              ],
+            ),
+          ],
+        ),
       ),
     );
   }
